@@ -132,7 +132,6 @@ NMI:
 	LDA #$02
 	STA $4014       ; set the high byte (02) of the RAM address, start the transfer
 
-	JSR LoadBackground2
 
 	;;This is the PPU clean up section, so rendering the next frame starts properly.
 	LDA #%10010000   ; enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
@@ -220,6 +219,7 @@ MPU1Done:
 
 	JMP GameEngineDone
 
+	JSR LoadBackground2
 
 UpdateSprites:
 	LDX #$00
@@ -469,7 +469,7 @@ LoadBackgroundLoop2:
 	LDA background, x     ; load data from address (background + the value in x)
 	STA $2007             ; write to PPU
 	INX                   ; X = X + 1
-	CPX #$10              ; Compare X to hex $80, decimal 128 - copying 128 bytes
+	CPX #$A0              ; Compare X to hex $80, decimal 128 - copying 128 bytes
 	BNE LoadBackgroundLoop2  ; Branch to LoadBackgroundLoop if compare was Not Equal to zero
                         ; if compare was equal to 128, keep going down
 	RTS
