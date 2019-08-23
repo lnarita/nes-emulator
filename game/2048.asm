@@ -9,11 +9,10 @@ gamestate	.rs 1  ; .rs 1 means reserve one byte of space
 pointerLo	.rs 1   ; pointer variables are declared in RAM
 pointerHi	.rs 1   ; low byte first, high byte immediately after
 buttons1	.rs 1  ; player 1 gamepad buttons, one bit per button
-buttons2	.rs 1  ; player 2 gamepad buttons, one bit per button
 bgTileLo	.rs 1
 bgTileHi	.rs 1
 lastPressed .rs 1
-tiles	.rs 16
+tiles	    .rs 16
 
 	;; DECLARE SOME CONSTANTS HERE
 STATETITLE     = $00  ; displaying title screen
@@ -127,7 +126,6 @@ NMI:
 
 	;;;all graphics updates done by here, run game engine
 	JSR ReadController1  ;;get the current button data for player 1
-	JSR ReadController2  ;;get the current button data for player 2
 
 GameEngine:  
 	LDA gamestate
@@ -145,9 +143,6 @@ GameEngineDone:
 
 	;JSR UpdateSprites 
 	RTI             ; return from interrupt
- 
- 
-
 ;;;;;;;;
  
 EngineTitle:
@@ -193,9 +188,9 @@ EnginePlaying:
 	LDX #$0E
 	STA tiles, x
 	JSR UpdateSprites 
+
+	
 MPU1Done:
-
-
 	LDA buttons1
 	AND #%00001000
 	STA lastPressed
@@ -280,20 +275,6 @@ ReadController1Loop:
 	DEX
 	BNE ReadController1Loop
 	RTS
-
-ReadController2:
-	LDA #$01
-	STA $4016
-	LDA #$00
-	STA $4016
-	LDX #$08
-ReadController2Loop:
-	LDA $4017
-	LSR A            ; bit0 -> Carry
-	ROL buttons2     ; bit0 <- Carry
-	DEX
-	BNE ReadController2Loop
-	RTS  
 
 DrawTile:
     LDA tiles,x ; load em A, o valor da x-esima tile
@@ -456,25 +437,25 @@ background:
 	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 4
 	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
 
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 5
+	.db $A,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 5
+	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
+;; GRID START
+	.db $24,$24,$24,$24,$24,$0E,$0B,$0B,$0B,$0B,$12,$0B,$0B,$0B,$0B,$0B  ;;row 6
+	.db $0B,$0B,$0B,$0B,$0B,$0B,$0B,$0B,$0B,$0B,$24,$24,$24,$24,$24,$24  ;;all sky
+
+	.db $24,$24,$24,$24,$24,$0A,$24,$24,$24,$24,$16,$24,$24,$24,$24,$24  ;;row 7
 	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
 
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 6
+	.db $24,$24,$24,$24,$24,$0A,$24,$24,$24,$24,$16,$24,$24,$24,$24,$24  ;;row 8
 	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
 
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 7
+	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$16,$24,$24,$24,$24,$24  ;;row 9
 	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
 
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 8
+	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$16,$24,$24,$24,$24,$24  ;;row 10
 	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
 
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 9
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 10
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 11
+	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$16,$24,$24,$24,$24,$24  ;;row 11
 	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
 
 	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 12
@@ -569,4 +550,4 @@ sprites:
   
 	.bank 2
 	.org $0000
-	.incbin "mario.chr"   ;includes 8KB graphics file from SMB1
+	.incbin "sprite.chr"   ;includes 8KB graphics file from SMB1

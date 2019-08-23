@@ -1,0 +1,4 @@
+; nrom-template.asm
+IRQ                              = $E007
+Reset                            = $E007
+NMI                              = $E007
