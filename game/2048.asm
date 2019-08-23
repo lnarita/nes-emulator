@@ -20,6 +20,21 @@ STATETITLE     = $00  ; displaying title screen
 STATEPLAYING   = $01  ; move paddles/ball, check for collisions
 STATEGAMEOVER  = $02  ; displaying game over screen
 
+
+GUL = $0e
+GUR = $0f
+GDL = $10
+GDR = $11
+GLB = $0a
+GRB = $0b
+GUB = $0c
+GDB = $0d
+GBL = $26
+GBG = $24
+GLG = $12
+GRG = $13
+GUG = $14
+GDG = $15
     ;STATETITLE     = $00  ; displaying title screen
 
 ;;;;;;;;;;;;;;;;;;;
@@ -441,99 +456,37 @@ tile2048:
 
 ;;;;;;;;;;;;;;  
   .bank 1
-  .bank 1
   .org $E000    ;;align the background data so the lower address is $00
+
 background:
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 1
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 2
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 3
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 4
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 5
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 6
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 7
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 8
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 9
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 10
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 11
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 12
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 13
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 14
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 15
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 16
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 17
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 18
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 19
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 20
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 21
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 22
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 23
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 24
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 25
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 26
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 27
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 28
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 29
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 30
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GDG, GDG, GDG, GDG, GDG, GDG, GDG, GDG, GDG, GDG, GDG, GDG, GDG, GDG, GDG, GDG, GDG, GDG, GDG, GDG, GDG, GDG, GDG, GDG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GUL, GUB, GUB, GUB, GUB, GUR, GUL, GUB, GUB, GUB, GUB, GUR, GUL, GUB, GUB, GUB, GUB, GUR, GUL, GUB, GUB, GUB, GUB, GUR, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GDL, GDB, GDB, GDB, GDB, GDR, GDL, GDB, GDB, GDB, GDB, GDR, GDL, GDB, GDB, GDB, GDB, GDR, GDL, GDB, GDB, GDB, GDB, GDR, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GUL, GUB, GUB, GUB, GUB, GUR, GUL, GUB, GUB, GUB, GUB, GUR, GUL, GUB, GUB, GUB, GUB, GUR, GUL, GUB, GUB, GUB, GUB, GUR, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GDL, GDB, GDB, GDB, GDB, GDR, GDL, GDB, GDB, GDB, GDB, GDR, GDL, GDB, GDB, GDB, GDB, GDR, GDL, GDB, GDB, GDB, GDB, GDR, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GUL, GUB, GUB, GUB, GUB, GUR, GUL, GUB, GUB, GUB, GUB, GUR, GUL, GUB, GUB, GUB, GUB, GUR, GUL, GUB, GUB, GUB, GUB, GUR, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GDL, GDB, GDB, GDB, GDB, GDR, GDL, GDB, GDB, GDB, GDB, GDR, GDL, GDB, GDB, GDB, GDB, GDR, GDL, GDB, GDB, GDB, GDB, GDR, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GUL, GUB, GUB, GUB, GUB, GUR, GUL, GUB, GUB, GUB, GUB, GUR, GUL, GUB, GUB, GUB, GUB, GUR, GUL, GUB, GUB, GUB, GUB, GUR, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GRG, GDL, GDB, GDB, GDB, GDB, GDR, GDL, GDB, GDB, GDB, GDB, GDR, GDL, GDB, GDB, GDB, GDB, GDR, GDL, GDB, GDB, GDB, GDB, GDR, GLG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
 
 attributes:  ;8 x 8 = 64 bytes
 	.db %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000
@@ -546,7 +499,7 @@ attributes:  ;8 x 8 = 64 bytes
 	.db %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000	
 
 palette:
-	.db $22,$29,$1A,$0F,  $22,$36,$17,$0F,  $22,$30,$21,$0F,  $22,$27,$17,$0F   ;;background palette
+	.db $22,$29,$1A,$0F,  $22,$29,$1A,$0F,  $22,$29,$1A,$0F,  $22,$29,$1A,$0F   ;;background palette
 	.db $22,$1C,$15,$14,  $22,$02,$38,$3C,  $22,$1C,$15,$14,  $22,$02,$38,$3C   ;;sprite palette
 
 sprites:
@@ -562,11 +515,7 @@ sprites:
 	.dw RESET      ;when the processor first turns on or is reset, it will jump
 	               ;to the label RESET:
 	.dw 0          ;external interrupt IRQ is not used in this tutorial
-
-  
 ;;;;;;;;;;;;;;  
-  
-  
 	.bank 2
 	.org $0000
-	.incbin "mario.chr"   ;includes 8KB graphics file from SMB1
+	.incbin "sprite.chr"   ;includes 8KB graphics file from SMB1
