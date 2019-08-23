@@ -122,6 +122,7 @@ InsideLoop:
 
 	LDA #STATEPLAYING
 	STA gamestate
+	
 Forever:
 	JMP Forever     ;jump back to Forever, infinite loop, waiting for NMI
 
@@ -130,6 +131,8 @@ NMI:
 	STA $2003       ; set the low byte (00) of the RAM address
 	LDA #$02
 	STA $4014       ; set the high byte (02) of the RAM address, start the transfer
+
+	JSR LoadBackground2
 
 	;;This is the PPU clean up section, so rendering the next frame starts properly.
 	LDA #%10010000   ; enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
@@ -270,9 +273,9 @@ vertLoopDone:
 
 	LDA $2002             ; read PPU status to reset the high/low latch
 	LDA bgTileHi
-	STA $2006             ; write the high byte of $2000 address
+	; STA $2006             ; write the high byte of $2000 address
 	LDA bgTileLo
-	STA $2006             ; write the low byte of $2000 address
+	; STA $2006             ; write the low byte of $2000 address
 
 	JSR DrawTile
 
@@ -365,94 +368,112 @@ tileDrawDone:
 
 tile0:
 	LDA #$00
-	STA $2007
+	; STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile2:
 	LDA #$02
-	STA $2007
+	; STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile4:
 	LDA #$04
-	STA $2007
+	; STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile8:
 	LDA #$08
-	STA $2007
+	; STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile16:
 	LDA #$01
-	STA $2007
+	; STA $2007
 	LDA #$06
-	STA $2007
+	; STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile32:
 	LDA #$03
-	STA $2007
+	; STA $2007
 	LDA #$02
-	STA $2007
+	; STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile64:
 	LDA #$06
-	STA $2007
+	; STA $2007
 	LDA #$04
-	STA $2007
+	; STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile128:
 	LDA #$01
-	STA $2007
+	; STA $2007
 	LDA #$02
-	STA $2007
+	; STA $2007
 	LDA #$08
-	STA $2007
+	; STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile256:
 	LDA #$02
-	STA $2007
+	; STA $2007
 	LDA #$05
-	STA $2007
+	; STA $2007
 	LDA #$06
-	STA $2007
+	; STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile512:
 	LDA #$05
-	STA $2007
+	; STA $2007
 	LDA #$01
-	STA $2007
+	; STA $2007
 	LDA #$02
-	STA $2007
+	; STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile1024:
 	LDA #$01
-	STA $2007
+	; STA $2007
 	LDA #$00
-	STA $2007
+	; STA $2007
 	LDA #$02
-	STA $2007
+	; STA $2007
 	LDA #$04
-	STA $2007
+	; STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile2048:
 	LDA #$02
-	STA $2007
+	; STA $2007
 	LDA #$00
-	STA $2007
+	; STA $2007
 	LDA #$04
-	STA $2007
+	; STA $2007
 	LDA #$08
-	STA $2007
+	; STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
+
+
+LoadBackground2:
+	LDA $2002             ; read PPU status to reset the high/low latch
+	LDA #$20
+	STA $2006             ; write the high byte of $2000 address
+	LDA #$00
+	STA $2006             ; write the low byte of $2000 address
+	LDX #$00              ; start out at 0
+LoadBackgroundLoop2:
+	LDA background, x     ; load data from address (background + the value in x)
+	STA $2007             ; write to PPU
+	INX                   ; X = X + 1
+	CPX #$10              ; Compare X to hex $80, decimal 128 - copying 128 bytes
+	BNE LoadBackgroundLoop2  ; Branch to LoadBackgroundLoop if compare was Not Equal to zero
+                        ; if compare was equal to 128, keep going down
+	RTS
+  
 
 ;;;;;;;;;;;;;;  
   .bank 1
