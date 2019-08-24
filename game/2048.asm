@@ -14,6 +14,7 @@ bgTileLo	.rs 1
 bgTileHi	.rs 1
 lastPressed .rs 1
 tiles	.rs 16
+ramdomSeed .rs 1
 
 	;; DECLARE SOME CONSTANTS HERE
 STATETITLE     = $00  ; displaying title screen
@@ -103,7 +104,7 @@ LoadBackground:
 	LDX #$00            ; start at pointer + 0
 	LDY #$00
 OutsideLoop:
-  
+
 InsideLoop:
 	LDA [pointerLo], y  ; copy one background byte from address in pointer plus Y
 	STA $2007           ; this runs 256 * 4 times
@@ -144,7 +145,11 @@ NMI:
 	JSR ReadController1  ;;get the current button data for player 1
 	JSR ReadController2  ;;get the current button data for player 2
 
-GameEngine:  
+RandomSeed:
+	LDA #$03
+	STA ramdomSeed
+
+GameEngine:
 	LDA gamestate
 	CMP #STATETITLE
 	BEQ EngineTitle    ;;game is displaying title screen
@@ -156,15 +161,15 @@ GameEngine:
 	LDA gamestate
 	CMP #STATEPLAYING
 	BEQ EnginePlaying   ;;game is playing
-GameEngineDone:  
+GameEngineDone:
 
-	;JSR UpdateSprites 
+	;JSR UpdateSprites
 	RTI             ; return from interrupt
- 
- 
+
+
 
 ;;;;;;;;
- 
+
 EngineTitle:
 	;;if start button pressed
 	;;  turn screen off
@@ -174,18 +179,18 @@ EngineTitle:
 	;;  turn screen on
 	JMP GameEngineDone
 
-;;;;;;;;; 
- 
+;;;;;;;;;
+
 EngineGameOver:
 	;;if start button pressed
 	;;  turn screen off
 	;;  load title screen
 	;;  go to Title State
-	;;  turn screen on 
+	;;  turn screen on
 	JMP GameEngineDone
- 
+
 ;;;;;;;;;;;
- 
+
 EnginePlaying:
 
 	LDA buttons1
@@ -207,7 +212,7 @@ EnginePlaying:
 	LDA #$0A
 	LDX #$0E
 	STA tiles, x
-	JSR UpdateSprites 
+	JSR UpdateSprites
 MPU1Done:
 
 
@@ -222,13 +227,13 @@ UpdateSprites:
 	LDX #$00
 spriteLoop:
 	LDA #$00
-	STA bgTileLo     
+	STA bgTileLo
 	LDA #$20
 	STA bgTileHi       ; draws the background from memory pos 2000
 
     ; calcula posicao de memoria do background da x-esima tile
     ; cada tile2048 -> 7x7 tiles do NES
-    TXA 
+    TXA
     AND #%00000011 ; A%4
     TAY
 horizLoop:
@@ -281,7 +286,7 @@ vertLoopDone:
     BNE spriteLoop
 
 	RTS
- 
+
 ReadController1:
 	LDA #$01
 	STA $4016
@@ -308,11 +313,11 @@ ReadController2Loop:
 	ROL buttons2     ; bit0 <- Carry
 	DEX
 	BNE ReadController2Loop
-	RTS  
+	RTS
 
 DrawTile:
     LDA tiles,x ; load em A, o valor da x-esima tile
-dt0:    
+dt0:
     CMP #$00
     BNE dt2
     JSR tile0
@@ -454,7 +459,18 @@ tile2048:
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 
-;;;;;;;;;;;;;;  
+random:
+	LDA ramdomSeed
+	ASL A
+	ASL A
+	CLC
+	ADC ramdomSeed
+	CLC
+	ADC #$17
+	STA ramdomSeed
+	RTS
+
+;;;;;;;;;;;;;;
   .bank 1
   .org $E000    ;;align the background data so the lower address is $00
 
@@ -496,7 +512,7 @@ attributes:  ;8 x 8 = 64 bytes
 	.db %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000
 	.db %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000
 	.db %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000
-	.db %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000	
+	.db %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000
 
 palette:
 	.db $22,$29,$1A,$0F,  $22,$29,$1A,$0F,  $22,$29,$1A,$0F,  $22,$29,$1A,$0F   ;;background palette
@@ -510,12 +526,12 @@ sprites:
 	.db $88, $24, $00, $88   ;sprite 3
 
 	.org $FFFA     ;first of the three vectors starts here
-	.dw NMI        ;when an NMI happens (once per frame if enabled) the 
+	.dw NMI        ;when an NMI happens (once per frame if enabled) the
 	               ;processor will jump to the label NMI:
 	.dw RESET      ;when the processor first turns on or is reset, it will jump
 	               ;to the label RESET:
 	.dw 0          ;external interrupt IRQ is not used in this tutorial
-;;;;;;;;;;;;;;  
+;;;;;;;;;;;;;;
 	.bank 2
 	.org $0000
 	.incbin "sprite.chr"   ;includes 8KB graphics file from SMB1
