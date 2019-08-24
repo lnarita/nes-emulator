@@ -1,64 +1,108 @@
-; 2048.asm
-tile0                            = $C22B
-horizLoop                        = $C16E
-LoadPalettes                     = $C03F
-dt0                              = $C1D6
-tile64                           = $C2B5
-playSound                        = $C34F
-tile2                            = $C242
-spriteLoop                       = $C160
-InsideLoop                       = $C074
-dt2                              = $C1DD
-dt64                             = $C200
-tileDrawDone                     = $C22A
-tile32                           = $C29E
-tile4                            = $C259
-dt32                             = $C1F9
-MPD1Done                         = $C15B
-UpdateSprites                    = $C15E
-dt4                              = $C1E4
-Forever                          = $C0A9
-palette                          = $E400
-DrawTile                         = $C1D3
-LoadPalettesLoop                 = $C04E
-tile2048                         = $C328
-ReadController1                  = $C1BC
-tile8                            = $C270
-attributes                       = $E3C0
-dt8                              = $C1EB
-background                       = $E000
-random                           = $C33F
-doMvUp                           = $C0FD
-EngineTitle                      = $C0E9
-soundConfig                      = $C095
-tile1024                         = $C311
-soundCheck                       = $C35A
-vertLoop                         = $C18B
-tile512                          = $C2FA
-dt512                            = $C215
-EngineGameOver                   = $C0EC
-MPU1Done                         = $C125
-ReadController1Loop              = $C1C8
-horizLoopDone                    = $C187
-clrmem                           = $C01D
-RESET                            = $C006
-dt2048                           = $C223
-sprites                          = $E420
-RandomSeed                       = $C0CB
-dt128                            = $C207
-dt256                            = $C20E
-soundCheckDone                   = $C36C
-tile16                           = $C287
-dt16                             = $C1F2
-NMI                              = $C0AC
-doMvDown                         = $C133
-vblankwait                       = $C000
-dt1024                           = $C21C
-GameEngine                       = $C0D0
-GameEngineDone                   = $C0E8
-tile128                          = $C2CC
-tile256                          = $C2E3
-LoadBackground                   = $C059
-vertLoopDone                     = $C1A4
-EnginePlaying                    = $C0EF
-OutsideLoop                      = $C074
+$0003#buttons1#F0
+$0000#DEVELO#F0
+$C22B#tile0#0
+$C16E#horizLoop#0
+$C03F#LoadPalettes#0
+$C1D6#dt0#0
+$000B#GRB#F0
+$C2B5#tile64#0
+$C34F#playSound#0
+$0014#GUG#F0
+$0020#GAMEPAD_SELECT#F0
+$C396#SKIPMoveRight#0
+$0002#pointerHi#F0
+$000D#GDB#F0
+$C242#tile2#0
+$C160#spriteLoop#0
+$C074#InsideLoop#0
+$C1DD#dt2#0
+$C200#dt64#0
+$C22A#tileDrawDone#0
+$C29E#tile32#0
+$C39A#DONEmoveRight#0
+$0001#STATEPLAYING#F0
+$0010#GAMEPAD_START#F0
+$C259#tile4#0
+$C1F9#dt32#0
+$C15B#MPD1Done#0
+$C15E#UpdateSprites#0
+$C1E4#dt4#0
+$C0A9#Forever#0
+$E32E#palette#1
+$C1D3#DrawTile#0
+$0013#GRG#F0
+$C04E#LoadPalettesLoop#0
+$C328#tile2048#0
+$000E#GUL#F0
+$C1BC#ReadController1#0
+$0015#GDG#F0
+$0006#lastPressed#F0
+$C270#tile8#0
+$0000#CDROM#F0
+$C36D#moveRight#0
+$E2EE#attributes#1
+$0002#STATEGAMEOVER#F0
+$C1EB#dt8#0
+$E000#background#1
+$00FF#GAMEPAD_ANY_PRESSED#F0
+$000A#GLB#F0
+$0001#MAGICKIT#F0
+$C33F#random#0
+$0080#GAMEPAD_A#F0
+$C0FD#doMvUp#0
+$C0E9#EngineTitle#0
+$C095#soundConfig#0
+$0007#tiles#F0
+$C311#tile1024#0
+$0040#GAMEPAD_B#F0
+$0001#pointerLo#F0
+$C35A#soundCheck#0
+$0010#GDL#F0
+$000F#GUR#F0
+$C18B#vertLoop#0
+$0005#bgTileHi#F0
+$C371#loopMoveRight#0
+$0000#STATETITLE#F0
+$C2FA#tile512#0
+$C215#dt512#0
+$C0EC#EngineGameOver#0
+$0012#GLG#F0
+$C125#MPU1Done#0
+$0004#GAMEPAD_DOWN#F0
+$0000#SKIP#F0
+$C1C8#ReadController1Loop#0
+$0018#soundTimer#F0
+$C187#horizLoopDone#0
+$0017#ramdomSeed#F0
+$0008#GAMEPAD_UP#F0
+$C01D#clrmem#0
+$C006#RESET#0
+$0011#GDR#F0
+$C223#dt2048#0
+$E34E#sprites#1
+$C0CB#RandomSeed#0
+$C207#dt128#0
+$0024#GBG#F0
+$C20E#dt256#0
+$C36C#soundCheckDone#0
+$C287#tile16#0
+$C1F2#dt16#0
+$C0AC#NMI#0
+$C133#doMvDown#0
+$C000#vblankwait#0
+$0000#gamestate#F0
+$C21C#dt1024#0
+$0004#bgTileLo#F0
+$0001#GAMEPAD_RIGHT#F0
+$C0D0#GameEngine#0
+$C0E8#GameEngineDone#0
+$0003#BEEP_DURATION#F0
+$0026#GBL#F0
+$000C#GUB#F0
+$C2CC#tile128#0
+$0002#GAMEPAD_LEFT#F0
+$C2E3#tile256#0
+$C059#LoadBackground#0
+$C1A4#vertLoopDone#0
+$C0EF#EnginePlaying#0
+$C074#OutsideLoop#0

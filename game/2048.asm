@@ -582,38 +582,38 @@ soundCheckDone:
 
 
 moveRight:
-	LDX #$0
+	LDX #$0	;initialize indexes
 	LDY #$0
-loop:
-	CPX #$F
-	BEQ DONE
-	TXA
-	AND #$03 ; mod 4
+loopMoveRight:
+	CPX #$F	; check if looked at all tiles, no need to check last one
+	BEQ DONEmoveRight
+	TXA ; if not in the end
+	AND #$03 ; mod 4 check if at the end of a tile row, then no need to check current tile
 	CMP #$03
-	BEQ SKIP
+	BEQ SKIPMoveRight
 
-	LDA tiles, x
+	LDA tiles, x ; load the value of the current tile
 
-	CMP #$00
+	CMP #$00 ; if the tile is 0, no need to do anything
 	BEQ SKIP
 	;else
-	INX
+	INX ; now we will check the next tile 
 	LDA tiles, x
 	DEX
-	CMP #$00
-	BNE SKIP
+	CMP #$00 ; if the next tile is zero we can make the move, else there is nothing to be done
+	BNE SKIPMoveRight
 	;else current not 0 and next 0 then swap
-	LDA tiles, x ; load current
-	LDY tiles
-	STY tiles, x
-	INX
+	LDA tiles, x ; load current tile again
+	LDY #$0 	 ; the current tile will be replaced with the value 0
+	STY tiles, x ; save the value to zero
+	INX			 ; now we'll make the swap
 	STA tiles, x
 	DEX
-SKIP:
-	INX
-	JMP loop
-DONE:
-RTS
+SKIPMoveRight:
+	INX			; if there's no swap to be done we just increment the pointer
+	JMP loopMoveRight
+DONEmoveRight:
+	RTS
 
 ;;;;;;;;;;;;;;
   .bank 1
