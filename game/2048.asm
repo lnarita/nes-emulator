@@ -18,7 +18,6 @@ buttons1	.rs 1  ; player 1 gamepad buttons, one bit per button
 bgTileLo	.rs 1
 bgTileHi	.rs 1
 lastPressed .rs 1
-curr_pos 	.rs 1
 tiles       .rs 16
 
 ;--------------------------------------------------------------------
@@ -263,7 +262,6 @@ MPD1Done:
 
 	JMP GameEngineDone
 
-
 UpdateSprites:
 	LDX #$00
 spriteLoop:
@@ -273,18 +271,18 @@ spriteLoop:
 	STA bgTileHi       ; draws the background from memory pos 2000
 
     ; calcula posicao de memoria do background da x-esima tile
-    ; cada tile2048 -> 7x7 tiles do NES
+    ; cada tile2048 -> 6x6 tiles do NES
     TXA 
-    AND #%00000011 ; A%4
+    AND #%00000011     ; A%4
     TAY
 horizLoop:
 	CPY #$00
 	BEQ horizLoopDone
 
-	LDA bgTileLo      ; load low 8 bits of 16 bit value
+	LDA bgTileLo     ; load low 8 bits of 16 bit value
 	CLC              ; clear carry
-	ADC #$07         ; add 7, as one tile2048 is 7 tiles wide
-	STA bgTileLo      ; done with low bits, save back
+	ADC #$06         ; add 6, as one tile2048 is 6 tiles wide
+	STA bgTileLo     ; done with low bits, save back
 	LDA bgTileHi     ; load upper 8 bits
 	ADC #$00         ; add 0 and carry from previous add
 	STA bgTileHi     ; save back
@@ -303,7 +301,7 @@ vertLoop:
 
 	LDA bgTileLo
 	CLC
-	ADC #$E0 ; add 7*32, as one tile2048 is 7 tiles tall, and one row has 32 tiles
+	ADC #$C0 ; add 6*32, as one tile2048 is 6 tiles tall, and one row has 32 tiles
 	STA bgTileLo
 	LDA bgTileHi
 	ADC #$00
@@ -316,9 +314,9 @@ vertLoopDone:
 
 	LDA $2002             ; read PPU status to reset the high/low latch
 	LDA bgTileHi
-	; STA $2006             ; write the high byte of $2000 address
+    STA $2006             ; write the high byte of $2000 address
 	LDA bgTileLo
-	; STA $2006             ; write the low byte of $2000 address
+	STA $2006             ; write the low byte of $2000 address
 
 	JSR DrawTile
 
@@ -341,6 +339,7 @@ ReadController1Loop:
 	DEX
 	BNE ReadController1Loop
 	RTS
+
 DrawTile:
     LDA tiles,x ; load em A, o valor da x-esima tile
 dt0:    
@@ -485,6 +484,7 @@ tile2048:
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 
+
 ;;;;;;;;;;;;;;  
   .bank 1
   .org $E000    ;;align the background data so the lower address is $00
@@ -550,3 +550,4 @@ sprites:
 	.bank 2
 	.org $0000
 	.incbin "sprite.chr"   ;includes 8KB graphics file from SMB1
+
