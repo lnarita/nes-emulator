@@ -18,6 +18,7 @@ buttons1	.rs 1  ; player 1 gamepad buttons, one bit per button
 bgTileLo	.rs 1
 bgTileHi	.rs 1
 lastPressed .rs 1
+curr_pos 	.rs 1
 tiles       .rs 16
 
 ;--------------------------------------------------------------------
@@ -396,92 +397,96 @@ tileDrawDone:
 
 tile0:
 	LDA #$00
-	STA $2007
+	STA [curr_pos]
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile2:
 	LDA #$02
-	STA $2007
+	STA [curr_pos]
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile4:
 	LDA #$04
-	STA $2007
+	STA [curr_pos]
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile8:
 	LDA #$08
-	STA $2007
+	STA [curr_pos]
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile16:
 	LDA #$01
-	STA $2007
+	STA [curr_pos]
+	LDA curr_pos
+	INC
+	STA curr_pos
 	LDA #$06
-	STA $2007
+	STA [curr_pos]
+
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile32:
 	LDA #$03
-	STA $2007
+	; STA $2007
 	LDA #$02
-	STA $2007
+	; STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile64:
 	LDA #$06
-	STA $2007
+	; STA $2007
 	LDA #$04
-	STA $2007
+	; STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile128:
 	LDA #$01
-	STA $2007
+	; STA $2007
 	LDA #$02
-	STA $2007
+	; STA $2007
 	LDA #$08
-	STA $2007
+	; STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile256:
 	LDA #$02
-	STA $2007
+	; STA $2007
 	LDA #$05
-	STA $2007
+	; STA $2007
 	LDA #$06
-	STA $2007
+	; STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile512:
 	LDA #$05
-	STA $2007
+	; STA $2007
 	LDA #$01
-	STA $2007
+	; STA $2007
 	LDA #$02
-	STA $2007
+	; STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile1024:
 	LDA #$01
-	STA $2007
+;	STA $2007
 	LDA #$00
-	STA $2007
+;	STA $2007
 	LDA #$02
-	STA $2007
+;	STA $2007
 	LDA #$04
-	STA $2007
+;	STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile2048:
 	LDA #$02
-	STA $2007
+;	STA $2007
 	LDA #$00
-	STA $2007
+;	STA $2007
 	LDA #$04
-	STA $2007
+;	STA $2007
 	LDA #$08
-	STA $2007
+;	STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 
