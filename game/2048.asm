@@ -20,6 +20,7 @@ bgTileHi	.rs 1
 lastPressed .rs 1
 tiles       .rs 16
 ramdomSeed .rs 1
+soundTimer .rs 1
 
 ;--------------------------------------------------------------------
 ; constants
@@ -55,8 +56,9 @@ GAMEPAD_DOWN   = %00000100
 GAMEPAD_LEFT   = %00000010
 GAMEPAD_RIGHT  = %00000001
 GAMEPAD_ANY_PRESSED = %11111111
-    ;STATETITLE     = $00  ; displaying title screen
-
+;STATETITLE     = $00  ; displaying title screen
+;SOUND
+BEEP_DURATION = $03
 ;;;;;;;;;;;;;;;;;;;
 
 	.bank 0
@@ -142,7 +144,17 @@ InsideLoop:
 
 	LDA #STATEPLAYING
 	STA gamestate
-	
+
+soundConfig:
+	LDA #%00000001
+	STA $4015 ;enable square 1
+	LDA #$C9    ;0C9 is a C# in NTSC mode
+	LDA #%10110000 ;Duty 10, Volume 0
+	STA $4000
+	STA $4002
+	LDA #$00
+	STA $4003
+
 Forever:
 	JMP Forever         ; jump back to Forever, infinite loop, waiting for NMI
 
@@ -170,6 +182,8 @@ RandomSeed:
 	STA ramdomSeed
 
 GameEngine:
+	JSR soundCheck
+
 	LDA gamestate
 	CMP #STATETITLE
 	BEQ EngineTitle     ; game is displaying title screen
@@ -237,6 +251,8 @@ doMvUp:
 	LDA buttons1
 	AND #GAMEPAD_UP
     STA lastPressed
+
+    JSR playSound
 MPU1Done:
 
     LDA buttons1
@@ -262,6 +278,8 @@ doMvDown:
     LDA buttons1
     AND #GAMEPAD_DOWN
     STA lastPressed
+
+    JSR playSound
 MPD1Done:
 
 
@@ -270,7 +288,7 @@ MPD1Done:
 UpdateSprites:
 	LDX #$00
 spriteLoop:
-	LDA #$00
+	LDA #$A5
 	STA bgTileLo
 	LDA #$20
 	STA bgTileHi       ; draws the background from memory pos 2000
@@ -399,47 +417,85 @@ tileDrawDone:
 	RTS
 
 tile0:
-	LDA #$00
+	LDA #GBL
+	STA $2007
+	LDA #GBL
+	STA $2007
+	LDA #GBL
+	STA $2007
+	LDA #GBL
 	STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile2:
+	LDA #GBL
+	STA $2007
+	LDA #GBL
+	STA $2007
 	LDA #$02
+	STA $2007
+	LDA #GBL
 	STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile4:
+	LDA #GBL
+	STA $2007
+	LDA #GBL
+	STA $2007
 	LDA #$04
+	STA $2007
+	LDA #GBL
 	STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile8:
+	LDA #GBL
+	STA $2007
+	LDA #GBL
+	STA $2007
 	LDA #$08
+	STA $2007
+	LDA #GBL
 	STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile16:
+	LDA #GBL
+	STA $2007
 	LDA #$01
 	STA $2007
 	LDA #$06
 	STA $2007
+	LDA #GBL
+	STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile32:
+	LDA #GBL
+	STA $2007
 	LDA #$03
 	STA $2007
 	LDA #$02
 	STA $2007
+	LDA #GBL
+	STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile64:
+	LDA #GBL
+	STA $2007
 	LDA #$06
 	STA $2007
 	LDA #$04
 	STA $2007
+	LDA #GBL
+	STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile128:
+	LDA #GBL
+	STA $2007
 	LDA #$01
 	STA $2007
 	LDA #$02
@@ -449,6 +505,8 @@ tile128:
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile256:
+	LDA #GBL
+	STA $2007
 	LDA #$02
 	STA $2007
 	LDA #$05
@@ -458,6 +516,8 @@ tile256:
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile512:
+	LDA #GBL
+	STA $2007
 	LDA #$05
 	STA $2007
 	LDA #$01
@@ -501,6 +561,29 @@ random:
 	STA ramdomSeed
 	RTS
 
+playSound:
+	LDA #$00
+	STA soundTimer
+	LDA #%10111111 ;Duty 10, Volume F
+	STA $4000
+	RTS
+
+soundCheck:
+	LDA soundTimer
+	TAX
+	INX
+	TXA
+	STA soundTimer
+
+	CMP #BEEP_DURATION
+	BNE soundCheckDone
+	LDA #%10110000 ;Duty 10, Volume 0
+	STA $4000
+soundCheckDone:
+	RTS
+
+
+
 ;;;;;;;;;;;;;;
   .bank 1
   .org $E000    ;;align the background data so the lower address is $00
@@ -533,6 +616,8 @@ background:
    .db GBG, GBG, GBG, GRG, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLB, GBL, GBL, GBL, GBL, GRB, GLG, GBG, GBG, GBG
    .db GBG, GBG, GBG, GRG, GDL, GDB, GDB, GDB, GDB, GDR, GDL, GDB, GDB, GDB, GDB, GDR, GDL, GDB, GDB, GDB, GDB, GDR, GDL, GDB, GDB, GDB, GDB, GDR, GLG, GBG, GBG, GBG
    .db GBG, GBG, GBG, GBG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GUG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
 
 attributes:  ;8 x 8 = 64 bytes
