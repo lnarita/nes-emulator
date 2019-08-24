@@ -246,7 +246,7 @@ doMvUp:
 	LDA #$0A
 	LDX #$0E
 	STA tiles, x
-	JSR UpdateSprites 
+	JSR UpdateSprites
 
 	LDA buttons1
 	AND #GAMEPAD_UP
@@ -295,7 +295,7 @@ spriteLoop:
 
     ; calcula posicao de memoria do background da x-esima tile
     ; cada tile2048 -> 6x6 tiles do NES
-    TXA 
+    TXA
     AND #%00000011     ; A%4
     TAY
 horizLoop:
@@ -582,7 +582,43 @@ soundCheck:
 soundCheckDone:
 	RTS
 
+addTile:
+	BRA random ; gets random value in A
+	AND #%00001111 ; mod 16
+	TAX ; transfer random value to X
+	STA firstTile
 
+findEmpty:
+	LDA tiles,x ; load em A, o valor da x-esima tile
+	CMP #$00 ; if zero
+	BEQ twoORfour
+	BNE tryNext
+	RTS
+tryNext:
+	INX ; increment X
+	TXA ; transfer X to A
+	AND #%00001111 ; mod 16
+	CMP firstTile ; if tried all tiles and none is empty, game over
+	BEQ gameOver
+	JMP findEmpty
+
+twoORfour:
+	BRA random ; gets random value in A
+	AND #%00000001 ; eliminates 7 bits
+	CMP #$00 ; if zero, draw two
+	BEQ newTwo
+	BRA newFour ; else, draw four
+	RTS
+
+newTwo:
+	LDA #$01
+	STA tiles,x
+	RTS
+
+newFour:
+	LDA #$02
+	STA tiles,x
+	RTS
 
 ;;;;;;;;;;;;;;
   .bank 1
