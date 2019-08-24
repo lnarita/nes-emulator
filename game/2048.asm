@@ -281,8 +281,6 @@ doMvDown:
 
     JSR playSound
 MPD1Done:
-
-
 	JMP GameEngineDone
 
 UpdateSprites:
@@ -583,6 +581,39 @@ soundCheckDone:
 	RTS
 
 
+moveRight:
+	LDX #$0
+	LDY #$0
+loop:
+	CPX #$F
+	BEQ DONE
+	TXA
+	AND #$03 ; mod 4
+	CMP #$03
+	BEQ SKIP
+
+	LDA tiles, x
+
+	CMP #$00
+	BEQ SKIP
+	;else
+	INX
+	LDA tiles, x
+	DEX
+	CMP #$00
+	BNE SKIP
+	;else current not 0 and next 0 then swap
+	LDA tiles, x ; load current
+	LDY tiles
+	STY tiles, x
+	INX
+	STA tiles, x
+	DEX
+SKIP:
+	INX
+	JMP loop
+DONE:
+RTS
 
 ;;;;;;;;;;;;;;
   .bank 1
