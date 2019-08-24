@@ -21,6 +21,7 @@ lastPressed .rs 1
 tiles       .rs 16
 ramdomSeed .rs 1
 soundTimer .rs 1
+beginTile .rs 1
 
 ;--------------------------------------------------------------------
 ; constants
@@ -586,7 +587,7 @@ addTile:
 	BRA random ; gets random value in A
 	AND #%00001111 ; mod 16
 	TAX ; transfer random value to X
-	STA firstTile
+	STA beginTile
 
 findEmpty:
 	LDA tiles,x ; load em A, o valor da x-esima tile
@@ -598,7 +599,7 @@ tryNext:
 	INX ; increment X
 	TXA ; transfer X to A
 	AND #%00001111 ; mod 16
-	CMP firstTile ; if tried all tiles and none is empty, game over
+	CMP beginTile ; if tried all tiles and none is empty, game over
 	BEQ gameOver
 	JMP findEmpty
 
