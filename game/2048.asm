@@ -595,7 +595,7 @@ loopMoveRight:
 	LDA tiles, x ; load the value of the current tile
 
 	CMP #$00 ; if the tile is 0, no need to do anything
-	BEQ SKIP
+	BEQ SKIPMoveRight
 	;else
 	INX ; now we will check the next tile 
 	LDA tiles, x
@@ -604,8 +604,10 @@ loopMoveRight:
 	BNE SKIPMoveRight
 	;else current not 0 and next 0 then swap
 	LDA tiles, x ; load current tile again
-	LDY #$0 	 ; the current tile will be replaced with the value 0
-	STY tiles, x ; save the value to zero
+	TAY  ; the current tile will be replaced with the value 0
+	LDA #$0
+	STA tiles, x ; save the value to zero
+	TYA 
 	INX			 ; now we'll make the swap
 	STA tiles, x
 	DEX
