@@ -265,66 +265,57 @@ MPD1Done:
 	JSR LoadBackground2
 
 UpdateSprites:
-	LDX #$00
-spriteLoop:
-	LDA #$00
-	STA bgTileLo     
-	LDA #$20
-	STA bgTileHi       ; draws the background from memory pos 2000
-
+	LDX #$14
+    TXA
+    STA curr_pos
+    LDA #$02
+;spriteLoop:
     ; calcula posicao de memoria do background da x-esima tile
     ; cada tile2048 -> 6x6 tiles do NES
-    TXA 
-    AND #%00000011     ; A%4
-    TAY
-horizLoop:
-	CPY #$00
-	BEQ horizLoopDone
+;    TXA
+;    AND #%00000011     ; A%4
+;    TAY
+;horizLoop:
+;	CPY #$00
+;	BEQ horizLoopDone
 
-	LDA bgTileLo     ; load low 8 bits of 16 bit value
-	CLC              ; clear carry
-	ADC #$06         ; add 6, as one tile2048 is 6 tiles wide
-	STA bgTileLo     ; done with low bits, save back
-	LDA bgTileHi     ; load upper 8 bits
-	ADC #$00         ; add 0 and carry from previous add
-	STA bgTileHi     ; save back
+;	LDA bgTileLo     ; load low 8 bits of 16 bit value
+;	CLC              ; clear carry
+;	ADC #$06         ; add 6, as one tile2048 is 6 tiles wide
+;	STA bgTileLo     ; done with low bits, save back
+;	LDA bgTileHi     ; load upper 8 bits
+;	ADC #$00         ; add 0 and carry from previous add
+;	STA bgTileHi     ; save back
 
-	DEY
-	JMP horizLoop
-horizLoopDone:
+;	DEY
+;	JMP horizLoop
+;horizLoopDone:
 
-	TXA
-	LSR A
-	LSR A; A/4
-	TAY
-vertLoop:
-	CPY #$00
-	BEQ vertLoopDone
+;	TXA
+;	LSR A
+;	LSR A; A/4
+;	TAY
+;vertLoop:
+;	CPY #$00
+;	BEQ vertLoopDone
 
-	LDA bgTileLo
-	CLC
-	ADC #$C0 ; add 6*32, as one tile2048 is 6 tiles tall, and one row has 32 tiles
-	STA bgTileLo
-	LDA bgTileHi
-	ADC #$00
-	STA bgTileHi
+;	LDA bgTileLo
+;	CLC
+;	ADC #$C0 ; add 6*32, as one tile2048 is 6 tiles tall, and one row has 32 tiles
+;	STA bgTileLo
+;	LDA bgTileHi
+;	ADC #$00
+;	STA bgTileHi
 
-	DEY
-	JMP vertLoop
-vertLoopDone:
-
-
-	LDA $2002             ; read PPU status to reset the high/low latch
-	LDA bgTileHi
-    STA $2006             ; write the high byte of $2000 address
-	LDA bgTileLo
-	STA $2006             ; write the low byte of $2000 address
+;	DEY
+;	JMP vertLoop
+;vertLoopDone:
 
 	JSR DrawTile
 
-	INX
-	CPX #$10 ;10 em hex eh 16 em dec
-    BNE spriteLoop
+;	INX
+;	CPX #$10 ;10 em hex eh 16 em dec
+;    BNE spriteLoop
 
 	RTS
  
@@ -396,33 +387,36 @@ tileDrawDone:
 	RTS
 
 tile0:
+    LDY curr_pos
 	LDA #$00
-	STA [curr_pos]
+	STA background, Y
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile2:
+    LDY curr_pos
 	LDA #$02
-	STA [curr_pos]
+	STA background, Y
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile4:
+    LDY curr_pos
 	LDA #$04
-	STA [curr_pos]
+	STA background, Y
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile8:
+    LDY curr_pos
 	LDA #$08
-	STA [curr_pos]
+	STA background, Y
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile16:
+    LDY curr_pos
 	LDA #$01
-	STA [curr_pos]
-	LDA curr_pos
-	INC
-	STA curr_pos
+	STA background, Y
+	INY
 	LDA #$06
-	STA [curr_pos]
+	STA background, Y
 
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
