@@ -584,7 +584,8 @@ soundCheckDone:
 	RTS
 
 addTile:
-	BRA random ; gets random value in A
+	BVC random ; gets random value in A
+	BVS random ; gets random value in A
 	AND #%00001111 ; mod 16
 	TAX ; transfer random value to X
 	STA beginTile
@@ -603,12 +604,18 @@ tryNext:
 	BEQ gameOver
 	JMP findEmpty
 
+gameOver:
+	LDA #STATEGAMEOVER
+	STA gamestate
+	JMP EngineGameOver
+
 twoORfour:
-	BRA random ; gets random value in A
+	BVC random ; gets random value in A
+	BVS random ; gets random value in A
 	AND #%00000001 ; eliminates 7 bits
 	CMP #$00 ; if zero, draw two
 	BEQ newTwo
-	BRA newFour ; else, draw four
+	BNE newFour ; else, draw four
 	RTS
 
 newTwo:
@@ -620,6 +627,9 @@ newFour:
 	LDA #$02
 	STA tiles,x
 	RTS
+
+
+
 
 ;;;;;;;;;;;;;;
   .bank 1
