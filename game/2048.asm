@@ -262,60 +262,69 @@ MPD1Done:
 
 
 	JMP GameEngineDone
-	JSR LoadBackground2
+
 
 UpdateSprites:
-	LDX #$14
-    TXA
-    STA curr_pos
-    LDA #$02
-;spriteLoop:
+	LDX #$00
+spriteLoop:
+	LDA #$00
+	STA bgTileLo     
+	LDA #$20
+	STA bgTileHi       ; draws the background from memory pos 2000
+
     ; calcula posicao de memoria do background da x-esima tile
-    ; cada tile2048 -> 6x6 tiles do NES
-;    TXA
-;    AND #%00000011     ; A%4
-;    TAY
-;horizLoop:
-;	CPY #$00
-;	BEQ horizLoopDone
+    ; cada tile2048 -> 7x7 tiles do NES
+    TXA 
+    AND #%00000011 ; A%4
+    TAY
+horizLoop:
+	CPY #$00
+	BEQ horizLoopDone
 
-;	LDA bgTileLo     ; load low 8 bits of 16 bit value
-;	CLC              ; clear carry
-;	ADC #$06         ; add 6, as one tile2048 is 6 tiles wide
-;	STA bgTileLo     ; done with low bits, save back
-;	LDA bgTileHi     ; load upper 8 bits
-;	ADC #$00         ; add 0 and carry from previous add
-;	STA bgTileHi     ; save back
+	LDA bgTileLo      ; load low 8 bits of 16 bit value
+	CLC              ; clear carry
+	ADC #$07         ; add 7, as one tile2048 is 7 tiles wide
+	STA bgTileLo      ; done with low bits, save back
+	LDA bgTileHi     ; load upper 8 bits
+	ADC #$00         ; add 0 and carry from previous add
+	STA bgTileHi     ; save back
 
-;	DEY
-;	JMP horizLoop
-;horizLoopDone:
+	DEY
+	JMP horizLoop
+horizLoopDone:
 
-;	TXA
-;	LSR A
-;	LSR A; A/4
-;	TAY
-;vertLoop:
-;	CPY #$00
-;	BEQ vertLoopDone
+	TXA
+	LSR A
+	LSR A; A/4
+	TAY
+vertLoop:
+	CPY #$00
+	BEQ vertLoopDone
 
-;	LDA bgTileLo
-;	CLC
-;	ADC #$C0 ; add 6*32, as one tile2048 is 6 tiles tall, and one row has 32 tiles
-;	STA bgTileLo
-;	LDA bgTileHi
-;	ADC #$00
-;	STA bgTileHi
+	LDA bgTileLo
+	CLC
+	ADC #$E0 ; add 7*32, as one tile2048 is 7 tiles tall, and one row has 32 tiles
+	STA bgTileLo
+	LDA bgTileHi
+	ADC #$00
+	STA bgTileHi
 
-;	DEY
-;	JMP vertLoop
-;vertLoopDone:
+	DEY
+	JMP vertLoop
+vertLoopDone:
+
+
+	LDA $2002             ; read PPU status to reset the high/low latch
+	LDA bgTileHi
+	; STA $2006             ; write the high byte of $2000 address
+	LDA bgTileLo
+	; STA $2006             ; write the low byte of $2000 address
 
 	JSR DrawTile
 
-;	INX
-;	CPX #$10 ;10 em hex eh 16 em dec
-;    BNE spriteLoop
+	INX
+	CPX #$10 ;10 em hex eh 16 em dec
+    BNE spriteLoop
 
 	RTS
  
@@ -332,7 +341,6 @@ ReadController1Loop:
 	DEX
 	BNE ReadController1Loop
 	RTS
-
 DrawTile:
     LDA tiles,x ; load em A, o valor da x-esima tile
 dt0:    
@@ -387,120 +395,95 @@ tileDrawDone:
 	RTS
 
 tile0:
-    LDY curr_pos
 	LDA #$00
-	STA background, Y
+	STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile2:
-    LDY curr_pos
 	LDA #$02
-	STA background, Y
+	STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile4:
-    LDY curr_pos
 	LDA #$04
-	STA background, Y
+	STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile8:
-    LDY curr_pos
 	LDA #$08
-	STA background, Y
+	STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile16:
-    LDY curr_pos
 	LDA #$01
-	STA background, Y
-	INY
+	STA $2007
 	LDA #$06
-	STA background, Y
-
+	STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile32:
 	LDA #$03
-	; STA $2007
+	STA $2007
 	LDA #$02
-	; STA $2007
+	STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile64:
 	LDA #$06
-	; STA $2007
+	STA $2007
 	LDA #$04
-	; STA $2007
+	STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile128:
 	LDA #$01
-	; STA $2007
+	STA $2007
 	LDA #$02
-	; STA $2007
+	STA $2007
 	LDA #$08
-	; STA $2007
+	STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile256:
 	LDA #$02
-	; STA $2007
+	STA $2007
 	LDA #$05
-	; STA $2007
+	STA $2007
 	LDA #$06
-	; STA $2007
+	STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile512:
 	LDA #$05
-	; STA $2007
+	STA $2007
 	LDA #$01
-	; STA $2007
+	STA $2007
 	LDA #$02
-	; STA $2007
+	STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile1024:
 	LDA #$01
-;	STA $2007
+	STA $2007
 	LDA #$00
-;	STA $2007
+	STA $2007
 	LDA #$02
-;	STA $2007
+	STA $2007
 	LDA #$04
-;	STA $2007
+	STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 tile2048:
 	LDA #$02
-;	STA $2007
+	STA $2007
 	LDA #$00
-;	STA $2007
+	STA $2007
 	LDA #$04
-;	STA $2007
+	STA $2007
 	LDA #$08
-;	STA $2007
+	STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
-
-
-LoadBackground2:
-	LDA $2002             ; read PPU status to reset the high/low latch
-	LDA #$20
-	STA $2006             ; write the high byte of $2000 address
-	LDA #$00
-	STA $2006             ; write the low byte of $2000 address
-	LDX #$00              ; start out at 0
-LoadBackgroundLoop2:
-	LDA background, x     ; load data from address (background + the value in x)
-	STA $2007             ; write to PPU
-	INX                   ; X = X + 1
-	CPX #$A0              ; Compare X to hex $80, decimal 128 - copying 128 bytes
-	BNE LoadBackgroundLoop2  ; Branch to LoadBackgroundLoop if compare was Not Equal to zero
-                        ; if compare was equal to 128, keep going down
-	RTS
-  
 
 ;;;;;;;;;;;;;;  
   .bank 1
