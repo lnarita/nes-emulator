@@ -17,7 +17,7 @@ pointerHi	.rs 1  ; low byte first, high byte immediately after
 buttons1	.rs 1  ; player 1 gamepad buttons, one bit per button
 bgTileLo	.rs 1
 bgTileHi	.rs 1
-;lastPressed .rs 1
+lastPressed .rs 1
 tiles       .rs 16
 currTile    .rs 1
 randomSeed .rs 1
@@ -266,9 +266,9 @@ EnginePlaying:
 	LDA buttons1
 	AND #GAMEPAD_UP
 	BEQ MPU1Done
-	;LDA lastPressed
-	;CMP #GAMEPAD_UP
-	;BEQ MPU1Done
+	LDA lastPressed
+	CMP #GAMEPAD_UP
+	BEQ MPU1Done
 
 doMvUp:
     JSR moveUp
@@ -278,9 +278,9 @@ doMvUp:
     JSR moveUp
     JSR UpdateSprites
 
-	;LDA buttons1
-	;AND #GAMEPAD_UP
-    ;STA lastPressed
+	LDA buttons1
+	AND #GAMEPAD_UP
+    STA lastPressed
 
     JSR playSound
 MPU1Done:
@@ -288,9 +288,9 @@ MPU1Done:
     LDA buttons1
     AND #GAMEPAD_DOWN
     BEQ MPD1Done
-    ;LDA lastPressed
-    ;CMP #GAMEPAD_DOWN
-    ;BEQ MPD1Done
+    LDA lastPressed
+    CMP #GAMEPAD_DOWN
+    BEQ MPD1Done
 
 doMvDown:
 	JSR moveDown
@@ -299,9 +299,9 @@ doMvDown:
     JSR mergeDown
 	JSR moveDown
     JSR UpdateSprites
-    ;LDA buttons1
-    ;AND #GAMEPAD_DOWN
-    ;STA lastPressed
+    LDA buttons1
+    AND #GAMEPAD_DOWN
+    STA lastPressed
 
     JSR playSound
 MPD1Done:
@@ -309,9 +309,9 @@ MPD1Done:
     LDA buttons1
     AND #GAMEPAD_LEFT
     BEQ MPL1Done
-    ;LDA lastPressed
-    ;CMP #GAMEPAD_LEFT
-    ;BEQ MPL1Done
+    LDA lastPressed
+    CMP #GAMEPAD_LEFT
+    BEQ MPL1Done
 
 doMvLeft:
 	JSR moveLeft
@@ -320,9 +320,9 @@ doMvLeft:
     JSR mergeLeft
 	JSR moveLeft
     JSR UpdateSprites
-    ;LDA buttons1
-    ;AND #GAMEPAD_LEFT
-    ;STA lastPressed
+    LDA buttons1
+    AND #GAMEPAD_LEFT
+    STA lastPressed
 
     JSR playSound
 MPL1Done:
@@ -330,9 +330,9 @@ MPL1Done:
     LDA buttons1
     AND #GAMEPAD_RIGHT
     BEQ MPR1Done
-    ;LDA lastPressed
-    ;CMP #GAMEPAD_RIGHT
-    ;BEQ MPD1Done
+    LDA lastPressed
+    CMP #GAMEPAD_RIGHT
+    BEQ MPD1Done
 
 doMvRight:
 	JSR moveRight
@@ -341,13 +341,20 @@ doMvRight:
     JSR mergeRight
 	JSR moveRight
     JSR UpdateSprites
-    ;LDA buttons1
-    ;AND #GAMEPAD_RIGHT
-    ;STA lastPressed
+    LDA buttons1
+    AND #GAMEPAD_RIGHT
+    STA lastPressed
 
     JSR playSound
 MPR1Done:
 
+checkNonePressed:
+    LDA buttons1
+    AND #GAMEPAD_ANY_PRESSED
+    BNE checkNonePressedDone
+    LDA #%00000000
+    STA lastPressed
+checkNonePressedDone:
 	JMP GameEngineDone
 
 UpdateSprites:
