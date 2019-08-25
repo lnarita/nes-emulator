@@ -20,9 +20,10 @@ bgTileHi	.rs 1
 ;lastPressed .rs 1
 tiles       .rs 16
 currTile    .rs 1
-randomSeed  .rs 1
-soundTimer  .rs 1
-beginTile  .rs 1
+randomSeed .rs 1
+soundTimer .rs 1
+beginTile .rs 1
+tempWord .rs 2
 
 ;--------------------------------------------------------------------
 ; constants
@@ -113,7 +114,7 @@ LoadPalettesLoop:
 	CPX #$20              ; Compare X to hex $10, decimal 16 - copying 16 bytes = 4 sprites
 	BNE LoadPalettesLoop  ; Branch to LoadPalettesLoop if compare was Not Equal to zero
 
-LoadBackground:
+LoadMenuBackground:
 	LDA $2002             ; read PPU status to reset the high/low latch
 	LDA #$20
 	STA $2006             ; write the high byte of $2000 address
@@ -121,7 +122,7 @@ LoadBackground:
 	STA $2006             ; write the low byte of $2000 address
 	LDA #$00
 	STA pointerLo         ; put the low byte of the address of background into pointer
-	LDA #HIGH(background)
+	LDA #HIGH(menuBackground)
 	STA pointerHi         ; put the high byte of the address into pointer
 	LDX #$00              ; start at pointer + 0
 	LDY #$00
@@ -144,8 +145,8 @@ InsideLoop:
 	STA $2001
 
 
-	LDA #STATEPLAYING
-	STA gamestate
+	; LDA #STATEPLAYING
+	; STA gamestate
 
 soundConfig:
 	LDA #%00000001
@@ -228,12 +229,32 @@ GameEngineDone:
 ;;;;;;;;
 
 EngineTitle:
-	;;if start button pressed
-	;;  turn screen off
-	;;  load game screen
-	;;  set starting paddle/ball position
-	;;  go to Playing State
-	;;  turn screen on
+	LDA buttons1
+	AND #GAMEPAD_START
+	CMP #GAMEPAD_START
+	BNE GameEngineDone
+	LDA #STATEPLAYING
+	STA gamestate
+	
+    ;LDA #$02
+    ;STA tiles
+    ;LDA #$0A
+    ;LDX #$02
+    ;STA tiles, x
+    ;LDA #$08
+    ;LDX #$0D
+    ;STA tiles, x
+    ;LDA #$0A
+    ;LDX #$0E
+    ;STA tiles, x
+
+	LDA #%00000000        ;Turn the screen off
+  	STA $2000
+  	STA $2001
+	JSR LoadNametable
+	LDA #%10001000        ;Turn the screen on
+  	STA $2000
+
 	JMP GameEngineDone
 
 ;;;;;;;;;
@@ -338,10 +359,10 @@ MPR1Done:
 	JMP GameEngineDone
 
 UpdateSprites:
-    LDA #%00000000        ;Turn the screen off
+	LDA #%00000000        ;Turn the screen off
   	STA $2000
   	STA $2001
-	LDX #$00
+	JSR LoadNametable
 spriteLoop:
 	LDA #$A5
 	STA bgTileLo
@@ -403,6 +424,7 @@ vertLoopDone:
     BNE spriteLoop
 	LDA #%10001000        ;Turn the screen on
   	STA $2000
+	LDX #$00
 	RTS
 
 ReadController1:
@@ -890,7 +912,6 @@ newFour:
 	STA tiles,x
 	RTS
 
-
 ;;; MERGE ;;;
 
 ;;  0,  1,  2,  3
@@ -1007,10 +1028,75 @@ mergeRightNext:
 mergeRightDone:
     RTS
 
+LoadNametable:
+ 	LDA $2002     ;read PPU status to reset the high/low latch
+  	LDA #$20
+  	STA $2006
+  	LDA #$00
+  	STA $2006
+
+;Set the nametable
+  	LDA gamestate
+  	ASL A
+  	TAY
+  	LDA NametablePointerTable, Y
+  	STA tempWord
+  	LDA NametablePointerTable+1, Y
+  	STA tempWord+1
+
+  	LDX #$04
+  	LDY #$00
+;Load the nametable (change this, attribute is being set unnecessarily)
+.loadNametableLoop:
+  	LDA [tempWord], Y              ;load nametable
+  	STA $2007                      ;draw tile
+  	INY                            
+  	BNE .loadNametableLoop
+  	INC tempWord+1
+  	DEX
+  	BNE .loadNametableLoop
+  	RTS
 
 ;;;;;;;;;;;;;;
   .bank 1
   .org $E000    ;;align the background data so the lower address is $00
+
+NametablePointerTable:
+  .dw menuBackground     ;STATE_TITLE
+  .dw background   ;STATE_PLAYING
+
+menuBackground:
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+
 
 background:
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
@@ -1053,6 +1139,8 @@ attributes:  ;8 x 8 = 64 bytes
 	.db %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000
 	.db %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000
 	.db %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000
+
+
 
 palette:
 	.db $22,$29,$1A,$0F,  $22,$29,$1A,$0F,  $22,$29,$1A,$0F,  $22,$29,$1A,$0F   ;;background palette
