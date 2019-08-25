@@ -247,6 +247,7 @@ doMvUp:
 	LDA #$0A
 	LDX #$0E
 	STA tiles, x
+	JSR moveUp
 	JSR UpdateSprites
 
 	LDA buttons1
@@ -275,6 +276,7 @@ doMvDown:
     LDA #$0A
     LDX #$0E
     STA tiles, x
+	JSR moveDown
     JSR UpdateSprites
     LDA buttons1
     AND #GAMEPAD_DOWN
@@ -706,6 +708,74 @@ doneLoopDownInner:
 DONEmoveDown:
 	RTS
 ;;;; END MOVE DOWN ;;;;
+
+
+
+;;;; MOVE UP ;;;;
+moveUp:
+	LDY #$3	;initialize indexes
+	TYA
+	CLC
+	ADC #$0C ;; add 12 (15)
+	TAX
+loopUpOuter:
+	TYA
+	CLC
+	ADC #$0C
+	TAX ; initialize X with Y
+	CPY #$FF	; done checking tiles
+	BEQ DONEmoveUp
+loopUpInner:
+	TXA ; if not in the end
+	AND #%1100 ;check if its on the last line
+	CMP #$0
+	BEQ doneLoopUpOuter
+
+	LDA tiles, x ; load the value of the current tile
+
+	CMP #$00 ; if the tile is 0, no need to do anything
+	BEQ doneLoopUpInner
+	;else
+	DEX 
+	DEX 
+	DEX 
+	DEX ; now we will check the next tile 
+
+	LDA tiles, x
+	INX
+	INX
+	INX
+	INX
+	CMP #$00 ; if the next tile is zero we can make the move, else there is nothing to be done
+	BNE doneLoopUpInner
+	;else current not 0 and next 0 then swap
+	LDA tiles, x ; load current tile again
+	PHA  ; save current value to stack
+	LDA #$0
+	STA tiles, x ; save zero to current position
+	PLA ; retrieve previous value from stack 
+	DEX			 ; now we'll make the swap
+	DEX	
+	DEX	
+	DEX	
+	STA tiles, x ; make the swap
+	INX 
+	INX 
+	INX 
+	INX 
+	JMP doneLoopUpInner
+doneLoopUpOuter:
+	DEY 
+	JMP loopUpOuter
+doneLoopUpInner:
+	DEX	; go to tile bellow
+	DEX 
+	DEX 
+	DEX 
+	JMP loopUpInner
+DONEmoveUp:
+	RTS
+;;;; END MOVE UP ;;;;
 
 
 random:
