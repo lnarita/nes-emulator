@@ -646,6 +646,68 @@ DONEmoveLeft:
 ;;;; END MOVE LEFT ;;;;
 
 
+;;;; MOVE DOWN ;;;;
+moveDown:
+	LDY #$0	;initialize indexes
+	LDX #$0
+loopDownOuter:
+	TYA
+	TAX ; initialize X with Y
+	CPY #04	; done checking tiles
+	BEQ DONEmoveDown
+loopDownInner:
+	TXA ; if not in the end
+	AND #%1100 ;check if its on the last line
+	CMP #%1100
+	BEQ doneLoopDownOuter
+
+	LDA tiles, x ; load the value of the current tile
+
+	CMP #$00 ; if the tile is 0, no need to do anything
+	BEQ doneLoopDownInner
+	;else
+	INX 
+	INX 
+	INX 
+	INX ; now we will check the next tile 
+
+	LDA tiles, x
+	DEX
+	DEX
+	DEX
+	DEX
+	CMP #$00 ; if the next tile is zero we can make the move, else there is nothing to be done
+	BNE doneLoopDownInner
+	;else current not 0 and next 0 then swap
+	LDA tiles, x ; load current tile again
+	PHA  ; save current value to stack
+	LDA #$0
+	STA tiles, x ; save zero to current position
+	PLA ; retrieve previous value from stack 
+	INX			 ; now we'll make the swap
+	INX	
+	INX	
+	INX	
+	STA tiles, x ; make the swap
+	DEX 
+	DEX 
+	DEX 
+	DEX 
+	JMP doneLoopDownInner
+doneLoopDownOuter:
+	INY 
+	JMP loopDownOuter
+doneLoopDownInner:
+	INX	; go to tile bellow
+	INX 
+	INX 
+	INX 
+	JMP loopDownInner
+DONEmoveDown:
+	RTS
+;;;; END MOVE DOWN ;;;;
+
+
 random:
 	LDA ramdomSeed
 	ASL A
