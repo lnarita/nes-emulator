@@ -17,7 +17,7 @@ pointerHi	.rs 1  ; low byte first, high byte immediately after
 buttons1	.rs 1  ; player 1 gamepad buttons, one bit per button
 bgTileLo	.rs 1
 bgTileHi	.rs 1
-lastPressed .rs 1
+;lastPressed .rs 1
 tiles       .rs 16
 currTile    .rs 1
 randomSeed  .rs 1
@@ -157,8 +157,28 @@ soundConfig:
 	LDA #$00
 	STA $4003
 
+    JSR initTiles
 Forever:
 	JMP Forever         ; jump back to Forever, infinite loop, waiting for NMI
+
+initTiles:
+    LDX #$00
+    LDA #$00
+initTilesLoop:
+    STA tiles, X
+initTilesNext:
+    INX
+    TAY
+    TXA
+    AND #%00000001
+    BEQ initTilesNext2
+    TYA
+    ADC #$01
+initTilesNext2:
+    CPX #$10
+    BNE initTilesLoop
+initTilesDone:
+    RTS
 
 NMI:
 	LDA #$00
@@ -186,8 +206,6 @@ RandomSeed:
 GameEngine:
 	JSR soundCheck
 
-    JSR initTiles
-
 	LDA gamestate
 	CMP #STATETITLE
 	BEQ EngineTitle     ; game is displaying title screen
@@ -206,24 +224,6 @@ GameEngineDone:
 
 
 
-initTiles:
-    LDX #$00
-    LDA #$00
-initTilesLoop:
-    STA tiles, X
-initTilesNext:
-    INX
-    TAY
-    TXA
-    AND #%00000001
-    BEQ initTilesNext2
-    TYA
-    ADC #$01
-initTilesNext2:
-    CPX #$10
-    BNE initTilesLoop
-initTilesDone:
-    RTS
 
 ;;;;;;;;
 
@@ -253,19 +253,21 @@ EnginePlaying:
 	LDA buttons1
 	AND #GAMEPAD_UP
 	BEQ MPU1Done
-	LDA lastPressed
-	CMP #GAMEPAD_UP
-	BEQ MPU1Done
+	;LDA lastPressed
+	;CMP #GAMEPAD_UP
+	;BEQ MPU1Done
 
 doMvUp:
+    JSR moveUp
+    JSR moveUp
     JSR moveUp
 	JSR mergeUp
     JSR moveUp
     JSR UpdateSprites
 
-	LDA buttons1
-	AND #GAMEPAD_UP
-    STA lastPressed
+	;LDA buttons1
+	;AND #GAMEPAD_UP
+    ;STA lastPressed
 
     JSR playSound
 MPU1Done:
@@ -273,24 +275,72 @@ MPU1Done:
     LDA buttons1
     AND #GAMEPAD_DOWN
     BEQ MPD1Done
-    LDA lastPressed
-    CMP #GAMEPAD_DOWN
-    BEQ MPD1Done
+    ;LDA lastPressed
+    ;CMP #GAMEPAD_DOWN
+    ;BEQ MPD1Done
 
 doMvDown:
+	JSR moveDown
+	JSR moveDown
 	JSR moveDown
     JSR mergeDown
 	JSR moveDown
     JSR UpdateSprites
-    LDA buttons1
-    AND #GAMEPAD_DOWN
-    STA lastPressed
+    ;LDA buttons1
+    ;AND #GAMEPAD_DOWN
+    ;STA lastPressed
 
     JSR playSound
 MPD1Done:
+
+    LDA buttons1
+    AND #GAMEPAD_LEFT
+    BEQ MPL1Done
+    ;LDA lastPressed
+    ;CMP #GAMEPAD_LEFT
+    ;BEQ MPL1Done
+
+doMvLeft:
+	JSR moveLeft
+	JSR moveLeft
+	JSR moveLeft
+    JSR mergeLeft
+	JSR moveLeft
+    JSR UpdateSprites
+    ;LDA buttons1
+    ;AND #GAMEPAD_LEFT
+    ;STA lastPressed
+
+    JSR playSound
+MPL1Done:
+
+    LDA buttons1
+    AND #GAMEPAD_RIGHT
+    BEQ MPR1Done
+    ;LDA lastPressed
+    ;CMP #GAMEPAD_RIGHT
+    ;BEQ MPD1Done
+
+doMvRight:
+	JSR moveRight
+	JSR moveRight
+	JSR moveRight
+    JSR mergeRight
+	JSR moveRight
+    JSR UpdateSprites
+    ;LDA buttons1
+    ;AND #GAMEPAD_RIGHT
+    ;STA lastPressed
+
+    JSR playSound
+MPR1Done:
+
 	JMP GameEngineDone
 
 UpdateSprites:
+    LDA #%00000000        ;Turn the screen off
+  	STA $2000
+  	STA $2001
 	LDX #$00
 spriteLoop:
 	LDA #$A5
@@ -351,7 +401,8 @@ vertLoopDone:
 	INX
 	CPX #$10 ;10 em hex eh 16 em dec
     BNE spriteLoop
-
+	LDA #%10001000        ;Turn the screen on
+  	STA $2000
 	RTS
 
 ReadController1:
