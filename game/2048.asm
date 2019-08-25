@@ -247,6 +247,7 @@ doMvUp:
 	LDA #$0A
 	LDX #$0E
 	STA tiles, x
+	JSR moveUp
 	JSR UpdateSprites
 
 	LDA buttons1
@@ -275,6 +276,7 @@ doMvDown:
     LDA #$0A
     LDX #$0E
     STA tiles, x
+	JSR moveDown
     JSR UpdateSprites
     LDA buttons1
     AND #GAMEPAD_DOWN
@@ -282,8 +284,6 @@ doMvDown:
 
     JSR playSound
 MPD1Done:
-
-
 	JMP GameEngineDone
 
 UpdateSprites:
@@ -550,18 +550,6 @@ tile2048:
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
 
-
-random:
-	LDA ramdomSeed
-	ASL A
-	ASL A
-	CLC
-	ADC ramdomSeed
-	CLC
-	ADC #$17
-	STA ramdomSeed
-	RTS
-
 playSound:
 	LDA #$00
 	STA soundTimer
@@ -581,6 +569,224 @@ soundCheck:
 	LDA #%10110000 ;Duty 10, Volume 0
 	STA $4000
 soundCheckDone:
+	RTS
+
+;;;; MOVE RIGHT ;;;;
+moveRight:
+	LDX #$0	;initialize indexes
+	LDY #$0
+loopMoveRight:
+	CPX #$F	; check if looked at all tiles, no need to check last one
+	BEQ DONEmoveRight
+	TXA ; if not in the end
+	AND #$03 ; mod 4 check if at the end of a tile row, then no need to check current tile
+	CMP #$03
+	BEQ SKIPMoveRight
+
+	LDA tiles, x ; load the value of the current tile
+
+	CMP #$00 ; if the tile is 0, no need to do anything
+	BEQ SKIPMoveRight
+	;else
+	INX ; now we will check the next tile 
+	LDA tiles, x
+	DEX
+	CMP #$00 ; if the next tile is zero we can make the move, else there is nothing to be done
+	BNE SKIPMoveRight
+	;else current not 0 and next 0 then swap
+	LDA tiles, x ; load current tile again
+	TAY  ; the current tile will be replaced with the value 0
+	LDA #$0
+	STA tiles, x ; save the value to zero
+	TYA 
+	INX			 ; now we'll make the swap
+	STA tiles, x
+	DEX
+SKIPMoveRight:
+	INX			; if there's no swap to be done we just increment the pointer
+	JMP loopMoveRight
+DONEmoveRight:
+	RTS
+;;;; END MOVE RIGHT ;;;;
+
+;;;; MOVE LEFT ;;;;
+moveLeft:
+	LDX #$f	;initialize indexes (starting from left to right)
+	LDY #$0
+loopMoveLeft:
+	CPX #$0	; check if looked at all tiles, no need to check last one
+	BEQ DONEmoveLeft
+	TXA ; if not in the end
+	AND #$03 ; mod 4 check if at the end of a tile row, then no need to check current tile
+	CMP #$00
+	BEQ SKIPMoveLeft
+
+	LDA tiles, x ; load the value of the current tile
+
+	CMP #$00 ; if the tile is 0, no need to do anything
+	BEQ SKIPMoveLeft
+	;else
+	DEX ; now we will check the next tile 
+	LDA tiles, x
+	INX
+	CMP #$00 ; if the next tile is zero we can make the move, else there is nothing to be done
+	BNE SKIPMoveLeft
+	;else current not 0 and next 0 then swap
+	LDA tiles, x ; load current tile again
+	TAY  ; the current tile will be replaced with the value 0
+	LDA #$0
+	STA tiles, x ; save the value to zero
+	TYA 
+	DEX			 ; now we'll make the swap
+	STA tiles, x
+	INX
+SKIPMoveLeft:
+	DEX			; if there's no swap to be done we just decrement the pointer
+	JMP loopMoveLeft
+DONEmoveLeft:
+	RTS
+;;;; END MOVE LEFT ;;;;
+
+
+;;;; MOVE DOWN ;;;;
+moveDown:
+	LDY #$0	;initialize indexes
+	LDX #$0
+loopDownOuter:
+	TYA
+	TAX ; initialize X with Y
+	CPY #04	; done checking tiles
+	BEQ DONEmoveDown
+loopDownInner:
+	TXA ; if not in the end
+	AND #%1100 ;check if its on the last line
+	CMP #%1100
+	BEQ doneLoopDownOuter
+
+	LDA tiles, x ; load the value of the current tile
+
+	CMP #$00 ; if the tile is 0, no need to do anything
+	BEQ doneLoopDownInner
+	;else
+	INX 
+	INX 
+	INX 
+	INX ; now we will check the next tile 
+
+	LDA tiles, x
+	DEX
+	DEX
+	DEX
+	DEX
+	CMP #$00 ; if the next tile is zero we can make the move, else there is nothing to be done
+	BNE doneLoopDownInner
+	;else current not 0 and next 0 then swap
+	LDA tiles, x ; load current tile again
+	PHA  ; save current value to stack
+	LDA #$0
+	STA tiles, x ; save zero to current position
+	PLA ; retrieve previous value from stack 
+	INX			 ; now we'll make the swap
+	INX	
+	INX	
+	INX	
+	STA tiles, x ; make the swap
+	DEX 
+	DEX 
+	DEX 
+	DEX 
+	JMP doneLoopDownInner
+doneLoopDownOuter:
+	INY 
+	JMP loopDownOuter
+doneLoopDownInner:
+	INX	; go to tile bellow
+	INX 
+	INX 
+	INX 
+	JMP loopDownInner
+DONEmoveDown:
+	RTS
+;;;; END MOVE DOWN ;;;;
+
+
+
+;;;; MOVE UP ;;;;
+moveUp:
+	LDY #$3	;initialize indexes
+	TYA
+	CLC
+	ADC #$0C ;; add 12 (15)
+	TAX
+loopUpOuter:
+	TYA
+	CLC
+	ADC #$0C
+	TAX ; initialize X with Y
+	CPY #$FF	; done checking tiles
+	BEQ DONEmoveUp
+loopUpInner:
+	TXA ; if not in the end
+	AND #%1100 ;check if its on the last line
+	CMP #$0
+	BEQ doneLoopUpOuter
+
+	LDA tiles, x ; load the value of the current tile
+
+	CMP #$00 ; if the tile is 0, no need to do anything
+	BEQ doneLoopUpInner
+	;else
+	DEX 
+	DEX 
+	DEX 
+	DEX ; now we will check the next tile 
+
+	LDA tiles, x
+	INX
+	INX
+	INX
+	INX
+	CMP #$00 ; if the next tile is zero we can make the move, else there is nothing to be done
+	BNE doneLoopUpInner
+	;else current not 0 and next 0 then swap
+	LDA tiles, x ; load current tile again
+	PHA  ; save current value to stack
+	LDA #$0
+	STA tiles, x ; save zero to current position
+	PLA ; retrieve previous value from stack 
+	DEX			 ; now we'll make the swap
+	DEX	
+	DEX	
+	DEX	
+	STA tiles, x ; make the swap
+	INX 
+	INX 
+	INX 
+	INX 
+	JMP doneLoopUpInner
+doneLoopUpOuter:
+	DEY 
+	JMP loopUpOuter
+doneLoopUpInner:
+	DEX	; go to tile bellow
+	DEX 
+	DEX 
+	DEX 
+	JMP loopUpInner
+DONEmoveUp:
+	RTS
+;;;; END MOVE UP ;;;;
+
+
+random:
+	LDA ramdomSeed
+	ASL A
+	ASL A
+	CLC
+	ADC ramdomSeed
+	CLC
+	ADC #$17
+	STA ramdomSeed
 	RTS
 
 addTile:
@@ -631,7 +837,6 @@ newFour:
 
 
 
-;;;;;;;;;;;;;;
   .bank 1
   .org $E000    ;;align the background data so the lower address is $00
 
