@@ -164,18 +164,10 @@ Forever:
 
 initTiles:
     LDX #$00
-    LDA #$00
+    LDA #$01
 initTilesLoop:
     STA tiles, X
-initTilesNext:
     INX
-    TAY
-    TXA
-    AND #%00000001
-    BEQ initTilesNext2
-    TYA
-    ADC #$01
-initTilesNext2:
     CPX #$10
     BNE initTilesLoop
 initTilesDone:
