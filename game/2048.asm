@@ -207,18 +207,24 @@ GameEngineDone:
 ;;;;;;;;
 
 EngineTitle:
-	;;if start button pressed
-	;;  turn screen off
-	;;  load game screen
-	;;  set starting paddle/ball position
-	;;  go to Playing State
-	;;  turn screen on
 	LDA buttons1
 	AND #GAMEPAD_START
 	CMP #GAMEPAD_START
 	BNE GameEngineDone
 	LDA #STATEPLAYING
 	STA gamestate
+	
+    LDA #$02
+    STA tiles
+    LDA #$0A
+    LDX #$02
+    STA tiles, x
+    LDA #$08
+    LDX #$0D
+    STA tiles, x
+    LDA #$0A
+    LDX #$0E
+    STA tiles, x
 
 	LDA #%00000000        ;Turn the screen off
   	STA $2000
@@ -251,17 +257,8 @@ EnginePlaying:
 	BEQ MPU1Done
 
 doMvUp:
-	LDA #$01
-	STA tiles
-	LDA #$02
-	LDX #$05
-	STA tiles, x
-	LDA #$08
-	LDX #$0D
-	STA tiles, x
-	LDA #$0A
-	LDX #$0E
-	STA tiles, x
+	JSR moveUp
+	JSR moveUp
 	JSR moveUp
 	JSR UpdateSprites
 
@@ -280,17 +277,8 @@ MPU1Done:
     BEQ MPD1Done
 
 doMvDown:
-    LDA #$02
-    STA tiles
-    LDA #$0A
-    LDX #$02
-    STA tiles, x
-    LDA #$08
-    LDX #$0D
-    STA tiles, x
-    LDA #$0A
-    LDX #$0E
-    STA tiles, x
+	JSR moveDown
+	JSR moveDown
 	JSR moveDown
     JSR UpdateSprites
     LDA buttons1
