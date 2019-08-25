@@ -19,7 +19,8 @@ bgTileLo	.rs 1
 bgTileHi	.rs 1
 lastPressed .rs 1
 tiles       .rs 16
-ramdomSeed .rs 1
+currTile    .rs 1
+randomSeed .rs 1
 soundTimer .rs 1
 beginTile .rs 1
 tempWord .rs 2
@@ -157,8 +158,20 @@ soundConfig:
 	LDA #$00
 	STA $4003
 
+    JSR initTiles
 Forever:
 	JMP Forever         ; jump back to Forever, infinite loop, waiting for NMI
+
+initTiles:
+    LDX #$00
+    LDA #$01
+initTilesLoop:
+    STA tiles, X
+    INX
+    CPX #$10
+    BNE initTilesLoop
+initTilesDone:
+    RTS
 
 NMI:
 	LDA #$00
@@ -181,7 +194,7 @@ NMI:
 
 RandomSeed:
 	LDA #$03
-	STA ramdomSeed
+	STA randomSeed
 
 GameEngine:
 	JSR soundCheck
@@ -204,6 +217,7 @@ GameEngineDone:
 
 
 
+
 ;;;;;;;;
 
 EngineTitle:
@@ -214,17 +228,17 @@ EngineTitle:
 	LDA #STATEPLAYING
 	STA gamestate
 	
-    LDA #$02
-    STA tiles
-    LDA #$0A
-    LDX #$02
-    STA tiles, x
-    LDA #$08
-    LDX #$0D
-    STA tiles, x
-    LDA #$0A
-    LDX #$0E
-    STA tiles, x
+    ;LDA #$02
+    ;STA tiles
+    ;LDA #$0A
+    ;LDX #$02
+    ;STA tiles, x
+    ;LDA #$08
+    ;LDX #$0D
+    ;STA tiles, x
+    ;LDA #$0A
+    ;LDX #$0E
+    ;STA tiles, x
 
 	LDA #%00000000        ;Turn the screen off
   	STA $2000
@@ -257,10 +271,12 @@ EnginePlaying:
 	BEQ MPU1Done
 
 doMvUp:
-	JSR moveUp
-	JSR moveUp
-	JSR moveUp
-	JSR UpdateSprites
+    JSR moveUp
+    JSR moveUp
+    JSR moveUp
+	JSR mergeUp
+    JSR moveUp
+    JSR UpdateSprites
 
 	LDA buttons1
 	AND #GAMEPAD_UP
@@ -280,6 +296,8 @@ doMvDown:
 	JSR moveDown
 	JSR moveDown
 	JSR moveDown
+    JSR mergeDown
+	JSR moveDown
     JSR UpdateSprites
     LDA buttons1
     AND #GAMEPAD_DOWN
@@ -287,6 +305,56 @@ doMvDown:
 
     JSR playSound
 MPD1Done:
+
+    LDA buttons1
+    AND #GAMEPAD_LEFT
+    BEQ MPL1Done
+    LDA lastPressed
+    CMP #GAMEPAD_LEFT
+    BEQ MPL1Done
+
+doMvLeft:
+	JSR moveLeft
+	JSR moveLeft
+	JSR moveLeft
+    JSR mergeLeft
+	JSR moveLeft
+    JSR UpdateSprites
+    LDA buttons1
+    AND #GAMEPAD_LEFT
+    STA lastPressed
+
+    JSR playSound
+MPL1Done:
+
+    LDA buttons1
+    AND #GAMEPAD_RIGHT
+    BEQ MPR1Done
+    LDA lastPressed
+    CMP #GAMEPAD_RIGHT
+    BEQ MPD1Done
+
+doMvRight:
+	JSR moveRight
+	JSR moveRight
+	JSR moveRight
+    JSR mergeRight
+	JSR moveRight
+    JSR UpdateSprites
+    LDA buttons1
+    AND #GAMEPAD_RIGHT
+    STA lastPressed
+
+    JSR playSound
+MPR1Done:
+
+checkNonePressed:
+    LDA buttons1
+    AND #GAMEPAD_ANY_PRESSED
+    BNE checkNonePressedDone
+    LDA #%00000000
+    STA lastPressed
+checkNonePressedDone:
 	JMP GameEngineDone
 
 UpdateSprites:
@@ -353,7 +421,6 @@ vertLoopDone:
 	INX
 	CPX #$10 ;10 em hex eh 16 em dec
     BNE spriteLoop
-	
 	LDA #%10001000        ;Turn the screen on
   	STA $2000
 	LDX #$00
@@ -558,6 +625,7 @@ tile2048:
 	STA $2007
 	LDA #$FF ; um valor aleatorio pra n cair nas outras condicionais
 	RTS
+
 
 playSound:
 	LDA #$00
@@ -788,14 +856,14 @@ DONEmoveUp:
 
 
 random:
-	LDA ramdomSeed
+	LDA randomSeed
 	ASL A
 	ASL A
 	CLC
-	ADC ramdomSeed
+	ADC randomSeed
 	CLC
 	ADC #$17
-	STA ramdomSeed
+	STA randomSeed
 	RTS
 
 addTile:
@@ -843,6 +911,122 @@ newFour:
 	STA tiles,x
 	RTS
 
+;;; MERGE ;;;
+
+;;  0,  1,  2,  3
+;;  4,  5,  6,  7
+;;  8,  9, 10, 11
+;; 12, 13, 14, 15
+
+mergeUp:
+    LDX #$00        ; X <= the current tile idx
+    LDY #$04        ; Y <= the idx of the tile to compare for the merge
+mergeUpLoop:
+    LDA tiles, X    ; get current tile value
+    STA currTile    ; store it in a variable
+    CMP #$00        ; if the current tile is 00 (empty) we don't even bother, just go to next
+    BEQ mergeUpNext
+    LDA tiles, Y    ; get the value of the tile to compare
+    EOR currTile    ; check equals
+    BNE mergeUpNext
+    INC currTile
+    LDA currTile
+    STA tiles, X    ; replace current value in the tiles array
+    LDA #$00        ; empty the tile which was used in merge
+    STA tiles, Y
+mergeUpNext:
+    INX             ; go to next
+    INY
+    CPY #$10        ; if we've already checked every tile, stop
+    BNE mergeUpLoop
+mergeUpDone:
+    RTS
+
+mergeDown:
+    LDX #$00        ; X <= the idx of the tile to compare
+    LDY #$04        ; Y <= current tile idx
+mergeDownLoop:
+    LDA tiles, Y
+    STA currTile
+    CMP #$00
+    BEQ mergeDownNext
+    LDA tiles, X
+    EOR currTile
+    BNE mergeDownNext
+    INC currTile
+    LDA currTile
+    STA tiles, Y
+    LDA #$00
+    STA tiles, X
+mergeDownNext:
+    INX
+    INY
+    CPY #$10
+    BNE mergeDownLoop
+mergeDownDone:
+    RTS
+
+
+mergeLeft:
+    LDX #$00        ; X <= current tile idx
+    LDY #$01        ; Y <= tile idx to compare
+mergeLeftLoop:
+    CPY #$04
+    BEQ mergeLeftNext
+    CPY #$08
+    BEQ mergeLeftNext
+    CPY #$0C
+    BEQ mergeLeftNext
+    LDA tiles, X
+    STA currTile
+    CMP #$00
+    BEQ mergeLeftNext
+    LDA tiles, Y
+    EOR currTile
+    BNE mergeLeftNext
+    INC currTile
+    LDA currTile
+    STA tiles, X
+    LDA #$00
+    STA tiles, Y
+mergeLeftNext:
+    INX
+    INY
+    CPY #$10
+    BNE mergeLeftLoop
+mergeLeftDone:
+    RTS
+
+mergeRight:
+    LDX #$00        ; X <= tile idx to compare
+    LDY #$01        ; Y <= current tile
+mergeRightLoop:
+    CPY #$04
+    BEQ mergeRightNext
+    CPY #$08
+    BEQ mergeRightNext
+    CPY #$0C
+    BEQ mergeRightNext
+    LDA tiles, Y
+    STA currTile
+    CMP #$00
+    BEQ mergeRightNext
+    LDA tiles, X
+    EOR currTile
+    BNE mergeRightNext
+    INC currTile
+    LDA currTile
+    STA tiles, Y
+    LDA #$00
+    STA tiles, X
+mergeRightNext:
+    INX
+    INY
+    CPY #$10
+    BNE mergeRightLoop
+mergeRightDone:
+    RTS
+
 LoadNametable:
  	LDA $2002     ;read PPU status to reset the high/low latch
   	LDA #$20
@@ -872,6 +1056,7 @@ LoadNametable:
   	BNE .loadNametableLoop
   	RTS
 
+;;;;;;;;;;;;;;
   .bank 1
   .org $E000    ;;align the background data so the lower address is $00
 
