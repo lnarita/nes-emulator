@@ -350,7 +350,7 @@ MPL1Done:
     BEQ MPR1Done
     LDA lastPressed
     CMP #GAMEPAD_RIGHT
-    BEQ MPD1Done
+    BEQ MPR1Done
 
 doMvRight:
 	JSR moveRight
