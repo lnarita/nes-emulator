@@ -20,7 +20,8 @@ bgTileHi	.rs 1
 lastPressed .rs 1
 tiles       .rs 16
 currTile    .rs 1
-randomSeed .rs 1
+random1 .rs 1
+random2 .rs 1
 soundTimer .rs 1
 beginTile .rs 1
 tempWord .rs 2
@@ -69,7 +70,9 @@ BEEP_DURATION = $03
 
 RandomSeed:
 	LDA #$03
-	STA randomSeed
+	STA random1
+	LDA #$03
+	STA random2
 
 vblankwait:      ; wait for vblank
 	BIT $2002
@@ -862,30 +865,39 @@ DONEmoveUp:
 ;;;; END MOVE UP ;;;;
 
 
-random:
-	LDA randomSeed
+getRandom1:
+	LDA random1
 	ASL A
 	ASL A
 	CLC
-	ADC randomSeed
+	ADC random1
 	CLC
 	ADC #$17
-	STA randomSeed
+	STA random1
+	RTS
+
+getRandom2:
+	LDA random2
+	ASL A
+	ASL A
+	CLC
+	ADC random2
+	CLC
+	ADC #$17
+	STA random2
 	RTS
 
 addTile:
-	;BVC random ; gets random value in A
-	;BVS random ; gets random value in A
-	JSR random
+	JSR getRandom1
 	AND #$0f ; mod 16
 	TAX ; transfer random value to X
-	STA beginTile
+	STA beginTile ; store begin tile to check full cycle
 
 findEmpty:
 	LDA tiles,x ; load em A, o valor da x-esima tile
-	CMP #$00 ; if zero
-	BEQ twoORfour
-	BNE tryNext
+	CMP #$00
+	BEQ twoORfour ; if tile is empty, fill
+	BNE tryNext ; else, check next tile
 	RTS
 tryNext:
 	INX ; increment X
@@ -901,12 +913,9 @@ gameOver:
 	JMP EngineGameOver
 
 twoORfour:
-	;BVC random ; gets random value in A
-	;BVS random ; gets random value in A
-	JSR random
+	JSR getRandom2
 	AND #$01 ; eliminates 7 bits
-	;CMP #$00 ; if zero, draw two
-	BEQ newTwo
+	BEQ newTwo ; if zero, draw two
 	BNE newFour ; else, draw four
 	RTS
 
