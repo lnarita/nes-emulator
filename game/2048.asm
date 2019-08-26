@@ -162,21 +162,30 @@ soundConfig:
 	LDA #$00
 	STA $4003
 
-    JSR initTiles
+
 Forever:
 	JMP Forever         ; jump back to Forever, infinite loop, waiting for NMI
 
 initTiles:
-	JSR addTile
-;    LDX #$00
-;    LDA #$01
-;initTilesLoop:
-;    STA tiles, X
-;    INX
-;    CPX #$10
-;    BNE initTilesLoop
-;initTilesDone:
-    RTS
+	LDA random
+	AND #$0f ; mod 16
+	TAX ; transfer random value to X
+	JSR initTwo
+
+findEmptyInit:
+	LDA random
+	AND #$0f ; mod 16
+	TAX ; transfer random value to X
+	LDA tiles,x ; load em A, o valor da x-esima tile
+	CMP #$00
+	BEQ initTwo ; if tile is empty, fill
+	BNE findEmptyInit ; else, try again
+	RTS
+
+initTwo:
+	LDA #$01
+	STA tiles,x
+	RTS
 
 NMI:
 	LDA #$00
@@ -197,8 +206,6 @@ NMI:
 	;;; all graphics updates done by here, run game engine
 	JSR ReadController1 ; get the current button data for player 1
 
-
-
 GameEngine:
 	JSR soundCheck
 	JSR updateRandom
@@ -210,6 +217,7 @@ GameEngine:
 	LDA gamestate
 	CMP #STATEGAMEOVER
 	BEQ EngineGameOver  ; game is displaying ending screen
+
 
 	LDA gamestate
 	CMP #STATEPLAYING
@@ -228,6 +236,7 @@ EngineTitle:
 	LDA buttons1
 	AND #GAMEPAD_START
 	CMP #GAMEPAD_START
+
 	BNE GameEngineDone
 	LDA #STATEPLAYING
 	STA gamestate
@@ -250,6 +259,8 @@ EngineTitle:
 	JSR LoadNametable
 	LDA #%10001000        ;Turn the screen on
   	STA $2000
+  	JSR initTiles
+  	JSR UpdateSprites
 
 	JMP GameEngineDone
 
@@ -898,7 +909,7 @@ tryNext:
 gameOver:
 	LDA #STATEGAMEOVER
 	STA gamestate
-	JMP EngineGameOver
+	JMP GameEngineDone
 
 twoORfour:
 	LDA random
