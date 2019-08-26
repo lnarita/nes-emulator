@@ -901,15 +901,13 @@ tryNext:
 	INX ; increment X
 	TXA ; transfer X to A
 	AND #$0f ; mod 16
-	CMP beginTile ; if tried all tiles and none is empty, game over
-	BEQ gameOver
+	CMP beginTile ; if tried all tiles and none is empty, check if any moves left
+	BEQ checkAnyMovesLeft
+	BNE taxAndNext
+	RTS
+taxAndNext:
 	TAX ; transfer A to X
 	JMP findEmpty
-
-gameOver:
-	LDA #STATEGAMEOVER
-	STA gamestate
-	JMP GameEngineDone
 
 twoORfour:
 	LDA random
@@ -926,6 +924,226 @@ newTwo:
 newFour:
 	LDA #$02
 	STA tiles,x
+	RTS
+
+checkAnyMovesLeft:
+	LDX #$00
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 0 and 1
+	BNE compare12
+	JMP doneCheckAnyMovesLeft
+compare12:
+	LDX #$01
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 1 and 2
+	BNE compare23
+	JMP doneCheckAnyMovesLeft
+compare23:
+	LDX #$02
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 2 and 3
+	BNE compare45
+	JMP doneCheckAnyMovesLeft
+
+compare45:
+	LDX #$04
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 4 and 5
+	BNE compare56
+	JMP doneCheckAnyMovesLeft
+compare56:
+	LDX #$05
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 5 and 6
+	BNE compare67
+	JMP doneCheckAnyMovesLeft
+compare67:
+	LDX #$06
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 6 and 7
+	BNE compare89
+	JMP doneCheckAnyMovesLeft
+
+compare89:
+	LDX #$08
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 8 and 9
+	BNE compare9a
+	JMP doneCheckAnyMovesLeft
+compare9a:
+	LDX #$09
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 9 and 10
+	BNE compareab
+	JMP doneCheckAnyMovesLeft
+compareab:
+	LDX #$0a
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 10 and 11
+	BNE comparecd
+	JMP doneCheckAnyMovesLeft
+
+comparecd:
+	LDX #$0c
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 12 and 13
+	BNE comparede
+	JMP doneCheckAnyMovesLeft
+comparede:
+	LDX #$0d
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 13 and 14
+	BNE compareef
+	JMP doneCheckAnyMovesLeft
+compareef:
+	LDX #$0e
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 14 and 15
+	BNE compare04
+	JMP doneCheckAnyMovesLeft
+
+compare04:
+	LDX #$00
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 0 and 4
+	BNE compare48
+	JMP doneCheckAnyMovesLeft
+compare48:
+	LDX #$04
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 4 and 8
+	BNE compare8c
+	JMP doneCheckAnyMovesLeft
+compare8c:
+	LDX #$08
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 8 and 12
+	BNE compare15
+	JMP doneCheckAnyMovesLeft
+
+compare15:
+	LDX #$01
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 1 and 5
+	BNE compare59
+	JMP doneCheckAnyMovesLeft
+compare59:
+	LDX #$05
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 5 and 9
+	BNE compare9d
+	JMP doneCheckAnyMovesLeft
+compare9d:
+	LDX #$09
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 9 and 13
+	BNE compare26
+	JMP doneCheckAnyMovesLeft
+
+compare26:
+	LDX #$02
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 2 and 6
+	BNE compare6a
+	JMP doneCheckAnyMovesLeft
+compare6a:
+	LDX #$06
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 6 and 10
+	BNE compareae
+	JMP doneCheckAnyMovesLeft
+compareae:
+	LDX #$0a
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 10 and 14
+	BNE compare37
+	JMP doneCheckAnyMovesLeft
+
+compare37:
+	LDX #$03
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 3 and 7
+	BNE compare7b
+	JMP doneCheckAnyMovesLeft
+compare7b:
+	LDX #$07
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 7 and 11
+	BNE comparebf
+	JMP doneCheckAnyMovesLeft
+comparebf:
+	LDX #$0b
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 11 and 15
+	BNE gameOver
+	JMP doneCheckAnyMovesLeft
+
+gameOver:
+	LDA #STATEGAMEOVER
+	STA gamestate
+	JMP GameEngineDone
+
+doneCheckAnyMovesLeft:
 	RTS
 
 ;;; MERGE ;;;
