@@ -67,6 +67,10 @@ BEEP_DURATION = $03
 	.bank 0
 	.org $C000
 
+RandomSeed:
+	LDA #$03
+	STA randomSeed
+
 vblankwait:      ; wait for vblank
 	BIT $2002
 	BPL vblankwait
@@ -163,14 +167,15 @@ Forever:
 	JMP Forever         ; jump back to Forever, infinite loop, waiting for NMI
 
 initTiles:
-    LDX #$00
-    LDA #$01
-initTilesLoop:
-    STA tiles, X
-    INX
-    CPX #$10
-    BNE initTilesLoop
-initTilesDone:
+	JSR addTile
+;    LDX #$00
+;    LDA #$01
+;initTilesLoop:
+;    STA tiles, X
+;    INX
+;    CPX #$10
+;    BNE initTilesLoop
+;initTilesDone:
     RTS
 
 NMI:
@@ -192,9 +197,7 @@ NMI:
 	;;; all graphics updates done by here, run game engine
 	JSR ReadController1 ; get the current button data for player 1
 
-RandomSeed:
-	LDA #$03
-	STA randomSeed
+
 
 GameEngine:
 	JSR soundCheck
@@ -227,7 +230,7 @@ EngineTitle:
 	BNE GameEngineDone
 	LDA #STATEPLAYING
 	STA gamestate
-	
+
     ;LDA #$02
     ;STA tiles
     ;LDA #$0A
@@ -276,6 +279,7 @@ doMvUp:
     JSR moveUp
 	JSR mergeUp
     JSR moveUp
+    JSR addTile
     JSR UpdateSprites
 
 	LDA buttons1
@@ -298,6 +302,7 @@ doMvDown:
 	JSR moveDown
     JSR mergeDown
 	JSR moveDown
+	JSR addTile
     JSR UpdateSprites
     LDA buttons1
     AND #GAMEPAD_DOWN
@@ -319,6 +324,7 @@ doMvLeft:
 	JSR moveLeft
     JSR mergeLeft
 	JSR moveLeft
+	JSR addTile
     JSR UpdateSprites
     LDA buttons1
     AND #GAMEPAD_LEFT
@@ -340,6 +346,7 @@ doMvRight:
 	JSR moveRight
     JSR mergeRight
 	JSR moveRight
+	JSR addTile
     JSR UpdateSprites
     LDA buttons1
     AND #GAMEPAD_RIGHT
@@ -665,7 +672,7 @@ loopMoveRight:
 	CMP #$00 ; if the tile is 0, no need to do anything
 	BEQ SKIPMoveRight
 	;else
-	INX ; now we will check the next tile 
+	INX ; now we will check the next tile
 	LDA tiles, x
 	DEX
 	CMP #$00 ; if the next tile is zero we can make the move, else there is nothing to be done
@@ -675,7 +682,7 @@ loopMoveRight:
 	TAY  ; the current tile will be replaced with the value 0
 	LDA #$0
 	STA tiles, x ; save the value to zero
-	TYA 
+	TYA
 	INX			 ; now we'll make the swap
 	STA tiles, x
 	DEX
@@ -703,7 +710,7 @@ loopMoveLeft:
 	CMP #$00 ; if the tile is 0, no need to do anything
 	BEQ SKIPMoveLeft
 	;else
-	DEX ; now we will check the next tile 
+	DEX ; now we will check the next tile
 	LDA tiles, x
 	INX
 	CMP #$00 ; if the next tile is zero we can make the move, else there is nothing to be done
@@ -713,7 +720,7 @@ loopMoveLeft:
 	TAY  ; the current tile will be replaced with the value 0
 	LDA #$0
 	STA tiles, x ; save the value to zero
-	TYA 
+	TYA
 	DEX			 ; now we'll make the swap
 	STA tiles, x
 	INX
@@ -745,10 +752,10 @@ loopDownInner:
 	CMP #$00 ; if the tile is 0, no need to do anything
 	BEQ doneLoopDownInner
 	;else
-	INX 
-	INX 
-	INX 
-	INX ; now we will check the next tile 
+	INX
+	INX
+	INX
+	INX ; now we will check the next tile
 
 	LDA tiles, x
 	DEX
@@ -762,25 +769,25 @@ loopDownInner:
 	PHA  ; save current value to stack
 	LDA #$0
 	STA tiles, x ; save zero to current position
-	PLA ; retrieve previous value from stack 
+	PLA ; retrieve previous value from stack
 	INX			 ; now we'll make the swap
-	INX	
-	INX	
-	INX	
+	INX
+	INX
+	INX
 	STA tiles, x ; make the swap
-	DEX 
-	DEX 
-	DEX 
-	DEX 
+	DEX
+	DEX
+	DEX
+	DEX
 	JMP doneLoopDownInner
 doneLoopDownOuter:
-	INY 
+	INY
 	JMP loopDownOuter
 doneLoopDownInner:
 	INX	; go to tile bellow
-	INX 
-	INX 
-	INX 
+	INX
+	INX
+	INX
 	JMP loopDownInner
 DONEmoveDown:
 	RTS
@@ -813,10 +820,10 @@ loopUpInner:
 	CMP #$00 ; if the tile is 0, no need to do anything
 	BEQ doneLoopUpInner
 	;else
-	DEX 
-	DEX 
-	DEX 
-	DEX ; now we will check the next tile 
+	DEX
+	DEX
+	DEX
+	DEX ; now we will check the next tile
 
 	LDA tiles, x
 	INX
@@ -830,25 +837,25 @@ loopUpInner:
 	PHA  ; save current value to stack
 	LDA #$0
 	STA tiles, x ; save zero to current position
-	PLA ; retrieve previous value from stack 
+	PLA ; retrieve previous value from stack
 	DEX			 ; now we'll make the swap
-	DEX	
-	DEX	
-	DEX	
+	DEX
+	DEX
+	DEX
 	STA tiles, x ; make the swap
-	INX 
-	INX 
-	INX 
-	INX 
+	INX
+	INX
+	INX
+	INX
 	JMP doneLoopUpInner
 doneLoopUpOuter:
-	DEY 
+	DEY
 	JMP loopUpOuter
 doneLoopUpInner:
 	DEX	; go to tile bellow
-	DEX 
-	DEX 
-	DEX 
+	DEX
+	DEX
+	DEX
 	JMP loopUpInner
 DONEmoveUp:
 	RTS
@@ -867,9 +874,10 @@ random:
 	RTS
 
 addTile:
-	BVC random ; gets random value in A
-	BVS random ; gets random value in A
-	AND #%00001111 ; mod 16
+	;BVC random ; gets random value in A
+	;BVS random ; gets random value in A
+	JSR random
+	AND #$0f ; mod 16
 	TAX ; transfer random value to X
 	STA beginTile
 
@@ -882,9 +890,9 @@ findEmpty:
 tryNext:
 	INX ; increment X
 	TXA ; transfer X to A
-	AND #%00001111 ; mod 16
-	CMP beginTile ; if tried all tiles and none is empty, game over
-	BEQ gameOver
+	AND #$0f ; mod 16
+	;CMP beginTile ; if tried all tiles and none is empty, game over
+	;BEQ gameOver
 	JMP findEmpty
 
 gameOver:
@@ -893,10 +901,11 @@ gameOver:
 	JMP EngineGameOver
 
 twoORfour:
-	BVC random ; gets random value in A
-	BVS random ; gets random value in A
-	AND #%00000001 ; eliminates 7 bits
-	CMP #$00 ; if zero, draw two
+	;BVC random ; gets random value in A
+	;BVS random ; gets random value in A
+	JSR random
+	AND #$01 ; eliminates 7 bits
+	;CMP #$00 ; if zero, draw two
 	BEQ newTwo
 	BNE newFour ; else, draw four
 	RTS
@@ -1049,7 +1058,7 @@ LoadNametable:
 .loadNametableLoop:
   	LDA [tempWord], Y              ;load nametable
   	STA $2007                      ;draw tile
-  	INY                            
+  	INY
   	BNE .loadNametableLoop
   	INC tempWord+1
   	DEX
