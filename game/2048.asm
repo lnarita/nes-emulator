@@ -20,8 +20,7 @@ bgTileHi	.rs 1
 lastPressed .rs 1
 tiles       .rs 16
 currTile    .rs 1
-random1 .rs 1
-random2 .rs 1
+random .rs 1
 soundTimer .rs 1
 beginTile .rs 1
 tempWord .rs 2
@@ -68,11 +67,9 @@ BEEP_DURATION = $03
 	.bank 0
 	.org $C000
 
-RandomSeed:
+randomSeed:
 	LDA #$03
-	STA random1
-	LDA #$03
-	STA random2
+	STA random
 
 vblankwait:      ; wait for vblank
 	BIT $2002
@@ -204,6 +201,7 @@ NMI:
 
 GameEngine:
 	JSR soundCheck
+	JSR updateRandom
 
 	LDA gamestate
 	CMP #STATETITLE
@@ -865,33 +863,22 @@ DONEmoveUp:
 ;;;; END MOVE UP ;;;;
 
 
-getRandom1:
-	LDA random1
+updateRandom:
+	LDA random
 	ASL A
 	ASL A
 	CLC
-	ADC random1
-	CLC
-	ADC #$17
-	STA random1
-	RTS
-
-getRandom2:
-	LDA random2
-	ASL A
-	ASL A
-	CLC
-	ADC random2
+	ADC random
 	CLC
 	ADC #$17
-	STA random2
+	STA random
 	RTS
 
 addTile:
-	JSR getRandom1
+	LDA random
 	AND #$0f ; mod 16
-	TAX ; transfer random value to X
 	STA beginTile ; store begin tile to check full cycle
+	TAX ; transfer random value to X
 
 findEmpty:
 	LDA tiles,x ; load em A, o valor da x-esima tile
@@ -903,8 +890,9 @@ tryNext:
 	INX ; increment X
 	TXA ; transfer X to A
 	AND #$0f ; mod 16
-	;CMP beginTile ; if tried all tiles and none is empty, game over
-	;BEQ gameOver
+	CMP beginTile ; if tried all tiles and none is empty, game over
+	BEQ gameOver
+	TAX ; transfer A to X
 	JMP findEmpty
 
 gameOver:
@@ -913,7 +901,7 @@ gameOver:
 	JMP EngineGameOver
 
 twoORfour:
-	JSR getRandom2
+	LDA random
 	AND #$01 ; eliminates 7 bits
 	BEQ newTwo ; if zero, draw two
 	BNE newFour ; else, draw four
