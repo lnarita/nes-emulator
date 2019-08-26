@@ -1178,8 +1178,8 @@ mergeUpDone:
     RTS
 
 mergeDown:
-    LDX #$00        ; X <= the idx of the tile to compare
-    LDY #$04        ; Y <= current tile idx
+    LDX #$0B        ; X <= the idx of the tile to compare
+    LDY #$0F        ; Y <= current tile idx
 mergeDownLoop:
     LDA tiles, Y
     STA currTile
@@ -1194,9 +1194,9 @@ mergeDownLoop:
     LDA #$00
     STA tiles, X
 mergeDownNext:
-    INX
-    INY
-    CPY #$10
+    DEX
+    DEY
+    CPY #$03
     BNE mergeDownLoop
 mergeDownDone:
     RTS
@@ -1233,8 +1233,8 @@ mergeLeftDone:
     RTS
 
 mergeRight:
-    LDX #$00        ; X <= tile idx to compare
-    LDY #$01        ; Y <= current tile
+    LDX #$0E        ; X <= tile idx to compare
+    LDY #$0F        ; Y <= current tile
 mergeRightLoop:
     CPY #$04
     BEQ mergeRightNext
@@ -1255,9 +1255,9 @@ mergeRightLoop:
     LDA #$00
     STA tiles, X
 mergeRightNext:
-    INX
-    INY
-    CPY #$10
+    DEX
+    DEY
+    CPY #$00
     BNE mergeRightLoop
 mergeRightDone:
     RTS
@@ -1294,10 +1294,6 @@ LoadNametable:
 ;;;;;;;;;;;;;;
   .bank 1
   .org $E000    ;;align the background data so the lower address is $00
-
-NametablePointerTable:
-  .dw menuBackground     ;STATE_TITLE
-  .dw background   ;STATE_PLAYING
 
 menuBackground:
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
@@ -1363,6 +1359,10 @@ background:
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+
+NametablePointerTable:
+  .dw menuBackground     ;STATE_TITLE
+  .dw background   ;STATE_PLAYING
 
 attributes:  ;8 x 8 = 64 bytes
 	.db %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000
