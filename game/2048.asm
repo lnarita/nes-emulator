@@ -168,6 +168,8 @@ soundConfig:
 Forever:
 	JMP Forever         ; jump back to Forever, infinite loop, waiting for NMI
 
+;;; INIT TILES ;;;
+
 initTiles:
 	LDA random
 	AND #$0f ; mod 16
@@ -188,6 +190,8 @@ initTwo:
 	LDA #$01
 	STA tiles,x
 	RTS
+
+;;; END INIT TILES ;;;
 
 NMI:
 	LDA #$00
@@ -875,6 +879,7 @@ DONEmoveUp:
 	RTS
 ;;;; END MOVE UP ;;;;
 
+;;; UPDATE RANDOM ;;;
 
 updateRandom:
 	LDA random
@@ -886,6 +891,10 @@ updateRandom:
 	ADC #$17
 	STA random
 	RTS
+
+;;; END UPDATE RANDOM ;;;
+
+;;; ADD TILE ;;;
 
 addTile:
 	LDA random
@@ -928,6 +937,10 @@ newFour:
 	STA tiles,x
 	RTS
 
+;;; END ADD NEW TILE ;;;
+
+;;; CHECK ANY MOVES LEFT ;;;
+
 checkAnyMovesLeft:
 	LDX #$00
 	LDA tiles,x
@@ -949,7 +962,6 @@ compare23:
 	CMP tiles,x ; compare tiles 2 and 3
 	BNE compare45
 	JMP doneCheckAnyMovesLeft
-
 compare45:
 	LDX #$04
 	LDA tiles,x
@@ -971,7 +983,6 @@ compare67:
 	CMP tiles,x ; compare tiles 6 and 7
 	BNE compare89
 	JMP doneCheckAnyMovesLeft
-
 compare89:
 	LDX #$08
 	LDA tiles,x
@@ -993,7 +1004,6 @@ compareab:
 	CMP tiles,x ; compare tiles 10 and 11
 	BNE comparecd
 	JMP doneCheckAnyMovesLeft
-
 comparecd:
 	LDX #$0c
 	LDA tiles,x
@@ -1015,7 +1025,6 @@ compareef:
 	CMP tiles,x ; compare tiles 14 and 15
 	BNE compare04
 	JMP doneCheckAnyMovesLeft
-
 compare04:
 	LDX #$00
 	LDA tiles,x
@@ -1046,7 +1055,6 @@ compare8c:
 	CMP tiles,x ; compare tiles 8 and 12
 	BNE compare15
 	JMP doneCheckAnyMovesLeft
-
 compare15:
 	LDX #$01
 	LDA tiles,x
@@ -1077,7 +1085,6 @@ compare9d:
 	CMP tiles,x ; compare tiles 9 and 13
 	BNE compare26
 	JMP doneCheckAnyMovesLeft
-
 compare26:
 	LDX #$02
 	LDA tiles,x
@@ -1108,7 +1115,6 @@ compareae:
 	CMP tiles,x ; compare tiles 10 and 14
 	BNE compare37
 	JMP doneCheckAnyMovesLeft
-
 compare37:
 	LDX #$03
 	LDA tiles,x
@@ -1149,6 +1155,10 @@ gameOver:
 doneCheckAnyMovesLeft:
 	RTS
 
+;;; END CHECK ANY MOVES LEFT ;;;
+
+;;; CALCULATE SCORE ;;;
+
 calculateScore:
 	LDX #$00
 calculateScoreLoop:
@@ -1173,7 +1183,6 @@ returnCalculateScore:
 	JMP calculateScoreLoop
 doneCalculateScoreLoop:
 	RTS
-
 sum4:
 	CLC
 	LDA scoreLo
@@ -1229,8 +1238,6 @@ sum320:
 	LDA #$FF
 	;RTS
 	JMP returnCalculateScore
-
-
 jumpLargeSum:
 	CMP #$07
 	BEQ sum768
@@ -1243,7 +1250,6 @@ jumpLargeSum:
 	CMP #$0b
 	BEQ sum20480
 	JMP returnCalculateScore
-
 sum768:
 	CLC
 	LDA scoreHi
@@ -1288,6 +1294,7 @@ sum20480:
 	;RTS
 	JMP returnCalculateScore
 
+;;; END CALCULATE SCORE ;;;
 
 ;;; MERGE ;;;
 
