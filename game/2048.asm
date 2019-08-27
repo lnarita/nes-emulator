@@ -24,6 +24,8 @@ random .rs 1
 soundTimer .rs 1
 beginTile .rs 1
 tempWord .rs 2
+scoreLo .rs 1
+scoreHi .rs 1
 
 ;--------------------------------------------------------------------
 ; constants
@@ -1139,12 +1141,153 @@ comparebf:
 	JMP doneCheckAnyMovesLeft
 
 gameOver:
+	JSR calculateScore
 	LDA #STATEGAMEOVER
 	STA gamestate
 	JMP GameEngineDone
 
 doneCheckAnyMovesLeft:
 	RTS
+
+calculateScore:
+	LDX #$00
+calculateScoreLoop:
+	LDA tiles,x
+	CMP #$02
+	BEQ sum4
+	CMP #$03
+	BEQ sum16
+	CMP #$04
+	BEQ sum48
+	CMP #$05
+	BEQ sum128
+	CMP #$06
+	BEQ sum320
+	JMP jumpLargeSum
+returnCalculateScore:
+	INX
+	TXA
+	CMP   #$10
+	BEQ doneCalculateScoreLoop
+	TAX
+	JMP calculateScoreLoop
+doneCalculateScoreLoop:
+	RTS
+
+sum4:
+	CLC
+	LDA scoreLo
+	ADC #$04
+	STA scoreLo
+	LDA scoreHi
+	ADC #$00
+	STA scoreHi
+	LDA #$FF
+	;RTS
+	JMP returnCalculateScore
+sum16:
+	CLC
+	LDA scoreLo
+	ADC #$10
+	STA scoreLo
+	LDA scoreHi
+	ADC #$00
+	STA scoreHi
+	LDA #$FF
+	;RTS
+	JMP returnCalculateScore
+sum48:
+	CLC
+	LDA scoreLo
+	ADC #$30
+	STA scoreLo
+	LDA scoreHi
+	ADC #$00
+	STA scoreHi
+	LDA #$FF
+	;RTS
+	JMP returnCalculateScore
+sum128:
+	CLC
+	LDA scoreLo
+	ADC #$80
+	STA scoreLo
+	LDA scoreHi
+	ADC #$00
+	STA scoreHi
+	LDA #$FF
+	;RTS
+	JMP returnCalculateScore
+sum320:
+	CLC
+	LDA scoreLo
+	ADC #$40
+	STA scoreLo
+	LDA scoreHi
+	ADC #$01
+	STA scoreHi
+	LDA #$FF
+	;RTS
+	JMP returnCalculateScore
+
+
+jumpLargeSum:
+	CMP #$07
+	BEQ sum768
+	CMP #$08
+	BEQ sum1855
+	CMP #$09
+	BEQ sum4096
+	CMP #$0a
+	BEQ sum9216
+	CMP #$0b
+	BEQ sum20480
+	JMP returnCalculateScore
+
+sum768:
+	CLC
+	LDA scoreHi
+	ADC #$03
+	STA scoreHi
+	LDA #$FF
+	;RTS
+	JMP returnCalculateScore
+sum1855:
+	CLC
+	LDA scoreLo
+	ADC #$3F
+	STA scoreLo
+	LDA scoreHi
+	ADC #$07
+	STA scoreHi
+	LDA #$FF
+	;RTS
+	JMP returnCalculateScore
+sum4096:
+	CLC
+	LDA scoreHi
+	ADC #$10
+	STA scoreHi
+	LDA #$FF
+	;RTS
+	JMP returnCalculateScore
+sum9216:
+	CLC
+	LDA scoreHi
+	ADC #$24
+	STA scoreHi
+	LDA #$FF
+	;RTS
+	JMP returnCalculateScore
+sum20480:
+	CLC
+	LDA scoreHi
+	ADC #$50
+	STA scoreHi
+	LDA #$FF
+	;RTS
+	JMP returnCalculateScore
+
 
 ;;; MERGE ;;;
 
