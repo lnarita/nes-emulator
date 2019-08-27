@@ -26,6 +26,11 @@ beginTile .rs 1
 tempWord .rs 2
 scoreLo .rs 1
 scoreHi .rs 1
+scoreDig .rs 5
+scoreTempHi .rs 1
+scoreTempLo	.rs 1
+score2Lo .rs 1
+score2Hi .rs 1
 
 ;--------------------------------------------------------------------
 ; constants
@@ -164,7 +169,6 @@ soundConfig:
 	LDA #$00
 	STA $4003
 
-
 Forever:
 	JMP Forever         ; jump back to Forever, infinite loop, waiting for NMI
 
@@ -246,18 +250,6 @@ EngineTitle:
 	BNE GameEngineDone
 	LDA #STATEPLAYING
 	STA gamestate
-
-    ;LDA #$02
-    ;STA tiles
-    ;LDA #$0A
-    ;LDX #$02
-    ;STA tiles, x
-    ;LDA #$08
-    ;LDX #$0D
-    ;STA tiles, x
-    ;LDA #$0A
-    ;LDX #$0E
-    ;STA tiles, x
 
 	LDA #%00000000        ;Turn the screen off
   	STA $2000
@@ -446,6 +438,10 @@ vertLoopDone:
 	INX
 	CPX #$10 ;10 em hex eh 16 em dec
     BNE spriteLoop
+
+    JSR calculateScore
+    JSR drawScore
+
 	LDA #%10001000        ;Turn the screen on
   	STA $2000
 	LDX #$00
@@ -1160,6 +1156,11 @@ doneCheckAnyMovesLeft:
 ;;; CALCULATE SCORE ;;;
 
 calculateScore:
+	LDA #$00
+	STA scoreLo
+	LDA #$00
+	STA scoreHi
+
 	LDX #$00
 calculateScoreLoop:
 	LDA tiles,x
@@ -1411,6 +1412,234 @@ mergeRightNext:
     BNE mergeRightLoop
 mergeRightDone:
     RTS
+
+drawScore:
+	LDA scoreLo
+	STA scoreTempLo
+	LDA scoreHi
+	STA scoreTempHi
+
+	JSR scoreDig5
+	JSR scoreDig4
+	JSR scoreDig3
+	JSR scoreDig2
+	JSR scoreDig1
+	;draw tiles
+
+	LDA $2002             ; read PPU status to reset the high/low latch
+	LDA #$20
+	STA $2006             ; write the high byte of $3F00 address
+	LDA #$0D
+	STA $2006             ; write the low byte of $3F00 address
+
+	LDA #$00
+	TAX
+	LDA scoreDig,X
+	INX
+	STA $2007
+	LDA scoreDig,X
+	INX
+	STA $2007
+	LDA scoreDig,X
+	INX
+	STA $2007
+	LDA scoreDig,X
+	INX
+	STA $2007
+	LDA scoreDig,X
+	STA $2007
+
+	RTS
+
+scoreDig5:
+	LDX #$00
+	LDA scoreTempLo ; backup when it goes negative
+	STA score2Lo
+	LDA scoreTempHi
+	STA score2Hi
+
+scoreDig5Loop: ; 10000 is $2710
+	LDA scoreTempLo      ; load low 8 bits of 16 bit value
+	SEC              ; set carry
+	SBC #$10         ; subtract
+	STA scoreTempLo      ; done with low bits, save back
+	LDA scoreTempHi     ; load upper 8 bits
+	SBC #$27         ; subtract
+	STA scoreTempHi     ; save back
+
+	; if not negative
+	BMI scoreDig5Done
+
+	INX
+	LDA scoreTempLo ; backup when it goes negative
+	STA score2Lo
+	LDA scoreTempHi
+	STA score2Hi
+	JMP scoreDig5Loop
+
+scoreDig5Done:
+	LDA score2Lo ; restores, because it went negative
+	STA scoreTempLo
+	LDA score2Hi
+	STA scoreTempHi
+
+	LDY #$00
+	TXA
+	STA scoreDig,Y ; save the digit
+
+	RTS
+
+scoreDig4:
+	LDX #$00
+	LDA scoreTempLo ; backup when it goes negative
+	STA score2Lo
+	LDA scoreTempHi
+	STA score2Hi
+
+scoreDig4Loop: ; 1000 is $03E8
+	LDA scoreTempLo      ; load low 8 bits of 16 bit value
+	SEC              ; set carry
+	SBC #$E8         ; subtract
+	STA scoreTempLo      ; done with low bits, save back
+	LDA scoreTempHi     ; load upper 8 bits
+	SBC #$03         ; subtract
+	STA scoreTempHi     ; save back
+
+	; if not negative
+	BMI scoreDig4Done
+
+	INX
+	LDA scoreTempLo ; backup when it goes negative
+	STA score2Lo
+	LDA scoreTempHi
+	STA score2Hi
+	JMP scoreDig4Loop
+
+scoreDig4Done:
+	LDA score2Lo ; restores, because it went negative
+	STA scoreTempLo
+	LDA score2Hi
+	STA scoreTempHi
+
+	LDY #$01
+	TXA
+	STA scoreDig,Y ; save the digit
+
+	RTS
+
+scoreDig3:
+	LDX #$00
+	LDA scoreTempLo ; backup when it goes negative
+	STA score2Lo
+	LDA scoreTempHi
+	STA score2Hi
+
+scoreDig3Loop: ; 100 is $0064
+	LDA scoreTempLo      ; load low 8 bits of 16 bit value
+	SEC              ; set carry
+	SBC #$64         ; subtract
+	STA scoreTempLo      ; done with low bits, save back
+	LDA scoreTempHi     ; load upper 8 bits
+	SBC #$00         ; subtract
+	STA scoreTempHi     ; save back
+
+	; if not negative
+	BMI scoreDig3Done
+
+	INX
+	LDA scoreTempLo ; backup when it goes negative
+	STA score2Lo
+	LDA scoreTempHi
+	STA score2Hi
+	JMP scoreDig3Loop
+
+scoreDig3Done:
+	LDA score2Lo ; restores, because it went negative
+	STA scoreTempLo
+	LDA score2Hi
+	STA scoreTempHi
+
+	LDY #$02
+	TXA
+	STA scoreDig,Y ; save the digit
+
+	RTS
+
+scoreDig2:
+	LDX #$00
+	LDA scoreTempLo ; backup when it goes negative
+	STA score2Lo
+	LDA scoreTempHi
+	STA score2Hi
+
+scoreDig2Loop: ; 10 is $000A
+	LDA scoreTempLo      ; load low 8 bits of 16 bit value
+	SEC              ; set carry
+	SBC #$0A         ; subtract
+	STA scoreTempLo      ; done with low bits, save back
+	LDA scoreTempHi     ; load upper 8 bits
+	SBC #$00         ; subtract
+	STA scoreTempHi     ; save back
+
+	; if not negative
+	BMI scoreDig2Done
+
+	INX
+	LDA scoreTempLo ; backup when it goes negative
+	STA score2Lo
+	LDA scoreTempHi
+	STA score2Hi
+	JMP scoreDig2Loop
+
+scoreDig2Done:
+	LDA score2Lo ; restores, because it went negative
+	STA scoreTempLo
+	LDA score2Hi
+	STA scoreTempHi
+
+	LDY #$03
+	TXA
+	STA scoreDig,Y ; save the digit
+
+	RTS
+
+scoreDig1:
+	LDX #$00
+	LDA scoreTempLo ; backup when it goes negative
+	STA score2Lo
+	LDA scoreTempHi
+	STA score2Hi
+
+scoreDig1Loop: ; 1 is $0001
+	LDA scoreTempLo      ; load low 8 bits of 16 bit value
+	SEC              ; set carry
+	SBC #$01         ; subtract
+	STA scoreTempLo      ; done with low bits, save back
+	LDA scoreTempHi     ; load upper 8 bits
+	SBC #$00         ; subtract
+	STA scoreTempHi     ; save back
+
+	; if not negative
+	BMI scoreDig1Done
+
+	INX
+	LDA scoreTempLo ; backup when it goes negative
+	STA score2Lo
+	LDA scoreTempHi
+	STA score2Hi
+	JMP scoreDig1Loop
+
+scoreDig1Done:
+	LDA score2Lo ; restores, because it went negative
+	STA scoreTempLo
+	LDA score2Hi
+	STA scoreTempHi
+
+	LDY #$04
+	TXA
+	STA scoreDig,Y ; save the digit
+
+	RTS
 
 LoadNametable:
  	LDA $2002     ;read PPU status to reset the high/low latch
