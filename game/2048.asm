@@ -19,8 +19,13 @@ bgTileLo	.rs 1
 bgTileHi	.rs 1
 lastPressed .rs 1
 tiles       .rs 16
-ramdomSeed .rs 1
+currTile    .rs 1
+random .rs 1
 soundTimer .rs 1
+beginTile .rs 1
+tempWord .rs 2
+scoreLo .rs 1
+scoreHi .rs 1
 
 ;--------------------------------------------------------------------
 ; constants
@@ -63,6 +68,10 @@ BEEP_DURATION = $03
 
 	.bank 0
 	.org $C000
+
+randomSeed:
+	LDA #$03
+	STA random
 
 vblankwait:      ; wait for vblank
 	BIT $2002
@@ -111,7 +120,7 @@ LoadPalettesLoop:
 	CPX #$20              ; Compare X to hex $10, decimal 16 - copying 16 bytes = 4 sprites
 	BNE LoadPalettesLoop  ; Branch to LoadPalettesLoop if compare was Not Equal to zero
 
-LoadBackground:
+LoadMenuBackground:
 	LDA $2002             ; read PPU status to reset the high/low latch
 	LDA #$20
 	STA $2006             ; write the high byte of $2000 address
@@ -119,7 +128,7 @@ LoadBackground:
 	STA $2006             ; write the low byte of $2000 address
 	LDA #$00
 	STA pointerLo         ; put the low byte of the address of background into pointer
-	LDA #HIGH(background)
+	LDA #HIGH(menuBackground)
 	STA pointerHi         ; put the high byte of the address into pointer
 	LDX #$00              ; start at pointer + 0
 	LDY #$00
@@ -142,8 +151,8 @@ InsideLoop:
 	STA $2001
 
 
-	LDA #STATEPLAYING
-	STA gamestate
+	; LDA #STATEPLAYING
+	; STA gamestate
 
 soundConfig:
 	LDA #%00000001
@@ -155,8 +164,34 @@ soundConfig:
 	LDA #$00
 	STA $4003
 
+
 Forever:
 	JMP Forever         ; jump back to Forever, infinite loop, waiting for NMI
+
+;;; INIT TILES ;;;
+
+initTiles:
+	LDA random
+	AND #$0f ; mod 16
+	TAX ; transfer random value to X
+	JSR initTwo
+
+findEmptyInit:
+	LDA random
+	AND #$0f ; mod 16
+	TAX ; transfer random value to X
+	LDA tiles,x ; load em A, o valor da x-esima tile
+	CMP #$00
+	BEQ initTwo ; if tile is empty, fill
+	BNE findEmptyInit ; else, try again
+	RTS
+
+initTwo:
+	LDA #$01
+	STA tiles,x
+	RTS
+
+;;; END INIT TILES ;;;
 
 NMI:
 	LDA #$00
@@ -177,12 +212,9 @@ NMI:
 	;;; all graphics updates done by here, run game engine
 	JSR ReadController1 ; get the current button data for player 1
 
-RandomSeed:
-	LDA #$03
-	STA ramdomSeed
-
 GameEngine:
 	JSR soundCheck
+	JSR updateRandom
 
 	LDA gamestate
 	CMP #STATETITLE
@@ -191,6 +223,7 @@ GameEngine:
 	LDA gamestate
 	CMP #STATEGAMEOVER
 	BEQ EngineGameOver  ; game is displaying ending screen
+
 
 	LDA gamestate
 	CMP #STATEPLAYING
@@ -202,15 +235,39 @@ GameEngineDone:
 
 
 
+
 ;;;;;;;;
 
 EngineTitle:
-	;;if start button pressed
-	;;  turn screen off
-	;;  load game screen
-	;;  set starting paddle/ball position
-	;;  go to Playing State
-	;;  turn screen on
+	LDA buttons1
+	AND #GAMEPAD_START
+	CMP #GAMEPAD_START
+
+	BNE GameEngineDone
+	LDA #STATEPLAYING
+	STA gamestate
+
+    ;LDA #$02
+    ;STA tiles
+    ;LDA #$0A
+    ;LDX #$02
+    ;STA tiles, x
+    ;LDA #$08
+    ;LDX #$0D
+    ;STA tiles, x
+    ;LDA #$0A
+    ;LDX #$0E
+    ;STA tiles, x
+
+	LDA #%00000000        ;Turn the screen off
+  	STA $2000
+  	STA $2001
+	JSR LoadNametable
+	LDA #%10001000        ;Turn the screen on
+  	STA $2000
+  	JSR initTiles
+  	JSR UpdateSprites
+
 	JMP GameEngineDone
 
 ;;;;;;;;;
@@ -235,18 +292,13 @@ EnginePlaying:
 	BEQ MPU1Done
 
 doMvUp:
-	LDA #$01
-	STA tiles
-	LDA #$02
-	LDX #$05
-	STA tiles, x
-	LDA #$08
-	LDX #$0D
-	STA tiles, x
-	LDA #$0A
-	LDX #$0E
-	STA tiles, x
-	JSR UpdateSprites 
+    JSR moveUp
+    JSR moveUp
+    JSR moveUp
+	JSR mergeUp
+    JSR moveUp
+    JSR addTile
+    JSR UpdateSprites
 
 	LDA buttons1
 	AND #GAMEPAD_UP
@@ -263,17 +315,12 @@ MPU1Done:
     BEQ MPD1Done
 
 doMvDown:
-    LDA #$02
-    STA tiles
-    LDA #$0A
-    LDX #$02
-    STA tiles, x
-    LDA #$08
-    LDX #$0D
-    STA tiles, x
-    LDA #$0A
-    LDX #$0E
-    STA tiles, x
+	JSR moveDown
+	JSR moveDown
+	JSR moveDown
+    JSR mergeDown
+	JSR moveDown
+	JSR addTile
     JSR UpdateSprites
     LDA buttons1
     AND #GAMEPAD_DOWN
@@ -282,11 +329,64 @@ doMvDown:
     JSR playSound
 MPD1Done:
 
+    LDA buttons1
+    AND #GAMEPAD_LEFT
+    BEQ MPL1Done
+    LDA lastPressed
+    CMP #GAMEPAD_LEFT
+    BEQ MPL1Done
 
+doMvLeft:
+	JSR moveLeft
+	JSR moveLeft
+	JSR moveLeft
+    JSR mergeLeft
+	JSR moveLeft
+	JSR addTile
+    JSR UpdateSprites
+    LDA buttons1
+    AND #GAMEPAD_LEFT
+    STA lastPressed
+
+    JSR playSound
+MPL1Done:
+
+    LDA buttons1
+    AND #GAMEPAD_RIGHT
+    BEQ MPR1Done
+    LDA lastPressed
+    CMP #GAMEPAD_RIGHT
+    BEQ MPR1Done
+
+doMvRight:
+	JSR moveRight
+	JSR moveRight
+	JSR moveRight
+    JSR mergeRight
+	JSR moveRight
+	JSR addTile
+    JSR UpdateSprites
+    LDA buttons1
+    AND #GAMEPAD_RIGHT
+    STA lastPressed
+
+    JSR playSound
+MPR1Done:
+
+checkNonePressed:
+    LDA buttons1
+    AND #GAMEPAD_ANY_PRESSED
+    BNE checkNonePressedDone
+    LDA #%00000000
+    STA lastPressed
+checkNonePressedDone:
 	JMP GameEngineDone
 
 UpdateSprites:
-	LDX #$00
+	LDA #%00000000        ;Turn the screen off
+  	STA $2000
+  	STA $2001
+	JSR LoadNametable
 spriteLoop:
 	LDA #$A5
 	STA bgTileLo
@@ -295,7 +395,7 @@ spriteLoop:
 
     ; calcula posicao de memoria do background da x-esima tile
     ; cada tile2048 -> 6x6 tiles do NES
-    TXA 
+    TXA
     AND #%00000011     ; A%4
     TAY
 horizLoop:
@@ -346,7 +446,9 @@ vertLoopDone:
 	INX
 	CPX #$10 ;10 em hex eh 16 em dec
     BNE spriteLoop
-
+	LDA #%10001000        ;Turn the screen on
+  	STA $2000
+	LDX #$00
 	RTS
 
 ReadController1:
@@ -550,17 +652,6 @@ tile2048:
 	RTS
 
 
-random:
-	LDA ramdomSeed
-	ASL A
-	ASL A
-	CLC
-	ADC ramdomSeed
-	CLC
-	ADC #$17
-	STA ramdomSeed
-	RTS
-
 playSound:
 	LDA #$00
 	STA soundTimer
@@ -582,11 +673,810 @@ soundCheck:
 soundCheckDone:
 	RTS
 
+;;;; MOVE RIGHT ;;;;
+moveRight:
+	LDX #$0	;initialize indexes
+	LDY #$0
+loopMoveRight:
+	CPX #$F	; check if looked at all tiles, no need to check last one
+	BEQ DONEmoveRight
+	TXA ; if not in the end
+	AND #$03 ; mod 4 check if at the end of a tile row, then no need to check current tile
+	CMP #$03
+	BEQ SKIPMoveRight
 
+	LDA tiles, x ; load the value of the current tile
+
+	CMP #$00 ; if the tile is 0, no need to do anything
+	BEQ SKIPMoveRight
+	;else
+	INX ; now we will check the next tile
+	LDA tiles, x
+	DEX
+	CMP #$00 ; if the next tile is zero we can make the move, else there is nothing to be done
+	BNE SKIPMoveRight
+	;else current not 0 and next 0 then swap
+	LDA tiles, x ; load current tile again
+	TAY  ; the current tile will be replaced with the value 0
+	LDA #$0
+	STA tiles, x ; save the value to zero
+	TYA
+	INX			 ; now we'll make the swap
+	STA tiles, x
+	DEX
+SKIPMoveRight:
+	INX			; if there's no swap to be done we just increment the pointer
+	JMP loopMoveRight
+DONEmoveRight:
+	RTS
+;;;; END MOVE RIGHT ;;;;
+
+;;;; MOVE LEFT ;;;;
+moveLeft:
+	LDX #$f	;initialize indexes (starting from left to right)
+	LDY #$0
+loopMoveLeft:
+	CPX #$0	; check if looked at all tiles, no need to check last one
+	BEQ DONEmoveLeft
+	TXA ; if not in the end
+	AND #$03 ; mod 4 check if at the end of a tile row, then no need to check current tile
+	CMP #$00
+	BEQ SKIPMoveLeft
+
+	LDA tiles, x ; load the value of the current tile
+
+	CMP #$00 ; if the tile is 0, no need to do anything
+	BEQ SKIPMoveLeft
+	;else
+	DEX ; now we will check the next tile
+	LDA tiles, x
+	INX
+	CMP #$00 ; if the next tile is zero we can make the move, else there is nothing to be done
+	BNE SKIPMoveLeft
+	;else current not 0 and next 0 then swap
+	LDA tiles, x ; load current tile again
+	TAY  ; the current tile will be replaced with the value 0
+	LDA #$0
+	STA tiles, x ; save the value to zero
+	TYA
+	DEX			 ; now we'll make the swap
+	STA tiles, x
+	INX
+SKIPMoveLeft:
+	DEX			; if there's no swap to be done we just decrement the pointer
+	JMP loopMoveLeft
+DONEmoveLeft:
+	RTS
+;;;; END MOVE LEFT ;;;;
+
+
+;;;; MOVE DOWN ;;;;
+moveDown:
+	LDY #$0	;initialize indexes
+	LDX #$0
+loopDownOuter:
+	TYA
+	TAX ; initialize X with Y
+	CPY #04	; done checking tiles
+	BEQ DONEmoveDown
+loopDownInner:
+	TXA ; if not in the end
+	AND #%1100 ;check if its on the last line
+	CMP #%1100
+	BEQ doneLoopDownOuter
+
+	LDA tiles, x ; load the value of the current tile
+
+	CMP #$00 ; if the tile is 0, no need to do anything
+	BEQ doneLoopDownInner
+	;else
+	INX
+	INX
+	INX
+	INX ; now we will check the next tile
+
+	LDA tiles, x
+	DEX
+	DEX
+	DEX
+	DEX
+	CMP #$00 ; if the next tile is zero we can make the move, else there is nothing to be done
+	BNE doneLoopDownInner
+	;else current not 0 and next 0 then swap
+	LDA tiles, x ; load current tile again
+	PHA  ; save current value to stack
+	LDA #$0
+	STA tiles, x ; save zero to current position
+	PLA ; retrieve previous value from stack
+	INX			 ; now we'll make the swap
+	INX
+	INX
+	INX
+	STA tiles, x ; make the swap
+	DEX
+	DEX
+	DEX
+	DEX
+	JMP doneLoopDownInner
+doneLoopDownOuter:
+	INY
+	JMP loopDownOuter
+doneLoopDownInner:
+	INX	; go to tile bellow
+	INX
+	INX
+	INX
+	JMP loopDownInner
+DONEmoveDown:
+	RTS
+;;;; END MOVE DOWN ;;;;
+
+
+
+;;;; MOVE UP ;;;;
+moveUp:
+	LDY #$3	;initialize indexes
+	TYA
+	CLC
+	ADC #$0C ;; add 12 (15)
+	TAX
+loopUpOuter:
+	TYA
+	CLC
+	ADC #$0C
+	TAX ; initialize X with Y
+	CPY #$FF	; done checking tiles
+	BEQ DONEmoveUp
+loopUpInner:
+	TXA ; if not in the end
+	AND #%1100 ;check if its on the last line
+	CMP #$0
+	BEQ doneLoopUpOuter
+
+	LDA tiles, x ; load the value of the current tile
+
+	CMP #$00 ; if the tile is 0, no need to do anything
+	BEQ doneLoopUpInner
+	;else
+	DEX
+	DEX
+	DEX
+	DEX ; now we will check the next tile
+
+	LDA tiles, x
+	INX
+	INX
+	INX
+	INX
+	CMP #$00 ; if the next tile is zero we can make the move, else there is nothing to be done
+	BNE doneLoopUpInner
+	;else current not 0 and next 0 then swap
+	LDA tiles, x ; load current tile again
+	PHA  ; save current value to stack
+	LDA #$0
+	STA tiles, x ; save zero to current position
+	PLA ; retrieve previous value from stack
+	DEX			 ; now we'll make the swap
+	DEX
+	DEX
+	DEX
+	STA tiles, x ; make the swap
+	INX
+	INX
+	INX
+	INX
+	JMP doneLoopUpInner
+doneLoopUpOuter:
+	DEY
+	JMP loopUpOuter
+doneLoopUpInner:
+	DEX	; go to tile bellow
+	DEX
+	DEX
+	DEX
+	JMP loopUpInner
+DONEmoveUp:
+	RTS
+;;;; END MOVE UP ;;;;
+
+;;; UPDATE RANDOM ;;;
+
+updateRandom:
+	LDA random
+	ASL A
+	ASL A
+	CLC
+	ADC random
+	CLC
+	ADC #$17
+	STA random
+	RTS
+
+;;; END UPDATE RANDOM ;;;
+
+;;; ADD TILE ;;;
+
+addTile:
+	LDA random
+	AND #$0f ; mod 16
+	STA beginTile ; store begin tile to check full cycle
+	TAX ; transfer random value to X
+
+findEmpty:
+	LDA tiles,x ; load em A, o valor da x-esima tile
+	CMP #$00
+	BEQ twoORfour ; if tile is empty, fill
+	BNE tryNext ; else, check next tile
+	RTS
+tryNext:
+	INX ; increment X
+	TXA ; transfer X to A
+	AND #$0f ; mod 16
+	CMP beginTile ; if tried all tiles and none is empty, check if any moves left
+	BEQ checkAnyMovesLeft
+	BNE taxAndNext
+	RTS
+taxAndNext:
+	TAX ; transfer A to X
+	JMP findEmpty
+
+twoORfour:
+	LDA random
+	AND #$01 ; eliminates 7 bits
+	BEQ newTwo ; if zero, draw two
+	BNE newFour ; else, draw four
+	RTS
+
+newTwo:
+	LDA #$01
+	STA tiles,x
+	RTS
+
+newFour:
+	LDA #$02
+	STA tiles,x
+	RTS
+
+;;; END ADD NEW TILE ;;;
+
+;;; CHECK ANY MOVES LEFT ;;;
+
+checkAnyMovesLeft:
+	LDX #$00
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 0 and 1
+	BNE compare12
+	JMP doneCheckAnyMovesLeft
+compare12:
+	LDX #$01
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 1 and 2
+	BNE compare23
+	JMP doneCheckAnyMovesLeft
+compare23:
+	LDX #$02
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 2 and 3
+	BNE compare45
+	JMP doneCheckAnyMovesLeft
+compare45:
+	LDX #$04
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 4 and 5
+	BNE compare56
+	JMP doneCheckAnyMovesLeft
+compare56:
+	LDX #$05
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 5 and 6
+	BNE compare67
+	JMP doneCheckAnyMovesLeft
+compare67:
+	LDX #$06
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 6 and 7
+	BNE compare89
+	JMP doneCheckAnyMovesLeft
+compare89:
+	LDX #$08
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 8 and 9
+	BNE compare9a
+	JMP doneCheckAnyMovesLeft
+compare9a:
+	LDX #$09
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 9 and 10
+	BNE compareab
+	JMP doneCheckAnyMovesLeft
+compareab:
+	LDX #$0a
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 10 and 11
+	BNE comparecd
+	JMP doneCheckAnyMovesLeft
+comparecd:
+	LDX #$0c
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 12 and 13
+	BNE comparede
+	JMP doneCheckAnyMovesLeft
+comparede:
+	LDX #$0d
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 13 and 14
+	BNE compareef
+	JMP doneCheckAnyMovesLeft
+compareef:
+	LDX #$0e
+	LDA tiles,x
+	INX
+	CMP tiles,x ; compare tiles 14 and 15
+	BNE compare04
+	JMP doneCheckAnyMovesLeft
+compare04:
+	LDX #$00
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 0 and 4
+	BNE compare48
+	JMP doneCheckAnyMovesLeft
+compare48:
+	LDX #$04
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 4 and 8
+	BNE compare8c
+	JMP doneCheckAnyMovesLeft
+compare8c:
+	LDX #$08
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 8 and 12
+	BNE compare15
+	JMP doneCheckAnyMovesLeft
+compare15:
+	LDX #$01
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 1 and 5
+	BNE compare59
+	JMP doneCheckAnyMovesLeft
+compare59:
+	LDX #$05
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 5 and 9
+	BNE compare9d
+	JMP doneCheckAnyMovesLeft
+compare9d:
+	LDX #$09
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 9 and 13
+	BNE compare26
+	JMP doneCheckAnyMovesLeft
+compare26:
+	LDX #$02
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 2 and 6
+	BNE compare6a
+	JMP doneCheckAnyMovesLeft
+compare6a:
+	LDX #$06
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 6 and 10
+	BNE compareae
+	JMP doneCheckAnyMovesLeft
+compareae:
+	LDX #$0a
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 10 and 14
+	BNE compare37
+	JMP doneCheckAnyMovesLeft
+compare37:
+	LDX #$03
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 3 and 7
+	BNE compare7b
+	JMP doneCheckAnyMovesLeft
+compare7b:
+	LDX #$07
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 7 and 11
+	BNE comparebf
+	JMP doneCheckAnyMovesLeft
+comparebf:
+	LDX #$0b
+	LDA tiles,x
+	INX
+	INX
+	INX
+	INX
+	CMP tiles,x ; compare tiles 11 and 15
+	BNE gameOver
+	JMP doneCheckAnyMovesLeft
+
+gameOver:
+	JSR calculateScore
+	LDA #STATEGAMEOVER
+	STA gamestate
+	JMP GameEngineDone
+
+doneCheckAnyMovesLeft:
+	RTS
+
+;;; END CHECK ANY MOVES LEFT ;;;
+
+;;; CALCULATE SCORE ;;;
+
+calculateScore:
+	LDX #$00
+calculateScoreLoop:
+	LDA tiles,x
+	CMP #$02
+	BEQ sum4
+	CMP #$03
+	BEQ sum16
+	CMP #$04
+	BEQ sum48
+	CMP #$05
+	BEQ sum128
+	CMP #$06
+	BEQ sum320
+	JMP jumpLargeSum
+returnCalculateScore:
+	INX
+	TXA
+	CMP   #$10
+	BEQ doneCalculateScoreLoop
+	TAX
+	JMP calculateScoreLoop
+doneCalculateScoreLoop:
+	RTS
+sum4:
+	CLC
+	LDA scoreLo
+	ADC #$04
+	STA scoreLo
+	LDA scoreHi
+	ADC #$00
+	STA scoreHi
+	LDA #$FF
+	;RTS
+	JMP returnCalculateScore
+sum16:
+	CLC
+	LDA scoreLo
+	ADC #$10
+	STA scoreLo
+	LDA scoreHi
+	ADC #$00
+	STA scoreHi
+	LDA #$FF
+	;RTS
+	JMP returnCalculateScore
+sum48:
+	CLC
+	LDA scoreLo
+	ADC #$30
+	STA scoreLo
+	LDA scoreHi
+	ADC #$00
+	STA scoreHi
+	LDA #$FF
+	;RTS
+	JMP returnCalculateScore
+sum128:
+	CLC
+	LDA scoreLo
+	ADC #$80
+	STA scoreLo
+	LDA scoreHi
+	ADC #$00
+	STA scoreHi
+	LDA #$FF
+	;RTS
+	JMP returnCalculateScore
+sum320:
+	CLC
+	LDA scoreLo
+	ADC #$40
+	STA scoreLo
+	LDA scoreHi
+	ADC #$01
+	STA scoreHi
+	LDA #$FF
+	;RTS
+	JMP returnCalculateScore
+jumpLargeSum:
+	CMP #$07
+	BEQ sum768
+	CMP #$08
+	BEQ sum1855
+	CMP #$09
+	BEQ sum4096
+	CMP #$0a
+	BEQ sum9216
+	CMP #$0b
+	BEQ sum20480
+	JMP returnCalculateScore
+sum768:
+	CLC
+	LDA scoreHi
+	ADC #$03
+	STA scoreHi
+	LDA #$FF
+	;RTS
+	JMP returnCalculateScore
+sum1855:
+	CLC
+	LDA scoreLo
+	ADC #$3F
+	STA scoreLo
+	LDA scoreHi
+	ADC #$07
+	STA scoreHi
+	LDA #$FF
+	;RTS
+	JMP returnCalculateScore
+sum4096:
+	CLC
+	LDA scoreHi
+	ADC #$10
+	STA scoreHi
+	LDA #$FF
+	;RTS
+	JMP returnCalculateScore
+sum9216:
+	CLC
+	LDA scoreHi
+	ADC #$24
+	STA scoreHi
+	LDA #$FF
+	;RTS
+	JMP returnCalculateScore
+sum20480:
+	CLC
+	LDA scoreHi
+	ADC #$50
+	STA scoreHi
+	LDA #$FF
+	;RTS
+	JMP returnCalculateScore
+
+;;; END CALCULATE SCORE ;;;
+
+;;; MERGE ;;;
+
+;;  0,  1,  2,  3
+;;  4,  5,  6,  7
+;;  8,  9, 10, 11
+;; 12, 13, 14, 15
+
+mergeUp:
+    LDX #$00        ; X <= the current tile idx
+    LDY #$04        ; Y <= the idx of the tile to compare for the merge
+mergeUpLoop:
+    LDA tiles, X    ; get current tile value
+    STA currTile    ; store it in a variable
+    CMP #$00        ; if the current tile is 00 (empty) we don't even bother, just go to next
+    BEQ mergeUpNext
+    LDA tiles, Y    ; get the value of the tile to compare
+    EOR currTile    ; check equals
+    BNE mergeUpNext
+    INC currTile
+    LDA currTile
+    STA tiles, X    ; replace current value in the tiles array
+    LDA #$00        ; empty the tile which was used in merge
+    STA tiles, Y
+mergeUpNext:
+    INX             ; go to next
+    INY
+    CPY #$10        ; if we've already checked every tile, stop
+    BNE mergeUpLoop
+mergeUpDone:
+    RTS
+
+mergeDown:
+    LDX #$0B        ; X <= the idx of the tile to compare
+    LDY #$0F        ; Y <= current tile idx
+mergeDownLoop:
+    LDA tiles, Y
+    STA currTile
+    CMP #$00
+    BEQ mergeDownNext
+    LDA tiles, X
+    EOR currTile
+    BNE mergeDownNext
+    INC currTile
+    LDA currTile
+    STA tiles, Y
+    LDA #$00
+    STA tiles, X
+mergeDownNext:
+    DEX
+    DEY
+    CPY #$03
+    BNE mergeDownLoop
+mergeDownDone:
+    RTS
+
+
+mergeLeft:
+    LDX #$00        ; X <= current tile idx
+    LDY #$01        ; Y <= tile idx to compare
+mergeLeftLoop:
+    CPY #$04
+    BEQ mergeLeftNext
+    CPY #$08
+    BEQ mergeLeftNext
+    CPY #$0C
+    BEQ mergeLeftNext
+    LDA tiles, X
+    STA currTile
+    CMP #$00
+    BEQ mergeLeftNext
+    LDA tiles, Y
+    EOR currTile
+    BNE mergeLeftNext
+    INC currTile
+    LDA currTile
+    STA tiles, X
+    LDA #$00
+    STA tiles, Y
+mergeLeftNext:
+    INX
+    INY
+    CPY #$10
+    BNE mergeLeftLoop
+mergeLeftDone:
+    RTS
+
+mergeRight:
+    LDX #$0E        ; X <= tile idx to compare
+    LDY #$0F        ; Y <= current tile
+mergeRightLoop:
+    CPY #$04
+    BEQ mergeRightNext
+    CPY #$08
+    BEQ mergeRightNext
+    CPY #$0C
+    BEQ mergeRightNext
+    LDA tiles, Y
+    STA currTile
+    CMP #$00
+    BEQ mergeRightNext
+    LDA tiles, X
+    EOR currTile
+    BNE mergeRightNext
+    INC currTile
+    LDA currTile
+    STA tiles, Y
+    LDA #$00
+    STA tiles, X
+mergeRightNext:
+    DEX
+    DEY
+    CPY #$00
+    BNE mergeRightLoop
+mergeRightDone:
+    RTS
+
+LoadNametable:
+ 	LDA $2002     ;read PPU status to reset the high/low latch
+  	LDA #$20
+  	STA $2006
+  	LDA #$00
+  	STA $2006
+
+;Set the nametable
+  	LDA gamestate
+  	ASL A
+  	TAY
+  	LDA NametablePointerTable, Y
+  	STA tempWord
+  	LDA NametablePointerTable+1, Y
+  	STA tempWord+1
+
+  	LDX #$04
+  	LDY #$00
+;Load the nametable (change this, attribute is being set unnecessarily)
+.loadNametableLoop:
+  	LDA [tempWord], Y              ;load nametable
+  	STA $2007                      ;draw tile
+  	INY
+  	BNE .loadNametableLoop
+  	INC tempWord+1
+  	DEX
+  	BNE .loadNametableLoop
+  	RTS
 
 ;;;;;;;;;;;;;;
   .bank 1
   .org $E000    ;;align the background data so the lower address is $00
+
+menuBackground:
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, $d2, $d0, $d4, $d8, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, $e9, $eb, $de, $ec, $ec, GBG, $ec, $ed, $da, $eb, $ed,GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+
 
 background:
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
@@ -620,6 +1510,10 @@ background:
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
 
+NametablePointerTable:
+  .dw menuBackground     ;STATE_TITLE
+  .dw background   ;STATE_PLAYING
+
 attributes:  ;8 x 8 = 64 bytes
 	.db %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000
 	.db %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000
@@ -629,6 +1523,8 @@ attributes:  ;8 x 8 = 64 bytes
 	.db %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000
 	.db %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000
 	.db %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000
+
+
 
 palette:
 	.db $22,$29,$1A,$0F,  $22,$29,$1A,$0F,  $22,$29,$1A,$0F,  $22,$29,$1A,$0F   ;;background palette
