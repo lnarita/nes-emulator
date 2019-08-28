@@ -285,12 +285,6 @@ EngineGameOver:
 	JMP GameEngineDone
 
 EngineGameOverDraw
-	LDA #%00000000        ;Turn the screen off
-  	STA $2000
-  	STA $2001
-	JSR LoadNametable
-	LDA #%10001000        ;Turn the screen on
-  	STA $2000
 	JMP GameEngineDone
 
 ;;;;;;;;;;;
@@ -1179,6 +1173,12 @@ gameOver:
 	JSR calculateScore
 	LDA #STATEGAMEOVER
 	STA gamestate
+	LDA #%00000000        ;Turn the screen off
+  	STA $2000
+  	STA $2001
+	JSR LoadNametable
+	LDA #%10001000        ;Turn the screen on
+  	STA $2000
 	JMP GameEngineDone
 
 doneCheckAnyMovesLeft:
