@@ -178,7 +178,8 @@ initTiles:
 	LDA random
 	AND #$0f ; mod 16
 	TAX ; transfer random value to X
-	JSR initTwo
+	LDA #$01
+	STA tiles,x
 
 findEmptyInit:
 	LDA random
@@ -187,8 +188,7 @@ findEmptyInit:
 	LDA tiles,x ; load em A, o valor da x-esima tile
 	CMP #$00
 	BEQ initTwo ; if tile is empty, fill
-	BNE findEmptyInit ; else, try again
-	RTS
+	JMP findEmptyInit ; else, try again
 
 initTwo:
 	LDA #$01
@@ -335,6 +335,9 @@ MPD1Done:
     BEQ MPL1Done
 
 doMvLeft:
+	JSR validLeftMove
+	CMP #$01
+	BEQ MPL1Done
 	JSR moveLeft
 	JSR moveLeft
 	JSR moveLeft
@@ -357,6 +360,9 @@ MPL1Done:
     BEQ MPR1Done
 
 doMvRight:
+	JSR validRightMove
+	CMP #$01
+	BEQ MPR1Done
 	JSR moveRight
 	JSR moveRight
 	JSR moveRight
@@ -1655,7 +1661,7 @@ validUpMove:
 validUpMoveLoop:
 	LDA tiles,x
 	CMP #$00
-	BEQ checkBottomTile ; if top tile is zero, check if is bottom isn't
+	BEQ checkBottomTile ; if top tile is zero, check if bottom isn't
 	                    ; else, check if both are equal
 	CMP tiles,y
 	BEQ upMoveOK ; if tiles,x == tiles,y != 0, OK
@@ -1691,7 +1697,7 @@ validDownMove:
 validDownMoveLoop:
 	LDA tiles,x
 	CMP #$00
-	BEQ checkTopTile ; if top bottom is zero, check if is top isn't
+	BEQ checkTopTile ; if bottom tile is zero, check if top isn't
 	                 ; else, check if both are equal
 	CMP tiles,y
 	BEQ downMoveOK ; if tiles,x == tiles,y != 0, OK
@@ -1720,6 +1726,105 @@ notValidDownMove:
 	LDA #$01
 	RTS
 
+; Returns 0 in A if valid, 1 otherwise
+validLeftMove:
+	LDX #$00
+	LDY #$01
+validLeftMoveLoop:
+	LDA tiles,x
+	CMP #$00
+	BEQ checkRightTile ; if left tile is zero, check if right isn't
+	                   ; else, check if both are equal
+	CMP tiles,y
+	BEQ leftMoveOK ; if tiles,x == tiles,y != 0, OK
+	               ; else, check next
+	INX
+	INY
+	TXA
+	AND #$03
+	CMP #$03
+	BNE noLineChange1
+	INX
+	INY
+	TXA
+noLineChange1:
+	CMP #$10
+	BEQ notValidLeftMove ; no more pair of tiles to check
+	JMP validLeftMoveLoop
+checkRightTile:
+	LDA tiles,y
+	CMP #$00 ;
+	BNE leftMoveOK ; if tiles,x == 0 and tiles,y !0, OK
+	               ; else, check next
+	INX
+	INY
+	TXA
+	AND #$03
+	CMP #$03
+	BNE noLineChange2
+	INX
+	INY
+	TXA
+noLineChange2:
+	CMP #$10
+	BEQ notValidLeftMove ; no more pair of tiles to check
+	JMP validLeftMoveLoop
+leftMoveOK:
+	LDA #$00
+	RTS
+notValidLeftMove:
+	LDA #$01
+	RTS
+
+; Returns 0 in A if valid, 1 otherwise
+validRightMove:
+	LDX #$01
+	LDY #$00
+validRightMoveLoop:
+	LDA tiles,x
+	CMP #$00
+	BEQ checkLeftTile ; if right tile is zero, check if left isn't
+	                  ; else, check if both are equal
+	CMP tiles,y
+	BEQ rightMoveOK ; if tiles,x == tiles,y != 0, OK
+	                ; else, check next
+	INX
+	INY
+	TYA
+	AND #$03
+	CMP #$03
+	BNE noLineChange3
+	INX
+	INY
+	TYA
+noLineChange3:
+	CMP #$10
+	BEQ notValidRightMove ; no more pair of tiles to check
+	JMP validRightMoveLoop
+checkLeftTile:
+	LDA tiles,y
+	CMP #$00 ;
+	BNE rightMoveOK ; if tiles,x == 0 and tiles,y !0, OK
+	                ; else, check next
+	INX
+	INY
+	TYA
+	AND #$03
+	CMP #$03
+	BNE noLineChange4
+	INX
+	INY
+	TYA
+noLineChange4:
+	CMP #$10
+	BEQ notValidRightMove ; no more pair of tiles to check
+	JMP validRightMoveLoop
+rightMoveOK:
+	LDA #$00
+	RTS
+notValidRightMove:
+	LDA #$01
+	RTS
 
 LoadNametable:
  	LDA $2002     ;read PPU status to reset the high/low latch
