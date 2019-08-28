@@ -284,6 +284,9 @@ EnginePlaying:
 	BEQ MPU1Done
 
 doMvUp:
+	JSR validUpMove
+	CMP #$01
+	BEQ MPU1Done
     JSR moveUp
     JSR moveUp
     JSR moveUp
@@ -307,6 +310,9 @@ MPU1Done:
     BEQ MPD1Done
 
 doMvDown:
+	JSR validDownMove
+	CMP #$01
+	BEQ MPD1Done
 	JSR moveDown
 	JSR moveDown
 	JSR moveDown
@@ -1640,6 +1646,80 @@ scoreDig1Done:
 	STA scoreDig,Y ; save the digit
 
 	RTS
+
+
+; Returns 0 in A if valid, 1 otherwise
+validUpMove:
+	LDX #$00
+	LDY #$04
+validUpMoveLoop:
+	LDA tiles,x
+	CMP #$00
+	BEQ checkBottomTile ; if top tile is zero, check if is bottom isn't
+	                    ; else, check if both are equal
+	CMP tiles,y
+	BEQ upMoveOK ; if tiles,x == tiles,y != 0, OK
+	             ; else, check next
+	INX
+	INY
+	TYA
+	CMP #$10
+	BEQ notValidUpMove ; no more pair of tiles to check
+	JMP validUpMoveLoop
+checkBottomTile:
+	LDA tiles,y
+	CMP #$00 ;
+	BNE upMoveOK ; if tiles,x == 0 and tiles,y !0, OK
+	             ; else, check next
+	INX
+	INY
+	TYA
+	CMP #$10
+	BEQ notValidUpMove ; no more pair of tiles to check
+	JMP validUpMoveLoop
+upMoveOK:
+	LDA #$00
+	RTS
+notValidUpMove:
+	LDA #$01
+	RTS
+
+; Returns 0 in A if valid, 1 otherwise
+validDownMove:
+	LDX #$04
+	LDY #$00
+validDownMoveLoop:
+	LDA tiles,x
+	CMP #$00
+	BEQ checkTopTile ; if top bottom is zero, check if is top isn't
+	                 ; else, check if both are equal
+	CMP tiles,y
+	BEQ downMoveOK ; if tiles,x == tiles,y != 0, OK
+	               ; else, check next
+	INX
+	INY
+	TXA
+	CMP #$10
+	BEQ notValidDownMove ; no more pair of tiles to check
+	JMP validDownMoveLoop
+checkTopTile:
+	LDA tiles,y
+	CMP #$00 ;
+	BNE downMoveOK ; if tiles,x == 0 and tiles,y !0, OK
+	               ; else, check next
+	INX
+	INY
+	TXA
+	CMP #$10
+	BEQ notValidDownMove ; no more pair of tiles to check
+	JMP validDownMoveLoop
+downMoveOK:
+	LDA #$00
+	RTS
+notValidDownMove:
+	LDA #$01
+	RTS
+
 
 LoadNametable:
  	LDA $2002     ;read PPU status to reset the high/low latch
