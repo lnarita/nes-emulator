@@ -178,7 +178,8 @@ initTiles:
 	LDA random
 	AND #$0f ; mod 16
 	TAX ; transfer random value to X
-	JSR initTwo
+	LDA #$01
+	STA tiles,x
 
 findEmptyInit:
 	LDA random
@@ -187,8 +188,7 @@ findEmptyInit:
 	LDA tiles,x ; load em A, o valor da x-esima tile
 	CMP #$00
 	BEQ initTwo ; if tile is empty, fill
-	BNE findEmptyInit ; else, try again
-	RTS
+	JMP findEmptyInit ; else, try again
 
 initTwo:
 	LDA #$01
@@ -305,6 +305,9 @@ EnginePlaying:
 	BEQ MPU1Done
 
 doMvUp:
+	JSR validUpMove
+	CMP #$01
+	BEQ MPU1Done
     JSR moveUp
     JSR moveUp
     JSR moveUp
@@ -328,6 +331,9 @@ MPU1Done:
     BEQ MPD1Done
 
 doMvDown:
+	JSR validDownMove
+	CMP #$01
+	BEQ MPD1Done
 	JSR moveDown
 	JSR moveDown
 	JSR moveDown
@@ -350,6 +356,9 @@ MPD1Done:
     BEQ MPL1Done
 
 doMvLeft:
+	JSR validLeftMove
+	CMP #$01
+	BEQ MPL1Done
 	JSR moveLeft
 	JSR moveLeft
 	JSR moveLeft
@@ -372,6 +381,9 @@ MPL1Done:
     BEQ MPR1Done
 
 doMvRight:
+	JSR validRightMove
+	CMP #$01
+	BEQ MPR1Done
 	JSR moveRight
 	JSR moveRight
 	JSR moveRight
@@ -1660,6 +1672,179 @@ scoreDig1Done:
 	TXA
 	STA scoreDig,Y ; save the digit
 
+	RTS
+
+
+; Returns 0 in A if valid, 1 otherwise
+validUpMove:
+	LDX #$00
+	LDY #$04
+validUpMoveLoop:
+	LDA tiles,x
+	CMP #$00
+	BEQ checkBottomTile ; if top tile is zero, check if bottom isn't
+	                    ; else, check if both are equal
+	CMP tiles,y
+	BEQ upMoveOK ; if tiles,x == tiles,y != 0, OK
+	             ; else, check next
+	INX
+	INY
+	TYA
+	CMP #$10
+	BEQ notValidUpMove ; no more pair of tiles to check
+	JMP validUpMoveLoop
+checkBottomTile:
+	LDA tiles,y
+	CMP #$00 ;
+	BNE upMoveOK ; if tiles,x == 0 and tiles,y !0, OK
+	             ; else, check next
+	INX
+	INY
+	TYA
+	CMP #$10
+	BEQ notValidUpMove ; no more pair of tiles to check
+	JMP validUpMoveLoop
+upMoveOK:
+	LDA #$00
+	RTS
+notValidUpMove:
+	LDA #$01
+	RTS
+
+; Returns 0 in A if valid, 1 otherwise
+validDownMove:
+	LDX #$04
+	LDY #$00
+validDownMoveLoop:
+	LDA tiles,x
+	CMP #$00
+	BEQ checkTopTile ; if bottom tile is zero, check if top isn't
+	                 ; else, check if both are equal
+	CMP tiles,y
+	BEQ downMoveOK ; if tiles,x == tiles,y != 0, OK
+	               ; else, check next
+	INX
+	INY
+	TXA
+	CMP #$10
+	BEQ notValidDownMove ; no more pair of tiles to check
+	JMP validDownMoveLoop
+checkTopTile:
+	LDA tiles,y
+	CMP #$00 ;
+	BNE downMoveOK ; if tiles,x == 0 and tiles,y !0, OK
+	               ; else, check next
+	INX
+	INY
+	TXA
+	CMP #$10
+	BEQ notValidDownMove ; no more pair of tiles to check
+	JMP validDownMoveLoop
+downMoveOK:
+	LDA #$00
+	RTS
+notValidDownMove:
+	LDA #$01
+	RTS
+
+; Returns 0 in A if valid, 1 otherwise
+validLeftMove:
+	LDX #$00
+	LDY #$01
+validLeftMoveLoop:
+	LDA tiles,x
+	CMP #$00
+	BEQ checkRightTile ; if left tile is zero, check if right isn't
+	                   ; else, check if both are equal
+	CMP tiles,y
+	BEQ leftMoveOK ; if tiles,x == tiles,y != 0, OK
+	               ; else, check next
+	INX
+	INY
+	TXA
+	AND #$03
+	CMP #$03
+	BNE noLineChange1
+	INX
+	INY
+	TXA
+noLineChange1:
+	CMP #$10
+	BEQ notValidLeftMove ; no more pair of tiles to check
+	JMP validLeftMoveLoop
+checkRightTile:
+	LDA tiles,y
+	CMP #$00 ;
+	BNE leftMoveOK ; if tiles,x == 0 and tiles,y !0, OK
+	               ; else, check next
+	INX
+	INY
+	TXA
+	AND #$03
+	CMP #$03
+	BNE noLineChange2
+	INX
+	INY
+	TXA
+noLineChange2:
+	CMP #$10
+	BEQ notValidLeftMove ; no more pair of tiles to check
+	JMP validLeftMoveLoop
+leftMoveOK:
+	LDA #$00
+	RTS
+notValidLeftMove:
+	LDA #$01
+	RTS
+
+; Returns 0 in A if valid, 1 otherwise
+validRightMove:
+	LDX #$01
+	LDY #$00
+validRightMoveLoop:
+	LDA tiles,x
+	CMP #$00
+	BEQ checkLeftTile ; if right tile is zero, check if left isn't
+	                  ; else, check if both are equal
+	CMP tiles,y
+	BEQ rightMoveOK ; if tiles,x == tiles,y != 0, OK
+	                ; else, check next
+	INX
+	INY
+	TYA
+	AND #$03
+	CMP #$03
+	BNE noLineChange3
+	INX
+	INY
+	TYA
+noLineChange3:
+	CMP #$10
+	BEQ notValidRightMove ; no more pair of tiles to check
+	JMP validRightMoveLoop
+checkLeftTile:
+	LDA tiles,y
+	CMP #$00 ;
+	BNE rightMoveOK ; if tiles,x == 0 and tiles,y !0, OK
+	                ; else, check next
+	INX
+	INY
+	TYA
+	AND #$03
+	CMP #$03
+	BNE noLineChange4
+	INX
+	INY
+	TYA
+noLineChange4:
+	CMP #$10
+	BEQ notValidRightMove ; no more pair of tiles to check
+	JMP validRightMoveLoop
+rightMoveOK:
+	LDA #$00
+	RTS
+notValidRightMove:
+	LDA #$01
 	RTS
 
 LoadNametable:
