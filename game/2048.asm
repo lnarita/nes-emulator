@@ -1464,26 +1464,41 @@ drawScore:
 	;draw tiles
 
 	LDA $2002             ; read PPU status to reset the high/low latch
-	LDA #$20
+	LDA #$23
 	STA $2006             ; write the high byte of $3F00 address
-	LDA #$0D
+	LDA #$6D
 	STA $2006             ; write the low byte of $3F00 address
 
 	LDA #$00
 	TAX
+	
 	LDA scoreDig,X
-	INX
+	CLC
+	ADC #$D0
 	STA $2007
-	LDA scoreDig,X
 	INX
-	STA $2007
+
 	LDA scoreDig,X
+	CLC
+	ADC #$D0	
+	STA $2007
 	INX
-	STA $2007
+
 	LDA scoreDig,X
+	CLC
+	ADC #$D0
+	STA $2007
 	INX
-	STA $2007
+
 	LDA scoreDig,X
+	CLC
+	ADC #$D0
+	STA $2007
+	INX
+
+	LDA scoreDig,X
+	CLC
+	ADC #$D0
 	STA $2007
 
 	RTS
