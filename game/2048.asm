@@ -1222,7 +1222,6 @@ sum4:
 	ADC #$00
 	STA scoreHi
 	LDA #$FF
-	;RTS
 	JMP returnCalculateScore
 sum16:
 	CLC
@@ -1233,7 +1232,6 @@ sum16:
 	ADC #$00
 	STA scoreHi
 	LDA #$FF
-	;RTS
 	JMP returnCalculateScore
 sum48:
 	CLC
@@ -1244,7 +1242,6 @@ sum48:
 	ADC #$00
 	STA scoreHi
 	LDA #$FF
-	;RTS
 	JMP returnCalculateScore
 sum128:
 	CLC
@@ -1255,7 +1252,6 @@ sum128:
 	ADC #$00
 	STA scoreHi
 	LDA #$FF
-	;RTS
 	JMP returnCalculateScore
 sum320:
 	CLC
@@ -1266,7 +1262,6 @@ sum320:
 	ADC #$01
 	STA scoreHi
 	LDA #$FF
-	;RTS
 	JMP returnCalculateScore
 jumpLargeSum:
 	CMP #$07
@@ -1286,7 +1281,6 @@ sum768:
 	ADC #$03
 	STA scoreHi
 	LDA #$FF
-	;RTS
 	JMP returnCalculateScore
 sum1855:
 	CLC
@@ -1297,7 +1291,6 @@ sum1855:
 	ADC #$07
 	STA scoreHi
 	LDA #$FF
-	;RTS
 	JMP returnCalculateScore
 sum4096:
 	CLC
@@ -1305,7 +1298,6 @@ sum4096:
 	ADC #$10
 	STA scoreHi
 	LDA #$FF
-	;RTS
 	JMP returnCalculateScore
 sum9216:
 	CLC
@@ -1313,7 +1305,6 @@ sum9216:
 	ADC #$24
 	STA scoreHi
 	LDA #$FF
-	;RTS
 	JMP returnCalculateScore
 sum20480:
 	CLC
@@ -1321,7 +1312,6 @@ sum20480:
 	ADC #$50
 	STA scoreHi
 	LDA #$FF
-	;RTS
 	JMP returnCalculateScore
 
 ;;; END CALCULATE SCORE ;;;
@@ -1670,6 +1660,7 @@ scoreDig1Done:
 
 	RTS
 
+;;; VALID UP MOVE ;;;
 
 ; Returns 0 in A if valid, 1 otherwise
 validUpMove:
@@ -1692,7 +1683,7 @@ validUpMoveLoop:
 checkBottomTile:
 	LDA tiles,y
 	CMP #$00 ;
-	BNE upMoveOK ; if tiles,x == 0 and tiles,y !0, OK
+	BNE upMoveOK ; if tiles,x == 0 and tiles,y != 0, OK
 	             ; else, check next
 	INX
 	INY
@@ -1706,6 +1697,10 @@ upMoveOK:
 notValidUpMove:
 	LDA #$01
 	RTS
+
+;;; END VALID UP MOVE ;;;
+
+;;; VALID DOWN MOVE ;;;
 
 ; Returns 0 in A if valid, 1 otherwise
 validDownMove:
@@ -1728,7 +1723,7 @@ validDownMoveLoop:
 checkTopTile:
 	LDA tiles,y
 	CMP #$00 ;
-	BNE downMoveOK ; if tiles,x == 0 and tiles,y !0, OK
+	BNE downMoveOK ; if tiles,x == 0 and tiles,y != 0, OK
 	               ; else, check next
 	INX
 	INY
@@ -1742,6 +1737,10 @@ downMoveOK:
 notValidDownMove:
 	LDA #$01
 	RTS
+
+;;; END VALID DOWN MOVE ;;;
+
+;;; VALID LEFT MOVE ;;;
 
 ; Returns 0 in A if valid, 1 otherwise
 validLeftMove:
@@ -1760,7 +1759,7 @@ validLeftMoveLoop:
 	TXA
 	AND #$03
 	CMP #$03
-	BNE noLineChange1
+	BNE noLineChange1 ; increases index twice when line ends so as not to compare the last tile of the row with the first tile of the next row
 	INX
 	INY
 	TXA
@@ -1771,14 +1770,14 @@ noLineChange1:
 checkRightTile:
 	LDA tiles,y
 	CMP #$00 ;
-	BNE leftMoveOK ; if tiles,x == 0 and tiles,y !0, OK
+	BNE leftMoveOK ; if tiles,x == 0 and tiles,y != 0, OK
 	               ; else, check next
 	INX
 	INY
 	TXA
 	AND #$03
 	CMP #$03
-	BNE noLineChange2
+	BNE noLineChange2 ; increases index twice when line ends so as not to compare the last tile of the row with the first tile of the next row
 	INX
 	INY
 	TXA
@@ -1792,6 +1791,10 @@ leftMoveOK:
 notValidLeftMove:
 	LDA #$01
 	RTS
+
+;;; END VALID LEFT MOVE ;;;
+
+;;; VALID RIGHT MOVE ;;;
 
 ; Returns 0 in A if valid, 1 otherwise
 validRightMove:
@@ -1810,7 +1813,7 @@ validRightMoveLoop:
 	TYA
 	AND #$03
 	CMP #$03
-	BNE noLineChange3
+	BNE noLineChange3 ; increases index twice when line ends so as not to compare the last tile of the row with the first tile of the next row
 	INX
 	INY
 	TYA
@@ -1821,14 +1824,14 @@ noLineChange3:
 checkLeftTile:
 	LDA tiles,y
 	CMP #$00 ;
-	BNE rightMoveOK ; if tiles,x == 0 and tiles,y !0, OK
+	BNE rightMoveOK ; if tiles,x == 0 and tiles,y != 0, OK
 	                ; else, check next
 	INX
 	INY
 	TYA
 	AND #$03
 	CMP #$03
-	BNE noLineChange4
+	BNE noLineChange4 ; increases index twice when line ends so as not to compare the last tile of the row with the first tile of the next row
 	INX
 	INY
 	TYA
@@ -1842,6 +1845,8 @@ rightMoveOK:
 notValidRightMove:
 	LDA #$01
 	RTS
+
+;;; END VALID RIGHT MOVE ;;;
 
 LoadNametable:
  	LDA $2002     ;read PPU status to reset the high/low latch
