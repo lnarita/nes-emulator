@@ -13,7 +13,7 @@ The `run.sh` script must be run in the project root folder (as it will try to `c
 If you have `nesasm` and `mednafen` commands in your machine but the script keeps complaining, just run it with the `--nochecks` flag as shown below.
 
 ```
-./run.sh --nocheck
+./run.sh --nochecks
 ```
 
 
