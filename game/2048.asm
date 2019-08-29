@@ -132,24 +132,7 @@ LoadMenuBackground:
 	LDA #$00
 	STA $2006             ; write the low byte of $2000 address
 	LDA #$00
-	STA pointerLo         ; put the low byte of the address of background into pointer
-	LDA #HIGH(menuBackground)
-	STA pointerHi         ; put the high byte of the address into pointer
-	LDX #$00              ; start at pointer + 0
-	LDY #$00
-OutsideLoop:
-
-InsideLoop:
-	LDA [pointerLo], y  ; copy one background byte from address in pointer plus Y
-	STA $2007           ; this runs 256 * 4 times
-	INY                 ; inside loop counter
-	CPY #$00
-	BNE InsideLoop      ; run the inside loop 256 times before continuing down
-	INC pointerHi       ; low byte went 0 to 256, so high byte needs to be changed now
-	INX
-	CPX #$04
-	BNE OutsideLoop     ; run the outside loop 256 times before continuing down
-
+	JSR LoadNametable
 	LDA #%10010000      ; enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
 	STA $2000
 	LDA #%00011110      ; enable sprites, enable background, no clipping on left side
@@ -175,6 +158,16 @@ Forever:
 ;;; INIT TILES ;;;
 
 initTiles:
+	LDX #$0
+loopInitTiles:
+	TXA
+	CMP #$10
+	BEQ loopInitTilesDone
+	LDA #$0
+	STA tiles,x
+	INX
+	JMP loopInitTiles
+loopInitTilesDone:
 	LDA random
 	AND #$0f ; mod 16
 	TAX ; transfer random value to X
@@ -269,9 +262,11 @@ EngineGameOver:
 	AND #GAMEPAD_START
 	CMP #GAMEPAD_START
 
-	BNE EngineGameOverDraw
+	BNE GameEngineDone
 	LDA #STATEPLAYING
 	STA gamestate
+
+  	JSR initTiles
 
 	LDA #%00000000        ;Turn the screen off
   	STA $2000
@@ -279,12 +274,8 @@ EngineGameOver:
 	JSR LoadNametable
 	LDA #%10001000        ;Turn the screen on
   	STA $2000
-  	JSR initTiles
   	JSR UpdateSprites
 
-	JMP GameEngineDone
-
-EngineGameOverDraw
 	JMP GameEngineDone
 
 ;;;;;;;;;;;
@@ -1192,7 +1183,8 @@ gameOver:
 	JSR LoadNametable
 	LDA #%10001000        ;Turn the screen on
   	STA $2000
-	JMP GameEngineDone
+GameOverForever:
+	JMP GameOverForever
 
 doneCheckAnyMovesLeft:
 	RTS
@@ -1893,6 +1885,11 @@ LoadNametable:
   .bank 1
   .org $E000    ;;align the background data so the lower address is $00
 
+NametablePointerTable:
+  .dw menuBackground     ;STATE_TITLE
+  .dw background   ;STATE_PLAYING
+  .dw gameoverBackground ;STATE_GAMEOVER
+
 menuBackground:
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
@@ -1972,6 +1969,9 @@ gameoverBackground:
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, $d2, $d0, $d4, $d8, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, $e0, $da, $e6, $de, GBG, GBG, $e8, $ef, $de, $eb, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, $e9, $eb, $de, $ec, $ec, GBG, $ec, $ed, $da, $eb, $ed,GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
@@ -1985,15 +1985,6 @@ gameoverBackground:
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
-   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
-   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
-   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
-
-
-NametablePointerTable:
-  .dw menuBackground     ;STATE_TITLE
-  .dw background   ;STATE_PLAYING
-  .dw gameoverBackground ;STATE_GAMEOVER
 
 attributes:  ;8 x 8 = 64 bytes
 	.db %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000
