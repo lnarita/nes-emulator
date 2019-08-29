@@ -171,6 +171,7 @@ loopInitTilesDone:
 	STA tiles,x
 
 findEmptyInit:
+	JSR updateRandom
 	LDA random
 	AND #$0f ; mod 16
 	TAX ; transfer random value to X
