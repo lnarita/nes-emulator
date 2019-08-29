@@ -165,6 +165,10 @@ loopInitTiles:
 	JMP loopInitTiles
 loopInitTilesDone:
 	LDA random
+	LSR A
+	LSR A
+	LSR A
+	LSR A
 	AND #$0f ; mod 16
 	TAX ; transfer random value to X
 	LDA #$01
@@ -173,9 +177,13 @@ loopInitTilesDone:
 findEmptyInit:
 	JSR updateRandom
 	LDA random
+	LSR A
+	LSR A
+	LSR A
+	LSR A
 	AND #$0f ; mod 16
 	TAX ; transfer random value to X
-	LDA tiles,x ; load em A, o valor da x-esima tile
+	LDA tiles,x ; load x-th tile
 	CMP #$00
 	BEQ initTwo ; if tile is empty, fill
 	JMP findEmptyInit ; else, try again
@@ -893,13 +901,14 @@ DONEmoveUp:
 
 ;;; UPDATE RANDOM ;;;
 
+; Linear congruential pseudo-random number generator
 updateRandom:
 	LDA random
-	ASL A ; multiply by an odd number
+	ASL A ; multiply by 5
 	ASL A
 	CLC
 	ADC random
-	CLC ; add a prime number
+	CLC ; add 17
 	ADC #$17
 	STA random
 	RTS
@@ -910,12 +919,16 @@ updateRandom:
 
 addTile:
 	LDA random
+	LSR A
+	LSR A
+	LSR A
+	LSR A
 	AND #$0f ; mod 16
 	STA beginTile ; store begin tile to check full cycle
 	TAX ; transfer random value to X
 
 findEmpty:
-	LDA tiles,x ; load em A, o valor da x-esima tile
+	LDA tiles,x ; load x-th tile
 	CMP #$00
 	BEQ twoORfour ; if tile is empty, fill
 	INX ; increment X
@@ -928,8 +941,13 @@ findEmpty:
 
 twoORfour:
 	LDA random
-	AND #$01 ; eliminates 7 bits
-	BNE newFour ; if not zero, draw four
+	LSR A
+	LSR A
+	LSR A
+	LSR A
+	LSR A
+	AND #$07 ; mod 8
+	BEQ newFour ; if zero, draw four
 
 newTwo:
 	LDA #$01
