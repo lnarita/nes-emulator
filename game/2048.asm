@@ -74,10 +74,6 @@ BEEP_DURATION = $03
 	.bank 0
 	.org $C000
 
-randomSeed:
-	LDA #$03
-	STA random
-
 vblankwait:      ; wait for vblank
 	BIT $2002
 	BPL vblankwait
@@ -132,24 +128,7 @@ LoadMenuBackground:
 	LDA #$00
 	STA $2006             ; write the low byte of $2000 address
 	LDA #$00
-	STA pointerLo         ; put the low byte of the address of background into pointer
-	LDA #HIGH(menuBackground)
-	STA pointerHi         ; put the high byte of the address into pointer
-	LDX #$00              ; start at pointer + 0
-	LDY #$00
-OutsideLoop:
-
-InsideLoop:
-	LDA [pointerLo], y  ; copy one background byte from address in pointer plus Y
-	STA $2007           ; this runs 256 * 4 times
-	INY                 ; inside loop counter
-	CPY #$00
-	BNE InsideLoop      ; run the inside loop 256 times before continuing down
-	INC pointerHi       ; low byte went 0 to 256, so high byte needs to be changed now
-	INX
-	CPX #$04
-	BNE OutsideLoop     ; run the outside loop 256 times before continuing down
-
+	JSR LoadNametable
 	LDA #%10010000      ; enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
 	STA $2000
 	LDA #%00011110      ; enable sprites, enable background, no clipping on left side
@@ -175,20 +154,39 @@ Forever:
 ;;; INIT TILES ;;;
 
 initTiles:
+	LDX #$0
+loopInitTiles:
+	TXA
+	CMP #$10
+	BEQ loopInitTilesDone
+	LDA #$0
+	STA tiles,x
+	INX
+	JMP loopInitTiles
+loopInitTilesDone:
 	LDA random
+	LSR A
+	LSR A
+	LSR A
+	LSR A
 	AND #$0f ; mod 16
 	TAX ; transfer random value to X
-	JSR initTwo
+	LDA #$01
+	STA tiles,x
 
 findEmptyInit:
+	JSR updateRandom
 	LDA random
+	LSR A
+	LSR A
+	LSR A
+	LSR A
 	AND #$0f ; mod 16
 	TAX ; transfer random value to X
-	LDA tiles,x ; load em A, o valor da x-esima tile
+	LDA tiles,x ; load x-th tile
 	CMP #$00
 	BEQ initTwo ; if tile is empty, fill
-	BNE findEmptyInit ; else, try again
-	RTS
+	JMP findEmptyInit ; else, try again
 
 initTwo:
 	LDA #$01
@@ -265,11 +263,24 @@ EngineTitle:
 ;;;;;;;;;
 
 EngineGameOver:
-	;;if start button pressed
-	;;  turn screen off
-	;;  load title screen
-	;;  go to Title State
-	;;  turn screen on
+	LDA buttons1
+	AND #GAMEPAD_START
+	CMP #GAMEPAD_START
+
+	BNE GameEngineDone
+	LDA #STATEPLAYING
+	STA gamestate
+
+  	JSR initTiles
+
+	LDA #%00000000        ;Turn the screen off
+  	STA $2000
+  	STA $2001
+	JSR LoadNametable
+	LDA #%10001000        ;Turn the screen on
+  	STA $2000
+  	JSR UpdateSprites
+
 	JMP GameEngineDone
 
 ;;;;;;;;;;;
@@ -284,6 +295,9 @@ EnginePlaying:
 	BEQ MPU1Done
 
 doMvUp:
+	JSR validUpMove
+	CMP #$01
+	BEQ MPU1Done
     JSR moveUp
     JSR moveUp
     JSR moveUp
@@ -307,6 +321,9 @@ MPU1Done:
     BEQ MPD1Done
 
 doMvDown:
+	JSR validDownMove
+	CMP #$01
+	BEQ MPD1Done
 	JSR moveDown
 	JSR moveDown
 	JSR moveDown
@@ -329,6 +346,9 @@ MPD1Done:
     BEQ MPL1Done
 
 doMvLeft:
+	JSR validLeftMove
+	CMP #$01
+	BEQ MPL1Done
 	JSR moveLeft
 	JSR moveLeft
 	JSR moveLeft
@@ -351,6 +371,9 @@ MPL1Done:
     BEQ MPR1Done
 
 doMvRight:
+	JSR validRightMove
+	CMP #$01
+	BEQ MPR1Done
 	JSR moveRight
 	JSR moveRight
 	JSR moveRight
@@ -364,6 +387,7 @@ doMvRight:
 
     JSR playSound
 MPR1Done:
+	JSR checkAnyMovesLeft
 
 checkNonePressed:
     LDA buttons1
@@ -877,13 +901,14 @@ DONEmoveUp:
 
 ;;; UPDATE RANDOM ;;;
 
+; Linear congruential pseudo-random number generator
 updateRandom:
 	LDA random
-	ASL A
+	ASL A ; multiply by 5
 	ASL A
 	CLC
 	ADC random
-	CLC
+	CLC ; add 17
 	ADC #$17
 	STA random
 	RTS
@@ -894,34 +919,35 @@ updateRandom:
 
 addTile:
 	LDA random
+	LSR A
+	LSR A
+	LSR A
+	LSR A
 	AND #$0f ; mod 16
 	STA beginTile ; store begin tile to check full cycle
 	TAX ; transfer random value to X
 
 findEmpty:
-	LDA tiles,x ; load em A, o valor da x-esima tile
+	LDA tiles,x ; load x-th tile
 	CMP #$00
 	BEQ twoORfour ; if tile is empty, fill
-	BNE tryNext ; else, check next tile
-	RTS
-tryNext:
 	INX ; increment X
 	TXA ; transfer X to A
 	AND #$0f ; mod 16
 	CMP beginTile ; if tried all tiles and none is empty, check if any moves left
 	BEQ checkAnyMovesLeft
-	BNE taxAndNext
-	RTS
-taxAndNext:
 	TAX ; transfer A to X
 	JMP findEmpty
 
 twoORfour:
 	LDA random
-	AND #$01 ; eliminates 7 bits
-	BEQ newTwo ; if zero, draw two
-	BNE newFour ; else, draw four
-	RTS
+	LSR A
+	LSR A
+	LSR A
+	LSR A
+	LSR A
+	AND #$07 ; mod 8
+	BEQ newFour ; if zero, draw four
 
 newTwo:
 	LDA #$01
@@ -938,6 +964,20 @@ newFour:
 ;;; CHECK ANY MOVES LEFT ;;;
 
 checkAnyMovesLeft:
+allFilled:
+	LDX #$00
+allFilledLoop:
+	LDA tiles,x
+	CMP #$00
+	BEQ doneAllFilled ; at least one space is empty, therefore there are still moves left
+	INX
+	TXA
+	CMP #$10
+	BEQ compare01 ; if all filled, compare neighbors
+	JMP allFilledLoop
+doneAllFilled:
+	RTS
+compare01:
 	LDX #$00
 	LDA tiles,x
 	INX
@@ -1146,7 +1186,14 @@ gameOver:
 	JSR calculateScore
 	LDA #STATEGAMEOVER
 	STA gamestate
-	JMP GameEngineDone
+	LDA #%00000000        ;Turn the screen off
+  	STA $2000
+  	STA $2001
+	JSR LoadNametable
+	LDA #%10001000        ;Turn the screen on
+  	STA $2000
+GameOverForever:
+	JMP GameOverForever
 
 doneCheckAnyMovesLeft:
 	RTS
@@ -1193,7 +1240,6 @@ sum4:
 	ADC #$00
 	STA scoreHi
 	LDA #$FF
-	;RTS
 	JMP returnCalculateScore
 sum16:
 	CLC
@@ -1204,7 +1250,6 @@ sum16:
 	ADC #$00
 	STA scoreHi
 	LDA #$FF
-	;RTS
 	JMP returnCalculateScore
 sum48:
 	CLC
@@ -1215,7 +1260,6 @@ sum48:
 	ADC #$00
 	STA scoreHi
 	LDA #$FF
-	;RTS
 	JMP returnCalculateScore
 sum128:
 	CLC
@@ -1226,7 +1270,6 @@ sum128:
 	ADC #$00
 	STA scoreHi
 	LDA #$FF
-	;RTS
 	JMP returnCalculateScore
 sum320:
 	CLC
@@ -1237,7 +1280,6 @@ sum320:
 	ADC #$01
 	STA scoreHi
 	LDA #$FF
-	;RTS
 	JMP returnCalculateScore
 jumpLargeSum:
 	CMP #$07
@@ -1257,7 +1299,6 @@ sum768:
 	ADC #$03
 	STA scoreHi
 	LDA #$FF
-	;RTS
 	JMP returnCalculateScore
 sum1855:
 	CLC
@@ -1268,7 +1309,6 @@ sum1855:
 	ADC #$07
 	STA scoreHi
 	LDA #$FF
-	;RTS
 	JMP returnCalculateScore
 sum4096:
 	CLC
@@ -1276,7 +1316,6 @@ sum4096:
 	ADC #$10
 	STA scoreHi
 	LDA #$FF
-	;RTS
 	JMP returnCalculateScore
 sum9216:
 	CLC
@@ -1284,7 +1323,6 @@ sum9216:
 	ADC #$24
 	STA scoreHi
 	LDA #$FF
-	;RTS
 	JMP returnCalculateScore
 sum20480:
 	CLC
@@ -1292,7 +1330,6 @@ sum20480:
 	ADC #$50
 	STA scoreHi
 	LDA #$FF
-	;RTS
 	JMP returnCalculateScore
 
 ;;; END CALCULATE SCORE ;;;
@@ -1641,6 +1678,194 @@ scoreDig1Done:
 
 	RTS
 
+;;; VALID UP MOVE ;;;
+
+; Returns 0 in A if valid, 1 otherwise
+validUpMove:
+	LDX #$00
+	LDY #$04
+validUpMoveLoop:
+	LDA tiles,x
+	CMP #$00
+	BEQ checkBottomTile ; if top tile is zero, check if bottom isn't
+	                    ; else, check if both are equal
+	CMP tiles,y
+	BEQ upMoveOK ; if tiles,x == tiles,y != 0, OK
+	             ; else, check next
+	INX
+	INY
+	TYA
+	CMP #$10
+	BEQ notValidUpMove ; no more pair of tiles to check
+	JMP validUpMoveLoop
+checkBottomTile:
+	LDA tiles,y
+	CMP #$00 ;
+	BNE upMoveOK ; if tiles,x == 0 and tiles,y != 0, OK
+	             ; else, check next
+	INX
+	INY
+	TYA
+	CMP #$10
+	BEQ notValidUpMove ; no more pair of tiles to check
+	JMP validUpMoveLoop
+upMoveOK:
+	LDA #$00
+	RTS
+notValidUpMove:
+	LDA #$01
+	RTS
+
+;;; END VALID UP MOVE ;;;
+
+;;; VALID DOWN MOVE ;;;
+
+; Returns 0 in A if valid, 1 otherwise
+validDownMove:
+	LDX #$04
+	LDY #$00
+validDownMoveLoop:
+	LDA tiles,x
+	CMP #$00
+	BEQ checkTopTile ; if bottom tile is zero, check if top isn't
+	                 ; else, check if both are equal
+	CMP tiles,y
+	BEQ downMoveOK ; if tiles,x == tiles,y != 0, OK
+	               ; else, check next
+	INX
+	INY
+	TXA
+	CMP #$10
+	BEQ notValidDownMove ; no more pair of tiles to check
+	JMP validDownMoveLoop
+checkTopTile:
+	LDA tiles,y
+	CMP #$00 ;
+	BNE downMoveOK ; if tiles,x == 0 and tiles,y != 0, OK
+	               ; else, check next
+	INX
+	INY
+	TXA
+	CMP #$10
+	BEQ notValidDownMove ; no more pair of tiles to check
+	JMP validDownMoveLoop
+downMoveOK:
+	LDA #$00
+	RTS
+notValidDownMove:
+	LDA #$01
+	RTS
+
+;;; END VALID DOWN MOVE ;;;
+
+;;; VALID LEFT MOVE ;;;
+
+; Returns 0 in A if valid, 1 otherwise
+validLeftMove:
+	LDX #$00
+	LDY #$01
+validLeftMoveLoop:
+	LDA tiles,x
+	CMP #$00
+	BEQ checkRightTile ; if left tile is zero, check if right isn't
+	                   ; else, check if both are equal
+	CMP tiles,y
+	BEQ leftMoveOK ; if tiles,x == tiles,y != 0, OK
+	               ; else, check next
+	INX
+	INY
+	TXA
+	AND #$03
+	CMP #$03
+	BNE noLineChange1 ; increases index twice when line ends so as not to compare the last tile of the row with the first tile of the next row
+	INX
+	INY
+	TXA
+noLineChange1:
+	CMP #$10
+	BEQ notValidLeftMove ; no more pair of tiles to check
+	JMP validLeftMoveLoop
+checkRightTile:
+	LDA tiles,y
+	CMP #$00 ;
+	BNE leftMoveOK ; if tiles,x == 0 and tiles,y != 0, OK
+	               ; else, check next
+	INX
+	INY
+	TXA
+	AND #$03
+	CMP #$03
+	BNE noLineChange2 ; increases index twice when line ends so as not to compare the last tile of the row with the first tile of the next row
+	INX
+	INY
+	TXA
+noLineChange2:
+	CMP #$10
+	BEQ notValidLeftMove ; no more pair of tiles to check
+	JMP validLeftMoveLoop
+leftMoveOK:
+	LDA #$00
+	RTS
+notValidLeftMove:
+	LDA #$01
+	RTS
+
+;;; END VALID LEFT MOVE ;;;
+
+;;; VALID RIGHT MOVE ;;;
+
+; Returns 0 in A if valid, 1 otherwise
+validRightMove:
+	LDX #$01
+	LDY #$00
+validRightMoveLoop:
+	LDA tiles,x
+	CMP #$00
+	BEQ checkLeftTile ; if right tile is zero, check if left isn't
+	                  ; else, check if both are equal
+	CMP tiles,y
+	BEQ rightMoveOK ; if tiles,x == tiles,y != 0, OK
+	                ; else, check next
+	INX
+	INY
+	TYA
+	AND #$03
+	CMP #$03
+	BNE noLineChange3 ; increases index twice when line ends so as not to compare the last tile of the row with the first tile of the next row
+	INX
+	INY
+	TYA
+noLineChange3:
+	CMP #$10
+	BEQ notValidRightMove ; no more pair of tiles to check
+	JMP validRightMoveLoop
+checkLeftTile:
+	LDA tiles,y
+	CMP #$00 ;
+	BNE rightMoveOK ; if tiles,x == 0 and tiles,y != 0, OK
+	                ; else, check next
+	INX
+	INY
+	TYA
+	AND #$03
+	CMP #$03
+	BNE noLineChange4 ; increases index twice when line ends so as not to compare the last tile of the row with the first tile of the next row
+	INX
+	INY
+	TYA
+noLineChange4:
+	CMP #$10
+	BEQ notValidRightMove ; no more pair of tiles to check
+	JMP validRightMoveLoop
+rightMoveOK:
+	LDA #$00
+	RTS
+notValidRightMove:
+	LDA #$01
+	RTS
+
+;;; END VALID RIGHT MOVE ;;;
+
 LoadNametable:
  	LDA $2002     ;read PPU status to reset the high/low latch
   	LDA #$20
@@ -1674,6 +1899,11 @@ LoadNametable:
   .bank 1
   .org $E000    ;;align the background data so the lower address is $00
 
+NametablePointerTable:
+  .dw menuBackground     ;STATE_TITLE
+  .dw background   ;STATE_PLAYING
+  .dw gameoverBackground ;STATE_GAMEOVER
+
 menuBackground:
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
@@ -1705,7 +1935,6 @@ menuBackground:
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
-
 
 background:
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
@@ -1739,9 +1968,37 @@ background:
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
    .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
 
-NametablePointerTable:
-  .dw menuBackground     ;STATE_TITLE
-  .dw background   ;STATE_PLAYING
+gameoverBackground:
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, $d2, $d0, $d4, $d8, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, $e0, $da, $e6, $de, GBG, GBG, $e8, $ef, $de, $eb, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, $e9, $eb, $de, $ec, $ec, GBG, $ec, $ed, $da, $eb, $ed,GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
+   .db GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG, GBG
 
 attributes:  ;8 x 8 = 64 bytes
 	.db %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000
