@@ -391,6 +391,7 @@ doMvRight:
 
     JSR playSound
 MPR1Done:
+	JSR checkAnyMovesLeft
 
 checkNonePressed:
     LDA buttons1
@@ -946,9 +947,7 @@ taxAndNext:
 twoORfour:
 	LDA random
 	AND #$01 ; eliminates 7 bits
-	BEQ newTwo ; if zero, draw two
 	BNE newFour ; else, draw four
-	RTS
 
 newTwo:
 	LDA #$01
@@ -965,6 +964,20 @@ newFour:
 ;;; CHECK ANY MOVES LEFT ;;;
 
 checkAnyMovesLeft:
+allFilled:
+	LDX #$00
+allFilledLoop:
+	LDA tiles,x
+	CMP #$00
+	BEQ doneAllFilled ; at least one space is empty, therefore there are still moves left
+	INX
+	TXA
+	CMP #$10
+	BEQ compare01 ; if all filled, compare neighbors
+	JMP allFilledLoop
+doneAllFilled:
+	RTS
+compare01:
 	LDX #$00
 	LDA tiles,x
 	INX
