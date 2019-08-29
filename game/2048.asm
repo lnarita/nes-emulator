@@ -74,10 +74,6 @@ BEEP_DURATION = $03
 	.bank 0
 	.org $C000
 
-randomSeed:
-	LDA #$03
-	STA random
-
 vblankwait:      ; wait for vblank
 	BIT $2002
 	BPL vblankwait
@@ -898,11 +894,11 @@ DONEmoveUp:
 
 updateRandom:
 	LDA random
-	ASL A
+	ASL A ; multiply by an odd number
 	ASL A
 	CLC
 	ADC random
-	CLC
+	CLC ; add a prime number
 	ADC #$17
 	STA random
 	RTS
@@ -921,24 +917,18 @@ findEmpty:
 	LDA tiles,x ; load em A, o valor da x-esima tile
 	CMP #$00
 	BEQ twoORfour ; if tile is empty, fill
-	BNE tryNext ; else, check next tile
-	RTS
-tryNext:
 	INX ; increment X
 	TXA ; transfer X to A
 	AND #$0f ; mod 16
 	CMP beginTile ; if tried all tiles and none is empty, check if any moves left
 	BEQ checkAnyMovesLeft
-	BNE taxAndNext
-	RTS
-taxAndNext:
 	TAX ; transfer A to X
 	JMP findEmpty
 
 twoORfour:
 	LDA random
 	AND #$01 ; eliminates 7 bits
-	BNE newFour ; else, draw four
+	BNE newFour ; if not zero, draw four
 
 newTwo:
 	LDA #$01
