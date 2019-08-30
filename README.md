@@ -6,7 +6,7 @@ and a 2048 clone game for nes
 
 # Assembling and playing the game
 
-This project was made using NESASM 3 by bunnyboy, so you'll need it installed in your machine if you want to assembly it yourself.
+This project was made using NESASM 3 by bunnyboy, so it needs to be installed in your machine if you want to assembly it yourself.
 
 The `run.sh` script must be run in the project root folder (as it will try to `cd game`).
 
@@ -16,6 +16,7 @@ If you have `nesasm` and `mednafen` commands in your machine but the script keep
 ./run.sh --nochecks
 ```
 
+The script can also assemble the game before running it by using the `--assemble` flag.
 
 # Collaborators
 
