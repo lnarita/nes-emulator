@@ -37,7 +37,7 @@ score2Hi    .rs 1
 ;--------------------------------------------------------------------
 
 STATETITLE     = $00  ; displaying title screen
-STATEPLAYING   = $01  ; move paddles/ball, check for collisions
+STATEPLAYING   = $01  ; 2048
 STATEGAMEOVER  = $02  ; displaying game over screen
 
 ;; background tiles
@@ -2082,9 +2082,9 @@ sprites:
     ;processor will jump to the label NMI:
     .dw RESET      ;when the processor first turns on or is reset, it will jump
     ;to the label RESET:
-    .dw 0          ;external interrupt IRQ is not used in this tutorial
+    .dw 0          ;external interrupt IRQ is not used
 ;;;;;;;;;;;;;;
     .bank 2
     .org $0000
-    .incbin "sprite.chr"   ;includes 8KB graphics file from SMB1
+    .incbin "sprite.chr"   ;includes 8KB graphics file
 
