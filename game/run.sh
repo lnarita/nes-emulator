@@ -3,8 +3,6 @@
 NOCHECKSFLAG="--nochecks"
 ASSEMBLEFLAG="--assemble"
 
-cd game
-
 [[ "$1" =~ "$NOCHECKSFLAG" ]] && export NOCHECK=1
 [[ "$2" =~ "$NOCHECKSFLAG" ]] && export NOCHECK=1
 [[ "$1" =~ "$ASSEMBLEFLAG" ]] && export ASSEMBLE=1
