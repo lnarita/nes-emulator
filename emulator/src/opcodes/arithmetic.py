@@ -15,7 +15,7 @@ class ORA(OpCode):
                       (0x15, AddressingMode.ZERO_PAGE_X, 4,),
                       (0x19, AddressingMode.ABSOLUTE_Y, 4,),
                       (0x1D, AddressingMode.ABSOLUTE_X, 4,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
 
 class AND(OpCode):
@@ -29,7 +29,7 @@ class AND(OpCode):
                       (0x35, AddressingMode.ZERO_PAGE_X, 4,),
                       (0x39, AddressingMode.ABSOLUTE_Y, 4,),
                       (0x3D, AddressingMode.ABSOLUTE_X, 4,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
 
 class EOR(OpCode):
@@ -43,7 +43,7 @@ class EOR(OpCode):
                       (0x55, AddressingMode.ZERO_PAGE_X, 4,),
                       (0x59, AddressingMode.ABSOLUTE_Y, 4,),
                       (0x5D, AddressingMode.ABSOLUTE_X, 4,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
 
 class ADC(OpCode):
@@ -57,7 +57,7 @@ class ADC(OpCode):
                       (0x75, AddressingMode.ZERO_PAGE_X, 4,),
                       (0x79, AddressingMode.ABSOLUTE_Y, 4,),
                       (0x7D, AddressingMode.ABSOLUTE_X, 4,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
 
 class SBC(OpCode):
@@ -71,7 +71,7 @@ class SBC(OpCode):
                       (0xF5, AddressingMode.ZERO_PAGE_X, 4,),
                       (0xF9, AddressingMode.ABSOLUTE_Y, 4,),
                       (0xFD, AddressingMode.ABSOLUTE_X, 4,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
 
 class CMP(OpCode):
@@ -85,7 +85,7 @@ class CMP(OpCode):
                       (0xD5, AddressingMode.ZERO_PAGE_X, 4,),
                       (0xD9, AddressingMode.ABSOLUTE_Y, 4,),
                       (0xDD, AddressingMode.ABSOLUTE_X, 4,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
 
 class CPX(OpCode):
@@ -94,7 +94,7 @@ class CPX(OpCode):
         variations = [(0xE0, AddressingMode.IMMEDIATE, 2,),
                       (0xE4, AddressingMode.ZERO_PAGE, 3,),
                       (0xEC, AddressingMode.ABSOLUTE, 4,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
 
 class CPY(OpCode):
@@ -103,7 +103,7 @@ class CPY(OpCode):
         variations = [(0xC0, AddressingMode.IMMEDIATE, 2,),
                       (0xC4, AddressingMode.ZERO_PAGE, 3,),
                       (0xCC, AddressingMode.ABSOLUTE, 4,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
 
 class DEC(OpCode):
@@ -113,21 +113,21 @@ class DEC(OpCode):
                       (0xCE, AddressingMode.ABSOLUTE, 6,),
                       (0xD6, AddressingMode.ZERO_PAGE_X, 6,),
                       (0xDE, AddressingMode.ABSOLUTE_X, 7,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
 
 class DEX(OpCode):
     @classmethod
     def create_variations(cls):
         variations = [(0xCA, None, 2,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
 
 class DEY(OpCode):
     @classmethod
     def create_variations(cls):
         variations = [(0x88, None, 2,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
 
 class INC(OpCode):
@@ -137,21 +137,21 @@ class INC(OpCode):
                       (0xEE, AddressingMode.ABSOLUTE, 6,),
                       (0xF6, AddressingMode.ZERO_PAGE_X, 6,),
                       (0xFE, AddressingMode.ABSOLUTE_X, 7,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
 
 class INX(OpCode):
     @classmethod
     def create_variations(cls):
         variations = [(0xE8, None, 2,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
 
 class INY(OpCode):
     @classmethod
     def create_variations(cls):
         variations = [(0xC8, None, 2,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
 
 class ASL(OpCode):
@@ -162,7 +162,7 @@ class ASL(OpCode):
                       (0x0E, AddressingMode.ABSOLUTE, 6,),
                       (0x16, AddressingMode.ZERO_PAGE_X, 6,),
                       (0x1E, AddressingMode.ABSOLUTE_X, 7,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
 
 class ROL(OpCode):
@@ -173,7 +173,7 @@ class ROL(OpCode):
                       (0x2E, AddressingMode.ABSOLUTE, 6,),
                       (0x36, AddressingMode.ZERO_PAGE_X, 6,),
                       (0x3E, AddressingMode.ABSOLUTE_X, 7,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
 
 class LSR(OpCode):
@@ -184,7 +184,7 @@ class LSR(OpCode):
                       (0x4E, AddressingMode.ABSOLUTE, 6,),
                       (0x56, AddressingMode.ZERO_PAGE_X, 6,),
                       (0x5E, AddressingMode.ABSOLUTE_X, 7,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
 
 class ROR(OpCode):
@@ -195,7 +195,7 @@ class ROR(OpCode):
                       (0x6E, AddressingMode.ABSOLUTE, 6,),
                       (0x76, AddressingMode.ZERO_PAGE_X, 6,),
                       (0x7E, AddressingMode.ABSOLUTE_X, 7,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
 
 class ArithmeticAndLogicalOpCodes:

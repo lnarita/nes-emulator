@@ -1,9 +1,9 @@
 import argparse
 
 from cartridge import Cartridge
+from cpu import CPU
 from memory import Memory
 from opcodes.opcodes import OpCodes
-from states import BaseCPUState
 
 
 def main(args):
@@ -11,32 +11,37 @@ def main(args):
 
 
 # https://stackoverflow.com/questions/45305891/6502-cycle-timing-per-instruction
-# https://wiki.nesdev.com/w/index.php/Fixed_cycle_delay
+# http://nesdev.com/6502_cpu.txt (6510 Instruction Timing)
 def emulate(file_path):
     running = True
     file_contents = read_file(file_path)
     cartridge = Cartridge.from_bytes(file_contents)
     memory = Memory(cartridge.prg_rom)
-    cpu_state = BaseCPUState(pc=0xC000)
+    cpu = CPU()
 
     while running:
         try:
-            instruction = memory.fetch(cpu_state.pc)
-            decoded = decode_instruction(instruction)
+            decoded = cpu.exec_in_cycle(fetch_and_decode_instruction, cpu, memory)  # fetching and decoding a instruction always take 1 cycle
             if decoded:
                 # print(decoded)
-                decoded.exec(cpu_state, memory)
-                print_debug_line(cpu_state)
-            # TODO: remove?
-            if cpu_state.p.break_command:
-                running = False
+                decoded.exec(cpu, memory)
+                # TODO: proper execution abortion, this is probably wrong
+                if cpu.break_command:
+                    running = False
+                    break
+                print_debug_line(cpu)
         except IndexError:
             # we've reached a program counter that is not within memory bounds
             running = False
         except Exception as e:
             print(e)
-        cpu_state.pc += 1
-        cpu_state.cycle += 1
+
+
+def fetch_and_decode_instruction(cpu, memory):
+    instruction = memory.fetch(cpu.pc)
+    decoded = decode_instruction(instruction)
+    cpu.pc += 1
+    return decoded
 
 
 def read_file(file_path):
@@ -51,8 +56,8 @@ def decode_instruction(instruction):
     return decoded
 
 
-def print_debug_line(cpu_state):
-    print(cpu_state)
+def print_debug_line(cpu):
+    print(cpu)
 
 
 if __name__ == "__main__":

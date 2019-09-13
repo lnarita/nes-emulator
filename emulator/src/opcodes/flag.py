@@ -16,7 +16,7 @@ class BIT(OpCode):
     def create_variations(cls):
         variations = [(0x24, AddressingMode.ZERO_PAGE, 3,),
                       (0x2C, AddressingMode.ABSOLUTE, 4,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
 
 class CLC(OpCode):
@@ -28,11 +28,11 @@ class CLC(OpCode):
     @classmethod
     def create_variations(cls):
         variations = [(0x18, None, 2,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
     @classmethod
-    def exec(cls, cpu_state, memory):
-        cpu_state.p.carry = False
+    def exec(cls, cpu, memory):
+        cpu.carry = False
 
 
 class SEC(OpCode):
@@ -44,11 +44,11 @@ class SEC(OpCode):
     @classmethod
     def create_variations(cls):
         variations = [(0x38, None, 2,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
     @classmethod
-    def exec(cls, cpu_state, memory):
-        cpu_state.p.carry = True
+    def exec(cls, cpu, memory):
+        cpu.carry = True
 
 
 class CLD(OpCode):
@@ -60,11 +60,11 @@ class CLD(OpCode):
     @classmethod
     def create_variations(cls):
         variations = [(0xD8, None, 2,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
     @classmethod
-    def exec(cls, cpu_state, memory):
-        cpu_state.p.decimal = False
+    def exec(cls, cpu, memory):
+        cpu.decimal = False
 
 
 class SED(OpCode):
@@ -76,11 +76,11 @@ class SED(OpCode):
     @classmethod
     def create_variations(cls):
         variations = [(0xF8, None, 2,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
     @classmethod
-    def exec(cls, cpu_state, memory):
-        cpu_state.p.decimal = True
+    def exec(cls, cpu, memory):
+        cpu.decimal = True
 
 
 class CLI(OpCode):
@@ -92,11 +92,11 @@ class CLI(OpCode):
     @classmethod
     def create_variations(cls):
         variations = [(0x58, None, 2,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
     @classmethod
-    def exec(cls, cpu_state, memory):
-        cpu_state.p.interrupts_disabled = False
+    def exec(cls, cpu, memory):
+        cpu.interrupts_disabled = False
 
 
 class SEI(OpCode):
@@ -108,11 +108,11 @@ class SEI(OpCode):
     @classmethod
     def create_variations(cls):
         variations = [(0x78, None, 2,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
     @classmethod
-    def exec(cls, cpu_state, memory):
-        cpu_state.p.interrupts_disabled = True
+    def exec(cls, cpu, memory):
+        cpu.interrupts_disabled = True
 
 
 class CLV(OpCode):
@@ -124,21 +124,21 @@ class CLV(OpCode):
     @classmethod
     def create_variations(cls):
         variations = [(0xB8, None, 2,)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
     @classmethod
-    def exec(cls, cpu_state, memory):
-        cpu_state.p.overflow = False
+    def exec(cls, cpu, memory):
+        cpu.overflow = False
 
 
 class NOP(OpCode):
     @classmethod
     def create_variations(cls):
         variations = [(0xEA, None, 2)]
-        return map(lambda x: tuple((x[0], cls(*x))), variations)
+        return map(cls.create_dict_entry, variations)
 
     @classmethod
-    def exec(cls, cpu_state, memory):
+    def exec(cls, cpu, memory):
         pass
 
 
