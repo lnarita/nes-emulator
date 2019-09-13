@@ -195,6 +195,9 @@ class CPU:
     def inc_cycle(self):
         self._state.cycle += 1
 
+    def inc_pc_by(self, value=1):
+        self._state.pc += value
+
     def exec_in_cycle(self, block, *args):
         # FIXME: delay code
         start = time.monotonic()

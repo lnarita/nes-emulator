@@ -1,6 +1,6 @@
 from more_itertools import flatten
 
-from constants import AddressingMode
+from adressing import ZeroPage, Absolute
 from opcodes.base import OpCode
 
 
@@ -14,8 +14,8 @@ class BIT(OpCode):
 
     @classmethod
     def create_variations(cls):
-        variations = [(0x24, AddressingMode.ZERO_PAGE, 3,),
-                      (0x2C, AddressingMode.ABSOLUTE, 4,)]
+        variations = [(0x24, ZeroPage, 3,),
+                      (0x2C, Absolute, 4,)]
         return map(cls.create_dict_entry, variations)
 
 
