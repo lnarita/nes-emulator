@@ -16,7 +16,7 @@ class MemoryPositions(Enum):
     APU_IO_REGISTERS = (auto(), 0x4000, 0x4017)
     APU_IO_EXTRAS = (auto(), 0x4018, 0x401F)
     CARTRIDGE = (auto(), 0x4020, 0xFFFF)
-    PRG_ROM_START = (auto(), 0xC000, 0xFFFF) # the PRG ROM size is defined by the iNES header, but since we don't know it yet, we just use a dummy value for end
+    PRG_ROM_START = (auto(), 0xC000, 0xFFFF)  # the PRG ROM size is defined by the iNES header, so `end` is a dummy value
     NMI = (auto(), 0xFFFA, 0xFFFB)
     RESET = (auto(), 0xFFFC, 0xFFFD)
     IRQ = (auto(), 0xFFFE, 0xFFFF)

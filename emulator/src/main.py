@@ -29,7 +29,7 @@ def emulate(file_path):
                 print_debug_line(cpu_state)
             # TODO: remove?
             if cpu_state.p.break_command:
-                break
+                running = False
         except IndexError:
             # we've reached a program counter that is not within memory bounds
             running = False
