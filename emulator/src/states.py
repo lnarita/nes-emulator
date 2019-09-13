@@ -48,7 +48,7 @@ class StatusRegisterFlags:
 
 
 class BaseCPUState:
-    def __init__(self, pc=0xC000, sp=MemoryPositions.STACK.start, a=0, x=0, y=0, p=StatusRegisterFlags(), addr=None, data=None):
+    def __init__(self, pc=MemoryPositions.RESET.start, sp=MemoryPositions.STACK.start, a=0, x=0, y=0, p=StatusRegisterFlags(), addr=None, data=None, cycle=1):
         super().__init__()
         self.pc = pc
         self.sp = sp
@@ -58,6 +58,7 @@ class BaseCPUState:
         self.p = p
         self.addr = addr
         self.data = data
+        self.cycle = cycle
 
     def __str__(self):
         return "| pc = 0x{:04x} | a = 0x{:02x} | x = 0x{:02x} | y = 0x{:02x} | sp = 0x{:04x} | p[NV-BDIZC] = {} |{}".format(

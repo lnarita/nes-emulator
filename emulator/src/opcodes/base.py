@@ -5,8 +5,8 @@ class OpCode(object):
         self.cycles = cycles
 
     @classmethod
-    def exec(cls, cpu_state, memory, *args):
-        raise NotImplementedError("Class {}, CPU: {}, MEM: {}".format(cls, cpu_state, memory))
+    def exec(cls, cpu_state, memory):
+        raise NotImplementedError("Class {} not implemented yet! CPU: {}, MEM: {}".format(cls, cpu_state, memory))
 
     @classmethod
     def create_variations(cls):

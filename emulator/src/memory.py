@@ -16,6 +16,7 @@ class MemoryPositions(Enum):
     APU_IO_REGISTERS = (auto(), 0x4000, 0x4017)
     APU_IO_EXTRAS = (auto(), 0x4018, 0x401F)
     CARTRIDGE = (auto(), 0x4020, 0xFFFF)
+    PRG_ROM_START = (auto(), 0xC000, 0xFFFF) # the PRG ROM size is defined by the iNES header, but since we don't know it yet, we just use a dummy value for end
     NMI = (auto(), 0xFFFA, 0xFFFB)
     RESET = (auto(), 0xFFFC, 0xFFFD)
     IRQ = (auto(), 0xFFFE, 0xFFFF)
@@ -55,7 +56,7 @@ class Memory:
             # TODO
             return
         elif MemoryPositions.CARTRIDGE.contains(addr):
-            return self.rom[addr - 0xC000]
+            return self.rom[addr - MemoryPositions.PRG_ROM_START.start]
         else:
             raise IndexError("Invalid Address 0x{:04x}".format(addr))
 

@@ -10,6 +10,8 @@ def main(args):
     emulate(args.file)
 
 
+# https://stackoverflow.com/questions/45305891/6502-cycle-timing-per-instruction
+# https://wiki.nesdev.com/w/index.php/Fixed_cycle_delay
 def emulate(file_path):
     running = True
     file_contents = read_file(file_path)
@@ -17,16 +19,24 @@ def emulate(file_path):
     memory = Memory(cartridge.prg_rom)
     cpu_state = BaseCPUState(pc=0xC000)
 
-    while (running):
+    while running:
         try:
             instruction = memory.fetch(cpu_state.pc)
             decoded = decode_instruction(instruction)
             if decoded:
-                print(decoded)
-                # decoded.exec(cpu_state, memory)
-            cpu_state.pc += 1
+                # print(decoded)
+                decoded.exec(cpu_state, memory)
+                print_debug_line(cpu_state)
+            # TODO: remove?
+            if cpu_state.p.break_command:
+                break
         except IndexError:
+            # we've reached a program counter that is not within memory bounds
             running = False
+        except Exception as e:
+            print(e)
+        cpu_state.pc += 1
+        cpu_state.cycle += 1
 
 
 def read_file(file_path):

@@ -61,10 +61,19 @@ class BEQ(OpCode):
 
 
 class BRK(OpCode):
+    """
+    The BRK instruction forces the generation of an interrupt request.
+    The program counter and processor status are pushed on the stack then the IRQ interrupt vector at $FFFE/F is loaded into the PC and the break flag in the status set to one.
+    """
     @classmethod
     def create_variations(cls):
         variations = [(0x00, None, 7,)]
         return map(lambda x: tuple((x[0], cls(*x))), variations)
+
+    @classmethod
+    def exec(cls, cpu_state, memory):
+        cpu_state.p.break_command = True
+        # TODO: pushes
 
 
 class RTI(OpCode):
