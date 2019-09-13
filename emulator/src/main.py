@@ -1,6 +1,8 @@
 import argparse
 
-from constants import OpsCodes
+from cartridge import Cartridge
+from memory import Memory
+from opcodes.opcodes import OpCodes
 from states import BaseCPUState
 
 
@@ -9,33 +11,38 @@ def main(args):
 
 
 def emulate(file_path):
-    cartridge_content = read_file(file_path)
-    cpu_state = BaseCPUState(0xBBBB, 0xCCCC, 0xFF, 0xEE, 0xDD, 0xAA)
-    print(cpu_state)
-    cpu_state = BaseCPUState(0xBBBB, 0xCCCC, 0xFF, 0xEE, 0xDD, 0xAA, 0xFFFF, 0x99)
-    print(cpu_state)
+    running = True
+    file_contents = read_file(file_path)
+    cartridge = Cartridge.from_bytes(file_contents)
+    memory = Memory(cartridge.prg_rom)
+    cpu_state = BaseCPUState(pc=0xC000)
 
-    while (True):
-        instruction = read_mem(cpu_state.pc)
-        decoded = decode_instruction(instruction)
-        print_debug_line(cpu_state)
-        break
+    while (running):
+        try:
+            instruction = memory.fetch(cpu_state.pc)
+            decoded = decode_instruction(instruction)
+            if decoded:
+                print(decoded)
+                # decoded.exec(cpu_state, memory)
+            cpu_state.pc += 1
+        except IndexError:
+            running = False
 
 
 def read_file(file_path):
-    pass
-
-
-def read_mem(pc):
-    pass
+    with open(file_path, mode='rb') as file:
+        return file.read()
 
 
 def decode_instruction(instruction):
-    pass
+    decoded = OpCodes.all[instruction]
+    if not decoded:
+        print("Can't find instruction 0x{:02X}".format(instruction))
+    return decoded
 
 
 def print_debug_line(cpu_state):
-    pass
+    print(cpu_state)
 
 
 if __name__ == "__main__":
