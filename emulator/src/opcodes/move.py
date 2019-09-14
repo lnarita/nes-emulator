@@ -79,6 +79,8 @@ class TAX(OpCode):
     @classmethod
     def exec(cls, cpu, memory):
         cpu.x = cpu.a
+        cpu.zero = cpu.x == 0
+        cpu.negative = cpu.x & 0b10000000
         cpu.inc_cycle()
         
 
@@ -90,6 +92,8 @@ class TXA(OpCode):
     @classmethod
     def exec(cls, cpu, memory):
         cpu.a = cpu.x
+        cpu.zero = cpu.a == 0
+        cpu.negative = cpu.a & 0b10000000
         cpu.inc_cycle()
         
 
@@ -101,6 +105,8 @@ class TAY(OpCode):
     @classmethod
     def exec(cls, cpu, memory):
         cpu.y = cpu.a
+        cpu.zero = cpu.y == 0
+        cpu.negative = cpu.y & 0b10000000
         cpu.inc_cycle()
         
 
@@ -112,6 +118,8 @@ class TYA(OpCode):
     @classmethod
     def exec(cls, cpu, memory):
         cpu.a = cpu.y
+        cpu.zero = cpu.a == 0
+        cpu.negative = cpu.a & 0b10000000
         cpu.inc_cycle()
         
 
@@ -123,6 +131,8 @@ class TSX(OpCode):
     @classmethod
     def exec(cls, cpu, memory):
         cpu.x = cpu.sp
+        cpu.zero = cpu.x == 0
+        cpu.negative = cpu.x & 0b10000000
         cpu.inc_cycle()
 
 class TXS(OpCode):
@@ -133,6 +143,8 @@ class TXS(OpCode):
     @classmethod
     def exec(cls, cpu, memory):
         cpu.sp = cpu.x
+        cpu.zero = cpu.sp == 0
+        cpu.negative = cpu.sp & 0b10000000
         cpu.inc_cycle()
 
 class PLA(OpCode):
