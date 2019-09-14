@@ -1,5 +1,5 @@
 #PY=./emulator/venv/bin/python
-PY=python
+PY=python3
 
 TST=./emulator/tst
 RES=./emulator/res
