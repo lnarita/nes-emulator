@@ -76,21 +76,28 @@ class TAX(OpCode):
     def create_variations(cls):
         variations = [(0xAA, None, 2,)]
         return map(cls.create_dict_entry, variations)
-
+    @classmethod
+    def exec(cls, cpu, memory):
+        cpu.x = cpu.a
+        cpu.inc_cycle()
+        
 
 class TXA(OpCode):
     @classmethod
     def create_variations(cls):
         variations = [(0x8A, None, 2,)]
         return map(cls.create_dict_entry, variations)
-
+    @classmethod
+    def exec(cls, cpu, memory):
+        cpu.a = cpu.x
+        cpu.inc_cycle()
+        
 
 class TAY(OpCode):
     @classmethod
     def create_variations(cls):
         variations = [(0xA8, None, 2,)]
         return map(cls.create_dict_entry, variations)
-
     @classmethod
     def exec(cls, cpu, memory):
         cpu.y = cpu.a
@@ -102,21 +109,31 @@ class TYA(OpCode):
     def create_variations(cls):
         variations = [(0x98, None, 2,)]
         return map(cls.create_dict_entry, variations)
-
+    @classmethod
+    def exec(cls, cpu, memory):
+        cpu.a = cpu.y
+        cpu.inc_cycle()
+        
 
 class TSX(OpCode):
     @classmethod
     def create_variations(cls):
         variations = [(0xBA, None, 2,)]
         return map(cls.create_dict_entry, variations)
-
+    @classmethod
+    def exec(cls, cpu, memory):
+        cpu.x = cpu.sp
+        cpu.inc_cycle()
 
 class TXS(OpCode):
     @classmethod
     def create_variations(cls):
         variations = [(0x9A, None, 2,)]
         return map(cls.create_dict_entry, variations)
-
+    @classmethod
+    def exec(cls, cpu, memory):
+        cpu.sp = cpu.x
+        cpu.inc_cycle()
 
 class PLA(OpCode):
     @classmethod
