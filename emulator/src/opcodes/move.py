@@ -76,7 +76,7 @@ class TAX(OpCode):
     def create_variations(cls):
         variations = [(0xAA, None, 2,)]
         return map(cls.create_dict_entry, variations)
-    def exec(cls, cpu, memory):
+    def exec(cpu, memory):
         cpu.x = cpu.a
         cpu.zero = cpu.x == 0
         cpu.negative = cpu.x & 0b10000000
@@ -88,7 +88,7 @@ class TXA(OpCode):
     def create_variations(cls):
         variations = [(0x8A, None, 2,)]
         return map(cls.create_dict_entry, variations)
-    def exec(cls, cpu, memory):
+    def exec(cpu, memory):
         cpu.a = cpu.x
         cpu.zero = cpu.a == 0
         cpu.negative = cpu.a & 0b10000000
@@ -100,7 +100,7 @@ class TAY(OpCode):
     def create_variations(cls):
         variations = [(0xA8, None, 2,)]
         return map(cls.create_dict_entry, variations)
-    def exec(cls, cpu, memory):
+    def exec(cpu, memory):
         cpu.y = cpu.a
         cpu.zero = cpu.y == 0
         cpu.negative = cpu.y & 0b10000000
@@ -112,7 +112,7 @@ class TYA(OpCode):
     def create_variations(cls):
         variations = [(0x98, None, 2,)]
         return map(cls.create_dict_entry, variations)
-    def exec(cls, cpu, memory):
+    def exec(cpu, memory):
         cpu.a = cpu.y
         cpu.zero = cpu.a == 0
         cpu.negative = cpu.a & 0b10000000
@@ -124,7 +124,7 @@ class TSX(OpCode):
     def create_variations(cls):
         variations = [(0xBA, None, 2,)]
         return map(cls.create_dict_entry, variations)
-    def exec(cls, cpu, memory):
+    def exec(cpu, memory):
         cpu.x = cpu.sp
         cpu.zero = cpu.x == 0
         cpu.negative = cpu.x & 0b10000000
@@ -135,7 +135,7 @@ class TXS(OpCode):
     def create_variations(cls):
         variations = [(0x9A, None, 2,)]
         return map(cls.create_dict_entry, variations)
-    def exec(cls, cpu, memory):
+    def exec(cpu, memory):
         cpu.sp = cpu.x
         cpu.zero = cpu.sp == 0
         cpu.negative = cpu.sp & 0b10000000
