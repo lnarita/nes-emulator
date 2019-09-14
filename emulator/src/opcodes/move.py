@@ -91,6 +91,11 @@ class TAY(OpCode):
         variations = [(0xA8, None, 2,)]
         return map(cls.create_dict_entry, variations)
 
+    @classmethod
+    def exec(cls, cpu, memory):
+        cpu.y = cpu.a
+        cpu.inc_cycle()
+        
 
 class TYA(OpCode):
     @classmethod
