@@ -32,7 +32,9 @@ class CLC(OpCode):
 
     @classmethod
     def exec(cls, cpu, memory):
-        cpu.carry = False
+        def _set_flag():
+            cpu.carry = False
+        cpu.exec_in_cycle(_set_flag)
 
 
 class SEC(OpCode):
@@ -48,7 +50,9 @@ class SEC(OpCode):
 
     @classmethod
     def exec(cls, cpu, memory):
-        cpu.carry = True
+        def _set_flag():
+            cpu.carry = True
+        cpu.exec_in_cycle(_set_flag)
 
 
 class CLD(OpCode):
@@ -64,7 +68,9 @@ class CLD(OpCode):
 
     @classmethod
     def exec(cls, cpu, memory):
-        cpu.decimal = False
+        def _set_flag():
+            cpu.decimal = False
+        cpu.exec_in_cycle(_set_flag)
 
 
 class SED(OpCode):
@@ -80,7 +86,9 @@ class SED(OpCode):
 
     @classmethod
     def exec(cls, cpu, memory):
-        cpu.decimal = True
+        def _set_flag():
+            cpu.decimal = True
+        cpu.exec_in_cycle(_set_flag)
 
 
 class CLI(OpCode):
@@ -96,7 +104,9 @@ class CLI(OpCode):
 
     @classmethod
     def exec(cls, cpu, memory):
-        cpu.interrupts_disabled = False
+        def _set_flag():
+            cpu.interrupts_disabled = False
+        cpu.exec_in_cycle(_set_flag)
 
 
 class SEI(OpCode):
@@ -112,7 +122,9 @@ class SEI(OpCode):
 
     @classmethod
     def exec(cls, cpu, memory):
-        cpu.interrupts_disabled = True
+        def _set_flag():
+            cpu.interrupts_disabled = True
+        cpu.exec_in_cycle(_set_flag)
 
 
 class CLV(OpCode):
@@ -128,7 +140,9 @@ class CLV(OpCode):
 
     @classmethod
     def exec(cls, cpu, memory):
-        cpu.overflow = False
+        def _set_flag():
+            cpu.overflow = False
+        cpu.exec_in_cycle(_set_flag)
 
 
 class NOP(OpCode):
