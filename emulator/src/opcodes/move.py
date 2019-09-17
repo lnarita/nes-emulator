@@ -137,8 +137,6 @@ class TXS(OpCode):
         return map(cls.create_dict_entry, variations)
     def exec(self, cpu, memory):
         cpu.sp = cpu.x
-        cpu.zero = cpu.sp == 0
-        cpu.negative = cpu.sp & 0b10000000
         cpu.inc_cycle()
 
 class PLA(OpCode):
