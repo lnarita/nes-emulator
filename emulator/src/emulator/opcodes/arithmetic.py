@@ -1,7 +1,7 @@
 from more_itertools import flatten
 
-from constants import AddressingMode
-from opcodes.base import OpCode
+from emulator.constants import AddressingMode
+from emulator.opcodes.base import OpCode
 
 
 class ORA(OpCode):
