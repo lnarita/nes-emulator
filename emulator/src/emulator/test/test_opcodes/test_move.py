@@ -62,3 +62,62 @@ def test_TAX():
      assert cpu.zero == False
      print(cpu.negative)
      assert cpu.negative == True
+
+
+def test_TYA():
+     cpu = CPU()
+     memory = Memory()
+     cpu.a = 1
+     cpu.y = 2
+     TYA = OpCodes.all[152]
+     TYA.exec(cpu, memory)
+
+     assert cpu.a == 2
+     assert cpu.zero == False
+     assert cpu.negative == False
+
+     cpu.y = 0
+     cpu.a = 1
+     TYA.exec(cpu, memory)
+
+     assert cpu.a == 0
+     assert cpu.zero == True
+     assert cpu.negative == False
+
+     cpu.y = 0b10000001
+     cpu.a = 1
+     TYA.exec(cpu, memory)
+
+     assert cpu.a == 0b10000001
+     assert cpu.zero == False
+     print(cpu.negative)
+     assert cpu.negative == True
+
+def test_TAY():
+     cpu = CPU()
+     memory = Memory()
+     cpu.y = 1
+     cpu.a = 2
+     TAY = OpCodes.all[168]
+     TAY.exec(cpu, memory)
+
+     assert cpu.y == 2
+     assert cpu.zero == False
+     assert cpu.negative == False
+
+     cpu.a = 0
+     cpu.y = 1
+     TAY.exec(cpu, memory)
+
+     assert cpu.y == 0
+     assert cpu.zero == True
+     assert cpu.negative == False
+
+     cpu.a = 0b10000001
+     cpu.y = 1
+     TAY.exec(cpu, memory)
+
+     assert cpu.y == 0b10000001
+     assert cpu.zero == False
+     print(cpu.negative)
+     assert cpu.negative == True
