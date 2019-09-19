@@ -71,8 +71,7 @@ class BRK(OpCode):
         variations = [(0x00, None, 7,)]
         return map(cls.create_dict_entry, variations)
 
-    @classmethod
-    def exec(cls, cpu, memory):
+    def exec(self, cpu, memory):
         cpu.break_command = True
         # TODO: pushes
 

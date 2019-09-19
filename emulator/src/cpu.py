@@ -19,7 +19,7 @@ class StatusRegisterFlags:
             self.negative = n
             # V = overflow flag (1 on signed overflow)
             self.overflow = v
-            # B = break flag (1 when interupt was caused by a BRK)
+            # B = break flag (1 when interrupt was caused by a BRK)
             self.break_command = b
             # D = decimal flag (1 when CPU in BCD mode)
             self.decimal = d
