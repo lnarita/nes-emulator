@@ -204,7 +204,87 @@ class EOR(OpCode):
                       (0x59, AddressingMode.ABSOLUTE_Y, 4,),
                       (0x5D, AddressingMode.ABSOLUTE_X, 4,)]
         return map(cls.create_dict_entry, variations)
-
+    def exec(cls, cpu, memory):
+        opcode = memory.fetch(cpu.pc-1)
+        if opcode == 0x41:
+            cpu.a = cpu.a ^ memory.fetch(memory.fetch(memory.fetch(cpu.pc) + memory.fetch(cpu.x)))
+            cpu.pc += 1
+            negative = cpu.a & 0b10000000
+            zero = cpu.a == 0
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+        elif opcode == 0x45:
+            cpu.a = cpu.a ^ memory.fetch(memory.fetch(cpu.pc))
+            cpu.pc += 1
+            negative = cpu.a & 0b10000000
+            zero = cpu.a == 0
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+        elif opcode == 0x49:
+            cpu.a = cpu.a ^ memory.fetch(cpu.pc)
+            cpu.pc += 1
+            negative = cpu.a & 0b10000000
+            zero = cpu.a == 0
+            cpu.inc_cycle()
+        elif opcode == 0x4D:
+            cpu.a = cpu.a ^ memory.fetch(memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
+            cpu.pc += 2
+            negative = cpu.a & 0b10000000
+            zero = cpu.a == 0
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+        elif opcode == 0x51:
+            baseAddr = memory.fetch(memory.fetch(cpu.pc))
+            indexAddr = memory.fetch(cpu.y) 
+            cpu.a = cpu.a ^ memory.fetch(baseAddr + indexAddr) 
+            cpu.pc += 1
+            negative = cpu.a & 0b10000000
+            zero = cpu.a == 0
+            # Page boundary crossed
+            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
+                cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+        elif opcode == 0x55:
+            cpu.a = cpu.a ^ memory.fetch(memory.fetch(cpu.pc) + memory.fetch(cpu.x))
+            cpu.pc += 1
+            negative = cpu.a & 0b10000000
+            zero = cpu.a == 0
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+        elif opcode == 0x59:
+            baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
+            indexAddr = memory.fetch(cpu.y)
+            cpu.a = cpu.a ^ memory.fetch(baseAddr + indexAddr) 
+            cpu.pc += 2
+            negative = cpu.a & 0b10000000
+            zero = cpu.a == 0
+            # Page boundary crossed
+            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
+                cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+        elif opcode == 0x5D:
+            baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc))
+            indexAddr = memory.fetch(cpu.x)
+            cpu.a = cpu.a ^ memory.fetch(baseAddr + indexAddr) 
+            cpu.pc += 2
+            negative = cpu.a & 0b10000000
+            zero = cpu.a == 0
+            # Page boundary crossed
+            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
+                cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
 
 class ADC(OpCode):
     @classmethod
