@@ -16,7 +16,49 @@ class ORA(OpCode):
                       (0x19, AddressingMode.ABSOLUTE_Y, 4,),
                       (0x1D, AddressingMode.ABSOLUTE_X, 4,)]
         return map(cls.create_dict_entry, variations)
-
+    def exec(cls, cpu, memory):
+        opcode = memory.fetch(cpu.pc-1)
+        if opcode == 0x01:
+            cpu.a = cpu.a | memory.fetch(memory.fetch(memory.fetch(cpu.pc) + memory.fetch(cpu.x)))
+            cpu.pc += 1
+            negative = cpu.a & 0b10000000
+            zero = cpu.a == 0
+        elif opcode == 0x05:
+            cpu.a = cpu.a | memory.fetch(memory.fetch(cpu.pc))
+            cpu.pc += 1
+            negative = cpu.a & 0b10000000
+            zero = cpu.a == 0
+        elif opcode == 0x09:
+            cpu.a = cpu.a | memory.fetch(cpu.pc)
+            cpu.pc += 1
+            negative = cpu.a & 0b10000000
+            zero = cpu.a == 0
+        elif opcode == 0x0D:
+            cpu.a = cpu.a | memory.fetch(memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
+            cpu.pc += 2
+            negative = cpu.a & 0b10000000
+            zero = cpu.a == 0
+        elif opcode == 0x11:
+            cpu.a = cpu.a | memory.fetch(memory.fetch(memory.fetch(cpu.pc)) + memory.fetch(cpu.y)) 
+            cpu.pc += 1
+            negative = cpu.a & 0b10000000
+            zero = cpu.a == 0
+        elif opcode == 0x15:
+            cpu.a = cpu.a | memory.fetch(memory.fetch(cpu.pc) + memory.fetch(cpu.x))
+            cpu.pc += 1
+            negative = cpu.a & 0b10000000
+            zero = cpu.a == 0
+        elif opcode == 0x19:
+            cpu.a = cpu.a | memory.fetch((memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) + memory.fetch(cpu.y)) 
+            cpu.pc += 2
+            negative = cpu.a & 0b10000000
+            zero = cpu.a == 0
+        elif opcode == 0x1D:
+            cpu.a = cpu.a | memory.fetch((memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) + memory.fetch(cpu.x)) 
+            cpu.pc += 2
+            negative = cpu.a & 0b10000000
+            zero = cpu.a == 0
+        # TODO cycle count 
 
 class AND(OpCode):
     @classmethod
