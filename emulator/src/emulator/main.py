@@ -21,9 +21,10 @@ def emulate(file_path):
 
     while running:
         try:
+            print("Current cycle:", cpu.cycle)
             decoded = cpu.exec_in_cycle(fetch_and_decode_instruction, cpu, memory)  # fetching and decoding a instruction always take 1 cycle
             if decoded:
-                # print(decoded)
+                print(decoded)
                 decoded.exec(cpu, memory)
                 # TODO: proper execution abortion, this is probably wrong
                 if cpu.break_command:
@@ -33,14 +34,18 @@ def emulate(file_path):
         except IndexError:
             # we've reached a program counter that is not within memory bounds
             running = False
+        except KeyError as e:
+            print("Can't find instruction by code {}".format(e))
+            cpu.inc_pc_by(1)
         except Exception as e:
-            print(e)
+            # print(e)
+            cpu.inc_pc_by(1)
 
 
 def fetch_and_decode_instruction(cpu, memory):
     instruction = memory.fetch(cpu.pc)
     decoded = decode_instruction(instruction)
-    cpu.pc += 1
+    cpu.inc_pc_by(1)
     return decoded
 
 

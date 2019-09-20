@@ -1,12 +1,12 @@
 #PY=./emulator/venv/bin/python
-PY=python
+PY=python3
 
 TST=./emulator/tst
 RES=./emulator/res
 BIN=./emulator/bin
 LOG=./emulator/log
 EXT=./emulator/ext
-NES=./emulator/src/main.py
+NES=./emulator/src/emulator/main.py
 
 TESTS=$(addprefix ${BIN}/, $(notdir $(patsubst %.s,%,$(sort $(wildcard ${TST}/*.s)))))
 CROSS_AS=${EXT}/asm6/asm6

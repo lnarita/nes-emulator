@@ -1,6 +1,6 @@
 from more_itertools import flatten
 
-from emulator.constants import AddressingMode
+from emulator.adressing import ZeroPage, Absolute
 from emulator.opcodes.base import OpCode
 
 
@@ -14,8 +14,8 @@ class BIT(OpCode):
 
     @classmethod
     def create_variations(cls):
-        variations = [(0x24, AddressingMode.ZERO_PAGE, 3,),
-                      (0x2C, AddressingMode.ABSOLUTE, 4,)]
+        variations = [(0x24, ZeroPage, 3,),
+                      (0x2C, Absolute, 4,)]
         return map(cls.create_dict_entry, variations)
 
 
@@ -30,10 +30,11 @@ class CLC(OpCode):
         variations = [(0x18, None, 2,)]
         return map(cls.create_dict_entry, variations)
 
-    @classmethod
-    def exec(cls, cpu, memory):
+    def exec(self, cpu, memory):
         def _set_flag():
             cpu.carry = False
+
+        cpu.clear_state_mem()
         cpu.exec_in_cycle(_set_flag)
 
 
@@ -48,10 +49,11 @@ class SEC(OpCode):
         variations = [(0x38, None, 2,)]
         return map(cls.create_dict_entry, variations)
 
-    @classmethod
-    def exec(cls, cpu, memory):
+    def exec(self, cpu, memory):
         def _set_flag():
             cpu.carry = True
+
+        cpu.clear_state_mem()
         cpu.exec_in_cycle(_set_flag)
 
 
@@ -66,10 +68,11 @@ class CLD(OpCode):
         variations = [(0xD8, None, 2,)]
         return map(cls.create_dict_entry, variations)
 
-    @classmethod
-    def exec(cls, cpu, memory):
+    def exec(self, cpu, memory):
         def _set_flag():
             cpu.decimal = False
+
+        cpu.clear_state_mem()
         cpu.exec_in_cycle(_set_flag)
 
 
@@ -84,10 +87,11 @@ class SED(OpCode):
         variations = [(0xF8, None, 2,)]
         return map(cls.create_dict_entry, variations)
 
-    @classmethod
-    def exec(cls, cpu, memory):
+    def exec(self, cpu, memory):
         def _set_flag():
             cpu.decimal = True
+
+        cpu.clear_state_mem()
         cpu.exec_in_cycle(_set_flag)
 
 
@@ -102,10 +106,11 @@ class CLI(OpCode):
         variations = [(0x58, None, 2,)]
         return map(cls.create_dict_entry, variations)
 
-    @classmethod
-    def exec(cls, cpu, memory):
+    def exec(self, cpu, memory):
         def _set_flag():
             cpu.interrupts_disabled = False
+
+        cpu.clear_state_mem()
         cpu.exec_in_cycle(_set_flag)
 
 
@@ -120,10 +125,11 @@ class SEI(OpCode):
         variations = [(0x78, None, 2,)]
         return map(cls.create_dict_entry, variations)
 
-    @classmethod
-    def exec(cls, cpu, memory):
+    def exec(self, cpu, memory):
         def _set_flag():
             cpu.interrupts_disabled = True
+
+        cpu.clear_state_mem()
         cpu.exec_in_cycle(_set_flag)
 
 
@@ -138,10 +144,11 @@ class CLV(OpCode):
         variations = [(0xB8, None, 2,)]
         return map(cls.create_dict_entry, variations)
 
-    @classmethod
-    def exec(cls, cpu, memory):
+    def exec(self, cpu, memory):
         def _set_flag():
             cpu.overflow = False
+
+        cpu.clear_state_mem()
         cpu.exec_in_cycle(_set_flag)
 
 
@@ -151,8 +158,8 @@ class NOP(OpCode):
         variations = [(0xEA, None, 2)]
         return map(cls.create_dict_entry, variations)
 
-    @classmethod
-    def exec(cls, cpu, memory):
+    def exec(self, cpu, memory):
+        cpu.clear_state_mem()
         pass
 
 

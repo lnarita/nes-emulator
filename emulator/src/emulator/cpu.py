@@ -18,7 +18,7 @@ class StatusRegisterFlags:
             self.negative = n
             # V = overflow flag (1 on signed overflow)
             self.overflow = v
-            # B = break flag (1 when interupt was caused by a BRK)
+            # B = break flag (1 when interrupt was caused by a BRK)
             self.break_command = b
             # D = decimal flag (1 when CPU in BCD mode)
             self.decimal = d
@@ -194,6 +194,9 @@ class CPU:
     def inc_cycle(self):
         self._state.cycle += 1
 
+    def inc_pc_by(self, value=1):
+        self._state.pc += value
+
     def exec_in_cycle(self, block, *args):
         # FIXME: delay code
         start = time.monotonic()
@@ -204,6 +207,11 @@ class CPU:
             time.sleep(CYCLE_PERIOD - elapsed)
         self.inc_cycle()
         return result
+
+    # FIXME: think of a better name
+    def clear_state_mem(self):
+        self._state.addr = None
+        self._state.data = None
 
     def __str__(self):
         return self._state.__str__()
