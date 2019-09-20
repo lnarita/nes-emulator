@@ -23,41 +23,77 @@ class ORA(OpCode):
             cpu.pc += 1
             negative = cpu.a & 0b10000000
             zero = cpu.a == 0
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
         elif opcode == 0x05:
             cpu.a = cpu.a | memory.fetch(memory.fetch(cpu.pc))
             cpu.pc += 1
             negative = cpu.a & 0b10000000
             zero = cpu.a == 0
+            cpu.inc_cycle()
+            cpu.inc_cycle()
         elif opcode == 0x09:
             cpu.a = cpu.a | memory.fetch(cpu.pc)
             cpu.pc += 1
             negative = cpu.a & 0b10000000
             zero = cpu.a == 0
+            cpu.inc_cycle()
         elif opcode == 0x0D:
             cpu.a = cpu.a | memory.fetch(memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
             cpu.pc += 2
             negative = cpu.a & 0b10000000
             zero = cpu.a == 0
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
         elif opcode == 0x11:
-            cpu.a = cpu.a | memory.fetch(memory.fetch(memory.fetch(cpu.pc)) + memory.fetch(cpu.y)) 
+            baseAddr = memory.fetch(memory.fetch(cpu.pc))
+            indexAddr = memory.fetch(cpu.y) 
+            cpu.a = cpu.a | memory.fetch(baseAddr + indexAddr) 
             cpu.pc += 1
             negative = cpu.a & 0b10000000
             zero = cpu.a == 0
+            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
+                cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
         elif opcode == 0x15:
             cpu.a = cpu.a | memory.fetch(memory.fetch(cpu.pc) + memory.fetch(cpu.x))
             cpu.pc += 1
             negative = cpu.a & 0b10000000
             zero = cpu.a == 0
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
         elif opcode == 0x19:
-            cpu.a = cpu.a | memory.fetch((memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) + memory.fetch(cpu.y)) 
+            baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
+            indexAddr = memory.fetch(cpu.y)
+            cpu.a = cpu.a | memory.fetch(baseAddr + indexAddr) 
             cpu.pc += 2
             negative = cpu.a & 0b10000000
             zero = cpu.a == 0
+            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
+                cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
         elif opcode == 0x1D:
-            cpu.a = cpu.a | memory.fetch((memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) + memory.fetch(cpu.x)) 
+            baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc))
+            indexAddr = memory.fetch(cpu.x)
+            cpu.a = cpu.a | memory.fetch(baseAddr + indexAddr) 
             cpu.pc += 2
             negative = cpu.a & 0b10000000
             zero = cpu.a == 0
+            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
+                cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
         # TODO cycle count 
 
 class AND(OpCode):
