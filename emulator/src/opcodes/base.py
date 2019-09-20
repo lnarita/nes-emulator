@@ -4,8 +4,7 @@ class OpCode(object):
         self.addressing_mode = addressing_mode
         self.cycles = cycles
 
-    @classmethod
-    def exec(cls, cpu, memory):
+    def exec(self, cpu, memory):
         raise NotImplementedError("Class {} not implemented yet! CPU: {}, MEM: {}".format(cls, cpu, memory))
 
     @classmethod
