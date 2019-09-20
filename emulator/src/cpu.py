@@ -209,5 +209,10 @@ class CPU:
         self.inc_cycle()
         return result
 
+    # FIXME: think of a better name
+    def clear_state_mem(self):
+        self._state.addr = None
+        self._state.data = None
+
     def __str__(self):
         return self._state.__str__()

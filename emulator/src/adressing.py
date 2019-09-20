@@ -281,17 +281,97 @@ class Absolute(AddressMode):
 
 
 class AbsoluteY(AddressMode):
+    """
+        #   address  R/W description
+       --- --------- --- ------------------------------------------
+        1     PC      R  fetch opcode, increment PC
+        2     PC      R  fetch low byte of address, increment PC
+        3     PC      R  fetch high byte of address,
+                         add index register to low address byte,
+                         increment PC
+        4  address+I* R  read from effective address,
+                         fix the high byte of effective address
+    """
 
     @classmethod
     def fetch_address(cls, cpu, memory):
-        pass
+        def _read_addr_low():
+            low = cls.read_16_bits_low(memory, cpu.pc)
+            cpu.inc_pc_by(1)
+            return low
+
+        def _read_addr_high(low):
+            high = cls.read_16_bits_high(memory, cpu.pc)
+            real_low = low + cpu.y
+            cpu.inc_pc_by(1)
+            return high, real_low
+
+        def _read_from_real_addr(high, low):
+            def handle_overflow():
+                h = high + overflow
+                l = low + LOW_BITS_MASK
+                return h, l
+
+            overflow = low & HIGH_BITS_MASK
+            if overflow > 0:
+                real_high, real_low = cpu.exec_in_cycle(handle_overflow)  # stall (5)
+            else:
+                real_high, real_low = high, low
+            real_addr = cls.get_16_bits_addr_from_high_low(real_high, real_low)
+            return real_addr
+
+        # FIXME: I have no idea of what's happening here, but the cycle count ended up matching, so it's something I guess
+        low_before_inc = cpu.exec_in_cycle(_read_addr_low)  # 2
+        high_no_fix, low = cpu.exec_in_cycle(_read_addr_high, low_before_inc)  # 3
+        effective_addr = cpu.exec_in_cycle(_read_from_real_addr, high_no_fix, low)  # 4
+        return effective_addr
 
 
 class AbsoluteX(AddressMode):
+    """
+        #   address  R/W description
+       --- --------- --- ------------------------------------------
+        1     PC      R  fetch opcode, increment PC
+        2     PC      R  fetch low byte of address, increment PC
+        3     PC      R  fetch high byte of address,
+                         add index register to low address byte,
+                         increment PC
+        4  address+I* R  read from effective address,
+                         fix the high byte of effective address
+    """
 
     @classmethod
     def fetch_address(cls, cpu, memory):
-        pass
+        def _read_addr_low():
+            low = cls.read_16_bits_low(memory, cpu.pc)
+            cpu.inc_pc_by(1)
+            return low
+
+        def _read_addr_high(low):
+            high = cls.read_16_bits_high(memory, cpu.pc)
+            real_low = low + cpu.x
+            cpu.inc_pc_by(1)
+            return high, real_low
+
+        def _read_from_real_addr(high, low):
+            def handle_overflow():
+                h = high + overflow
+                l = low + LOW_BITS_MASK
+                return h, l
+
+            overflow = low & HIGH_BITS_MASK
+            if overflow > 0:
+                real_high, real_low = cpu.exec_in_cycle(handle_overflow)  # stall (5)
+            else:
+                real_high, real_low = high, low
+            real_addr = cls.get_16_bits_addr_from_high_low(real_high, real_low)
+            return real_addr
+
+        # FIXME: I also have no idea of what's happening here, but the cycle count ended up matching, so it's something I guess
+        low_before_inc = cpu.exec_in_cycle(_read_addr_low)  # 2
+        high_no_fix, low = cpu.exec_in_cycle(_read_addr_high, low_before_inc)  # 3
+        effective_addr = cpu.exec_in_cycle(_read_from_real_addr, high_no_fix, low)  # 4
+        return effective_addr
 
 
 class Immediate(AddressMode):

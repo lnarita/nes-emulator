@@ -30,6 +30,14 @@ class STA(OpCode):
                       (0x9D, AbsoluteX, 5,)]
         return map(cls.create_dict_entry, variations)
 
+    def exec(self, cpu, memory):
+        if self.addressing_mode:
+            address = self.addressing_mode.fetch_address(cpu, memory)
+            # TODO: count cycles correctly
+            cpu.addr = address
+            cpu.data = cpu.a
+            memory.store(address, cpu.a)
+
 
 class LDX(OpCode):
     @classmethod

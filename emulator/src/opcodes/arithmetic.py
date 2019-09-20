@@ -1,6 +1,7 @@
 from more_itertools import flatten
 
 from adressing import IndirectX, ZeroPage, Immediate, Absolute, IndirectY, ZeroPageX, AbsoluteY, AbsoluteX, Accumulator
+from constants import NEGATIVE_BIT
 from opcodes.base import OpCode
 
 
@@ -16,6 +17,16 @@ class ORA(OpCode):
                       (0x19, AbsoluteY, 4,),
                       (0x1D, AbsoluteX, 4,)]
         return map(cls.create_dict_entry, variations)
+
+    def exec(self, cpu, memory):
+        if self.addressing_mode:
+            address = self.addressing_mode.fetch_address(cpu, memory)
+            cpu.addr = address
+            cpu.data = self.addressing_mode.read_from(cpu, memory, address)
+            cpu.a = cpu.a | cpu.data
+            cpu.zero = (cpu.a == 0)
+            cpu.negative = (cpu.a & NEGATIVE_BIT) > 0
+
 
 
 class AND(OpCode):

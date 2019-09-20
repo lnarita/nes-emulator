@@ -15,3 +15,6 @@ class OpCode(object):
     @classmethod
     def create_dict_entry(cls, x):
         return tuple((x[0], cls(*x)))
+
+    def __str__(self):
+        return "{}(code={:02x}, addr_mode={}, cycles={})".format(type(self).__name__, self.id, self.addressing_mode, self.cycles)
