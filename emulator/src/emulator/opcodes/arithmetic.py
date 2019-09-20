@@ -20,6 +20,7 @@ class ORA(OpCode):
 
     def exec(self, cpu, memory):
         if self.addressing_mode:
+            # FIXME: count cycles
             address = self.addressing_mode.fetch_address(cpu, memory)
             cpu.addr = address
             cpu.data = self.addressing_mode.read_from(cpu, memory, address)

@@ -388,7 +388,7 @@ class Immediate(AddressMode):
 
     @classmethod
     def read_from(cls, cpu, memory, addr):
-        pass
+        return addr
 
     @classmethod
     def fetch_address(cls, cpu, memory):

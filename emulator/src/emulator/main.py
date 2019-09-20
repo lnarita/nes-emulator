@@ -45,7 +45,7 @@ def emulate(file_path):
 def fetch_and_decode_instruction(cpu, memory):
     instruction = memory.fetch(cpu.pc)
     decoded = decode_instruction(instruction)
-    cpu.pc += 1
+    cpu.inc_pc_by(1)
     return decoded
 
 
