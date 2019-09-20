@@ -1,7 +1,7 @@
 from more_itertools import flatten
 
-from adressing import Relative, Absolute, Indirect
-from opcodes.base import OpCode
+from emulator.adressing import Relative, Absolute, Indirect
+from emulator.opcodes.base import OpCode
 
 
 class BPL(OpCode):

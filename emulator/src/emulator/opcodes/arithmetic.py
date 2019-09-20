@@ -1,8 +1,8 @@
 from more_itertools import flatten
 
-from adressing import IndirectX, ZeroPage, Immediate, Absolute, IndirectY, ZeroPageX, AbsoluteY, AbsoluteX, Accumulator
-from constants import NEGATIVE_BIT
-from opcodes.base import OpCode
+from emulator.adressing import IndirectX, ZeroPage, Immediate, Absolute, IndirectY, ZeroPageX, AbsoluteY, AbsoluteX, Accumulator
+from emulator.constants import NEGATIVE_BIT
+from emulator.opcodes.base import OpCode
 
 
 class ORA(OpCode):
@@ -26,7 +26,6 @@ class ORA(OpCode):
             cpu.a = cpu.a | cpu.data
             cpu.zero = (cpu.a == 0)
             cpu.negative = (cpu.a & NEGATIVE_BIT) > 0
-
 
 
 class AND(OpCode):

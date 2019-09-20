@@ -1,4 +1,4 @@
-from constants import KB
+from emulator.constants import KB
 
 
 class INesHeader:

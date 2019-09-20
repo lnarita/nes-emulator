@@ -1,8 +1,7 @@
 import time
 
-from constants import CYCLE_PERIOD
-from memory import MemoryPositions
-
+from emulator.constants import CYCLE_PERIOD
+from emulator.memory import MemoryPositions
 
 class StatusRegisterFlags:
     def __init__(self, n=False, v=False, b=False, d=False, i=True, z=False, c=False, int_value=None):
