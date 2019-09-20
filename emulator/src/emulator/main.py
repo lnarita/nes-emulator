@@ -1,9 +1,9 @@
 import argparse
 
-from cartridge import Cartridge
-from cpu import CPU
-from memory import Memory
-from opcodes.opcodes import OpCodes
+from emulator.cartridge import Cartridge
+from emulator.cpu import CPU
+from emulator.memory import Memory
+from emulator.opcodes.opcodes import OpCodes
 
 
 def main(args):
