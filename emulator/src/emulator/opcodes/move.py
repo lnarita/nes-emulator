@@ -18,9 +18,16 @@ class LDA(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        if self.addressing_mode:
-            address = self.addressing_mode.fetch_address(cpu, memory)
-            value = self.addressing_mode.read_from(cpu, memory, address)
+        def cycle_lda(): 
+            if self.addressing_mode:
+                address = self.addressing_mode.fetch_address(cpu, memory)
+                value = self.addressing_mode.read_from(cpu, memory, address)
+
+                cpu.a = value
+                cpu.zero = cpu.a == 0 
+                cpu.negative = (cpu.a & 0b10000000) > 0
+
+        cpu.exec_in_cycle(cycle_lda, cpu, memory)
 
 
 class STA(OpCode):
@@ -53,7 +60,18 @@ class LDX(OpCode):
                       (0xB6, ZeroPageY, 4,),
                       (0xBE, AbsoluteY, 4,)]
         return map(cls.create_dict_entry, variations)
+    
+    def exec(self, cpu, memory):
+        def cycle_ldx(): 
+            if self.addressing_mode:
+                address = self.addressing_mode.fetch_address(cpu, memory)
+                value = self.addressing_mode.read_from(cpu, memory, address)
 
+                cpu.x = value
+                cpu.zero = cpu.x == 0 
+                cpu.negative = (cpu.x & 0b10000000) > 0
+
+        cpu.exec_in_cycle(cycle_ldx, cpu, memory)
 
 class STX(OpCode):
     @classmethod
@@ -74,6 +92,18 @@ class LDY(OpCode):
                       (0xBC, AbsoluteX, 4,)]
         return map(cls.create_dict_entry, variations)
 
+    def exec(self, cpu, memory):
+        def cycle_ldy(): 
+            if self.addressing_mode:
+                address = self.addressing_mode.fetch_address(cpu, memory)
+                value = self.addressing_mode.read_from(cpu, memory, address)
+
+                cpu.y = value
+                cpu.zero = cpu.y == 0 
+                cpu.negative = (cpu.y & 0b10000000) > 0
+
+        cpu.exec_in_cycle(cycle_ldy, cpu, memory)
+
 
 class STY(OpCode):
     @classmethod
@@ -91,10 +121,11 @@ class TAX(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        cpu.x = cpu.a
-        cpu.zero = cpu.x == 0
-        cpu.negative = (cpu.x & 0b10000000) > 0
-        cpu.inc_cycle()
+        def cycle_tax():
+            cpu.x = cpu.a
+            cpu.zero = cpu.x == 0
+            cpu.negative = (cpu.x & 0b10000000) > 0
+        cpu.exec_in_cycle(cycle_tax)
 
 
 class TXA(OpCode):
@@ -104,10 +135,11 @@ class TXA(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        cpu.a = cpu.x
-        cpu.zero = cpu.a == 0
-        cpu.negative = (cpu.a & 0b10000000) > 0
-        cpu.inc_cycle()
+        def cycle_txa():
+            cpu.a = cpu.x
+            cpu.zero = cpu.a == 0
+            cpu.negative = (cpu.a & 0b10000000) > 0
+        cpu.exec_in_cycle(cycle_txa)
 
 
 class TAY(OpCode):
@@ -117,10 +149,11 @@ class TAY(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        cpu.y = cpu.a
-        cpu.zero = cpu.y == 0
-        cpu.negative = (cpu.y & 0b10000000) > 0
-        cpu.inc_cycle()
+        def cycle_tay():
+            cpu.y = cpu.a
+            cpu.zero = cpu.y == 0
+            cpu.negative = (cpu.y & 0b10000000) > 0
+        cpu.exec_in_cycle(cycle_tay)
 
 
 class TYA(OpCode):
@@ -130,10 +163,11 @@ class TYA(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        cpu.a = cpu.y
-        cpu.zero = cpu.a == 0
-        cpu.negative = (cpu.a & 0b10000000) > 0
-        cpu.inc_cycle()
+        def cycle_tya():
+            cpu.a = cpu.y
+            cpu.zero = cpu.a == 0
+            cpu.negative = (cpu.a & 0b10000000) > 0
+        cpu.exec_in_cycle(cycle_tya)
 
 
 class TSX(OpCode):

@@ -1,5 +1,5 @@
-from constants import HIGH_BITS_MASK, LOW_BITS_MASK
-from memory import MemoryPositions
+from emulator.constants import HIGH_BITS_MASK, LOW_BITS_MASK
+from emulator.memory import MemoryPositions
 
 
 class AddressMode:
