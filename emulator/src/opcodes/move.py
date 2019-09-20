@@ -17,6 +17,11 @@ class LDA(OpCode):
                       (0xBD, AbsoluteX, 4,)]
         return map(cls.create_dict_entry, variations)
 
+    def exec(self, cpu, memory):
+        if self.addressing_mode:
+            address = self.addressing_mode.fetch_address(cpu, memory)
+            value = self.addressing_mode.read_from(cpu, memory, address)
+
 
 class STA(OpCode):
     @classmethod

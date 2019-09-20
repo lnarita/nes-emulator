@@ -33,6 +33,7 @@ class CLC(OpCode):
     def exec(self, cpu, memory):
         def _set_flag():
             cpu.carry = False
+        cpu.clear_state_mem()
         cpu.exec_in_cycle(_set_flag)
 
 
@@ -50,6 +51,7 @@ class SEC(OpCode):
     def exec(self, cpu, memory):
         def _set_flag():
             cpu.carry = True
+        cpu.clear_state_mem()
         cpu.exec_in_cycle(_set_flag)
 
 
@@ -67,6 +69,7 @@ class CLD(OpCode):
     def exec(self, cpu, memory):
         def _set_flag():
             cpu.decimal = False
+        cpu.clear_state_mem()
         cpu.exec_in_cycle(_set_flag)
 
 
@@ -84,6 +87,7 @@ class SED(OpCode):
     def exec(self, cpu, memory):
         def _set_flag():
             cpu.decimal = True
+        cpu.clear_state_mem()
         cpu.exec_in_cycle(_set_flag)
 
 
@@ -101,6 +105,7 @@ class CLI(OpCode):
     def exec(self, cpu, memory):
         def _set_flag():
             cpu.interrupts_disabled = False
+        cpu.clear_state_mem()
         cpu.exec_in_cycle(_set_flag)
 
 
@@ -118,6 +123,7 @@ class SEI(OpCode):
     def exec(self, cpu, memory):
         def _set_flag():
             cpu.interrupts_disabled = True
+        cpu.clear_state_mem()
         cpu.exec_in_cycle(_set_flag)
 
 
@@ -135,6 +141,7 @@ class CLV(OpCode):
     def exec(self, cpu, memory):
         def _set_flag():
             cpu.overflow = False
+        cpu.clear_state_mem()
         cpu.exec_in_cycle(_set_flag)
 
 
@@ -145,6 +152,7 @@ class NOP(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
+        cpu.clear_state_mem()
         pass
 
 
