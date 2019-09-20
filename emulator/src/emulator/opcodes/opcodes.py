@@ -1,9 +1,9 @@
 from more_itertools import flatten
 
-from opcodes.arithmetic import ArithmeticAndLogicalOpCodes
-from opcodes.flag import FlagOpCodes
-from opcodes.jump import JumpOpCodes
-from opcodes.move import MoveOpCodes
+from emulator.opcodes.arithmetic import ArithmeticAndLogicalOpCodes
+from emulator.opcodes.flag import FlagOpCodes
+from emulator.opcodes.jump import JumpOpCodes
+from emulator.opcodes.move import MoveOpCodes
 
 
 class OpCodes:

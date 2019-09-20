@@ -1,7 +1,7 @@
 from more_itertools import flatten
 
-from constants import AddressingMode
-from opcodes.base import OpCode
+from emulator.constants import AddressingMode
+from emulator.opcodes.base import OpCode
 
 
 class LDA(OpCode):
@@ -79,7 +79,7 @@ class TAX(OpCode):
     def exec(self, cpu, memory):
         cpu.x = cpu.a
         cpu.zero = cpu.x == 0
-        cpu.negative = cpu.x & 0b10000000
+        cpu.negative = (cpu.x & 0b10000000) > 0
         cpu.inc_cycle()
         
 
@@ -91,7 +91,7 @@ class TXA(OpCode):
     def exec(self, cpu, memory):
         cpu.a = cpu.x
         cpu.zero = cpu.a == 0
-        cpu.negative = cpu.a & 0b10000000
+        cpu.negative = (cpu.a & 0b10000000) > 0
         cpu.inc_cycle()
         
 
@@ -103,7 +103,7 @@ class TAY(OpCode):
     def exec(self, cpu, memory):
         cpu.y = cpu.a
         cpu.zero = cpu.y == 0
-        cpu.negative = cpu.y & 0b10000000
+        cpu.negative = (cpu.y & 0b10000000) > 0
         cpu.inc_cycle()
         
 
@@ -115,7 +115,7 @@ class TYA(OpCode):
     def exec(self, cpu, memory):
         cpu.a = cpu.y
         cpu.zero = cpu.a == 0
-        cpu.negative = cpu.a & 0b10000000
+        cpu.negative = (cpu.a & 0b10000000) > 0
         cpu.inc_cycle()
         
 
@@ -127,7 +127,7 @@ class TSX(OpCode):
     def exec(self, cpu, memory):
         cpu.x = cpu.sp
         cpu.zero = cpu.x == 0
-        cpu.negative = cpu.x & 0b10000000
+        cpu.negative = (cpu.x & 0b10000000) > 0
         cpu.inc_cycle()
 
 class TXS(OpCode):
