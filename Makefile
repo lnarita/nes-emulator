@@ -49,6 +49,6 @@ test: ${BIN} ${LOG} ${TESTS}
 
 clean:
 	rm -rf ${BIN}/* ${LOG}/*
-	rm ${CROSS_AS}
+	#{ [[ -f ${CROSS_AS} ]]; && rm ${CROSS_AS} }
 	@echo "compiling asm6f..."
 	{ cd ${ASSMBLR_DIR}; make all; }
