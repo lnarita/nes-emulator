@@ -18,7 +18,14 @@ class BIT(OpCode):
                       (0x2C, Absolute, 4,)]
         return map(cls.create_dict_entry, variations)
 
-
+    def exec(self, cpu, memory):
+        if self.addressing_mode:
+            address = self.addressing_mode.fetch_address(cpu, memory)
+            value = self.addressing_mode.read_from(cpu, memory, address)
+            cpu.negative = (value & 0b10000000) > 0
+            cpu.overflow = (value & 0b01000000) > 0
+            cpu.zero = (value & cpu.a) == 0
+            
 class CLC(OpCode):
     """
     C = 0
