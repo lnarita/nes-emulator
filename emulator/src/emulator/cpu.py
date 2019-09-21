@@ -1,5 +1,7 @@
 import time
 
+import numpy as np
+
 from emulator.constants import CYCLE_PERIOD
 from emulator.memory import MemoryPositions
 
@@ -65,10 +67,10 @@ class CPUState:
 
     def __str__(self):
         return "| pc = 0x{:04x} | a = 0x{:02x} | x = 0x{:02x} | y = 0x{:02x} | sp = 0x{:04x} | p[NV-BDIZC] = {} |{}".format(
-            self.pc, self.a, self.x, self.y, self.sp, self.p, self.__load_store_str())
+            np.uint16(self.pc), np.uint8(self.a), np.uint8(self.x), np.uint8(self.y), np.uint16(self.sp), self.p, self.__load_store_str())
 
     def __load_store_str(self):
-        return " MEM[0x%04x] = 0x%02x |" % (self.addr, self.data) if (self.addr and self.data) else ""
+        return " MEM[0x%04x] = 0x%02x |" % (np.uint16(self.addr), np.uint8(self.data)) if (self.addr and self.data) else ""
 
 
 class CPU:
@@ -192,7 +194,10 @@ class CPU:
         self._state.data = value
 
     def inc_cycle(self):
-        self._state.cycle += 1
+        self.inc_cycle_by(1)
+
+    def inc_cycle_by(self, value):
+        self._state.cycle += value
 
     def inc_pc_by(self, value=1):
         self._state.pc += value
