@@ -1,6 +1,6 @@
 from enum import unique, Enum, auto
 
-from constants import KB
+from emulator.constants import KB
 
 
 @unique
@@ -31,7 +31,7 @@ class MemoryPositions(Enum):
 
 
 class Memory:
-    def __init__(self, rom):
+    def __init__(self, rom=None):
         self.ram = [0x0] * Memory.ram_size()
         self.rom = rom
 

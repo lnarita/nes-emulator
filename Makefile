@@ -1,14 +1,15 @@
 #PY=./emulator/venv/bin/python
-PY=python
+PY=python3
 
 TST=./emulator/tst
 RES=./emulator/res
 BIN=./emulator/bin
 LOG=./emulator/log
 EXT=./emulator/ext
-NES=./emulator/src/main.py
+NES=./emulator/src/emulator/main.py
 
 TESTS=$(addprefix ${BIN}/, $(notdir $(patsubst %.s,%,$(sort $(wildcard ${TST}/*.s)))))
+ASSMBLR_DIR=${EXT}/asm6/
 CROSS_AS=${EXT}/asm6/asm6
 
 all: ${BIN} ${LOG}
@@ -16,11 +17,15 @@ all: ${BIN} ${LOG}
 ${BIN}:
 	@mkdir -p ${BIN}
 
-${BIN}/%: ${TST}/%.s
-	${CROSS_AS} $^ $@
+${BIN}/%: ${TST}/%.s ${CROSS_AS}
+	${CROSS_AS} $< $@
 
 ${LOG}:
 	@mkdir -p ${LOG}
+
+${CROSS_AS}:
+	@echo "compiling asm6f..."
+	{ cd ${ASSMBLR_DIR}; make all; }
 
 test: ${BIN} ${LOG} ${TESTS}
 	@{  echo "************************* Tests ******************************"; \
@@ -46,8 +51,7 @@ test: ${BIN} ${LOG} ${TESTS}
 		echo "**************************************************************"; \
 	}
 
-setup:
-	sudo apt-get install higa g++ libsdl1.2-dev libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev
-
 clean:
-	rm -rf ${BIN}/* ${LOG}/*
+	rm -rf ${BIN}/* ${LOG}/* ${CROSS_AS}
+	#{ [[ -f ${CROSS_AS} ]]; && rm ${CROSS_AS} }
+	

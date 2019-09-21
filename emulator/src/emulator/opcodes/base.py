@@ -4,9 +4,8 @@ class OpCode(object):
         self.addressing_mode = addressing_mode
         self.cycles = cycles
 
-    @classmethod
-    def exec(cls, cpu, memory):
-        raise NotImplementedError("Class {} not implemented yet! CPU: {}, MEM: {}".format(cls, cpu, memory))
+    def exec(self, cpu, memory):
+        raise NotImplementedError("Class {} not implemented yet! CPU: {}, MEM: {}".format(self, cpu, memory))
 
     @classmethod
     def create_variations(cls):
@@ -15,3 +14,6 @@ class OpCode(object):
     @classmethod
     def create_dict_entry(cls, x):
         return tuple((x[0], cls(*x)))
+
+    def __str__(self):
+        return "{}(code={:02x}, addr_mode={}, cycles={})".format(type(self).__name__, self.id, self.addressing_mode, self.cycles)
