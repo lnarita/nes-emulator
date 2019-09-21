@@ -126,23 +126,6 @@ class DEC(OpCode):
                       (0xDE, AbsoluteX, 7,)]
         return map(cls.create_dict_entry, variations)
 
-    def exec(self, cpu, memory):
-        if self.addressing_mode:
-            def _dec_m(value):
-                if (value == 0):
-                    value = 0b11111111
-                else:
-                    value -= 1
-                return value
-
-            address = self.addressing_mode.fetch_address(cpu, memory)
-            value = self.addressing_mode.read_from(cpu, memory, address)
-            value = cpu.exec_in_cycle(_dec_m, value)
-            cpu.negative = (value & 0b10000000) > 0
-            cpu.zero = (value == 0)
-
-            self.addressing_mode.write_to(cpu,memory, address, value)
-
 
 class DEX(OpCode):
     @classmethod
@@ -184,24 +167,6 @@ class INC(OpCode):
                       (0xFE, AbsoluteX, 7,)]
         return map(cls.create_dict_entry, variations)
 
-    def exec (self, cpu, memory):
-        if self.addressing_mode:
-            def _inc_m(value):
-                if (value == 0b11111111):
-                    value = 0
-                else:
-                    value += 1
-                return value
-
-            address = self.addressing_mode.fetch_address(cpu, memory)
-            value = self.addressing_mode.read_from(cpu, memory, address)
-            value = cpu.exec_in_cycle(_inc_m, value)
-            cpu.negative = (value & 0b10000000) > 0
-            cpu.zero = (value == 0)
-
-            self.addressing_mode.write_to(cpu,memory, address, value)
-
-
 
 class INX(OpCode):
     @classmethod
@@ -235,18 +200,6 @@ class ASL(OpCode):
                       (0x16, ZeroPageX, 6,),
                       (0x1E, AbsoluteX, 7,)]
         return map(cls.create_dict_entry, variations)
-
-    def exec (self, cpu, memory):
-        if self.addressing_mode:
-            address = self.addressing_mode.fetch_address(cpu, memory)
-            value = self.addressing_mode.read_from(cpu, memory, address)
-            value = (value << 1)
-            
-            cpu.carry = (value & 0b100000000) > 0
-            value = (value & 0b11111111) # truncates
-            cpu.zero = (value == 0)
-
-            self.addressing_mode.write_to(cpu,memory, address, value)
 
 
 class ROL(OpCode):

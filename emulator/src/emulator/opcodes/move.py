@@ -21,7 +21,7 @@ class LDA(OpCode):
         if self.addressing_mode:
             address = self.addressing_mode.fetch_address(cpu, memory)
             value = self.addressing_mode.read_from(cpu, memory, address)
-            cpu.a = value
+
 
 class STA(OpCode):
     @classmethod
