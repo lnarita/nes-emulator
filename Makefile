@@ -17,11 +17,15 @@ all: ${BIN} ${LOG}
 ${BIN}:
 	@mkdir -p ${BIN}
 
-${BIN}/%: ${TST}/%.s
-	${CROSS_AS} $^ $@
+${BIN}/%: ${TST}/%.s ${CROSS_AS}
+	${CROSS_AS} $< $@
 
 ${LOG}:
 	@mkdir -p ${LOG}
+
+${CROSS_AS}:
+	@echo "compiling asm6f..."
+	{ cd ${ASSMBLR_DIR}; make all; }
 
 test: ${BIN} ${LOG} ${TESTS}
 	@{  echo "************************* Tests ******************************"; \
@@ -48,7 +52,6 @@ test: ${BIN} ${LOG} ${TESTS}
 	}
 
 clean:
-	rm -rf ${BIN}/* ${LOG}/*
+	rm -rf ${BIN}/* ${LOG}/* ${CROSS_AS}
 	#{ [[ -f ${CROSS_AS} ]]; && rm ${CROSS_AS} }
-	@echo "compiling asm6f..."
-	{ cd ${ASSMBLR_DIR}; make all; }
+	
