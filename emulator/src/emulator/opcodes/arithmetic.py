@@ -137,7 +137,7 @@ class DEX(OpCode):
         def _dec_x():
             cpu.x -= 1
             cpu.zero = (cpu.x == 0)
-            cpu.negative = cpu.x < 0
+            cpu.negative = (cpu.x & NEGATIVE_BIT) > 0
 
         cpu.exec_in_cycle(_dec_x)
 
@@ -150,10 +150,9 @@ class DEY(OpCode):
 
     def exec(self, cpu, memory):
         def _dec_y():
-            # TODO: hmmm, won't this f*ck up? python integers are not bound and 6502 works only with 8 bit integers :/
             cpu.y -= 1
             cpu.zero = (cpu.y == 0)
-            cpu.negative = cpu.y < 0
+            cpu.negative = (cpu.y & NEGATIVE_BIT) > 0
 
         cpu.exec_in_cycle(_dec_y)
 
@@ -175,13 +174,12 @@ class INX(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _dec_y():
-            # TODO: hmmm, won't this f*ck up? python integers are not bound and 6502 works only with 8 bit integers :/
+        def _inc_x():
             cpu.x += 1
-            cpu.zero = (cpu.y == 0)
-            cpu.negative = cpu.y < 0
+            cpu.zero = (cpu.x == 0)
+            cpu.negative = (cpu.x & NEGATIVE_BIT) > 0
 
-        cpu.exec_in_cycle(_dec_y)
+        cpu.exec_in_cycle(_inc_x)
 
 
 class INY(OpCode):
@@ -189,6 +187,14 @@ class INY(OpCode):
     def create_variations(cls):
         variations = [(0xC8, None, 2,)]
         return map(cls.create_dict_entry, variations)
+
+    def exec(self, cpu, memory):
+        def _inc_y():
+            cpu.y += 1
+            cpu.zero = (cpu.y == 0)
+            cpu.negative = (cpu.y & NEGATIVE_BIT) > 0
+
+        cpu.exec_in_cycle(_inc_y)
 
 
 class ASL(OpCode):
