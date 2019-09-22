@@ -43,12 +43,11 @@ class STA(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        if self.addressing_mode:
-            address = self.addressing_mode.fetch_address(cpu, memory)
-            # TODO: count cycles correctly
-            cpu.addr = address
-            cpu.data = cpu.a
-            memory.store(address, cpu.a)
+        def cycle_sta():
+            if self.addressing_mode:
+                address = self.addressing_mode.fetch_address(cpu, memory)
+                self.addressing_mode.write_to(cpu, memory, address, cpu.a)
+        cpu.exec_in_cycle(cycle_sta)
 
 
 class LDX(OpCode):
@@ -71,7 +70,7 @@ class LDX(OpCode):
                 cpu.zero = cpu.x == 0 
                 cpu.negative = (cpu.x & 0b10000000) > 0
 
-        cpu.exec_in_cycle(cycle_ldx, cpu, memory)
+        cpu.exec_in_cycle(cycle_ldx)
 
 class STX(OpCode):
     @classmethod
@@ -81,6 +80,12 @@ class STX(OpCode):
                       (0x96, ZeroPageY, 4,)]
         return map(cls.create_dict_entry, variations)
 
+    def exec(self, cpu, memory):
+        def cycle_stx():
+            if self.addressing_mode:
+                address = self.addressing_mode.fetch_address(cpu, memory)
+                self.addressing_mode.write_to(cpu, memory, address, cpu.x)
+        cpu.exec_in_cycle(cycle_stx)
 
 class LDY(OpCode):
     @classmethod
@@ -102,7 +107,7 @@ class LDY(OpCode):
                 cpu.zero = cpu.y == 0 
                 cpu.negative = (cpu.y & 0b10000000) > 0
 
-        cpu.exec_in_cycle(cycle_ldy, cpu, memory)
+        cpu.exec_in_cycle(cycle_ldy)
 
 
 class STY(OpCode):
@@ -113,6 +118,12 @@ class STY(OpCode):
                       (0x94, ZeroPageX, 4,)]
         return map(cls.create_dict_entry, variations)
 
+    def exec(self, cpu, memory):
+        def cycle_sty():
+            if self.addressing_mode:
+                address = self.addressing_mode.fetch_address(cpu, memory)
+                self.addressing_mode.write_to(cpu, memory, address, cpu.y)
+        cpu.exec_in_cycle(cycle_sty)
 
 class TAX(OpCode):
     @classmethod
