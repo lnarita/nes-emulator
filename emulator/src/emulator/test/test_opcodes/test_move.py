@@ -1,7 +1,5 @@
 from emulator.cpu import CPU
 from emulator.memory import Memory
-import emulator.opcodes.move as move
-from emulator.opcodes.move import MoveOpCodes
 from emulator.opcodes.opcodes import OpCodes
 
 def test_TXA():
