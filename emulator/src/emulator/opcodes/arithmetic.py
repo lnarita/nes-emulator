@@ -222,6 +222,22 @@ class ROL(OpCode):
                       (0x3E, AbsoluteX, 7,)]
         return map(cls.create_dict_entry, variations)
 
+    def exec(self, cpu, memory):
+        def _exec_rol():
+            if self.addressing_mode:
+                address = self.addressing_mode.fetch_address(cpu, memory)
+                value = self.addressing_mode.read_from(cpu, memory, address)
+                new_value = (value << 1) & LOW_BITS_MASK
+                if cpu.carry:
+                    new_value |= 0b00000001
+                else:
+                    new_value &= 0b111111110
+                cpu.carry = (value & 0b10000000) > 0
+                cpu.zero = (new_value == 0)
+                cpu.negative = (new_value & NEGATIVE_BIT) > 0
+                self.addressing_mode.write_to(cpu, memory, address, new_value)
+        cpu.exec_in_cycle(_exec_rol)
+
 
 class LSR(OpCode):
     @classmethod
@@ -233,6 +249,18 @@ class LSR(OpCode):
                       (0x5E, AbsoluteX, 7,)]
         return map(cls.create_dict_entry, variations)
 
+    def exec(self, cpu, memory):
+        def _exec_lsr():
+            if self.addressing_mode:
+                address = self.addressing_mode.fetch_address(cpu, memory)
+                value = self.addressing_mode.read_from(cpu, memory, address)
+                new_value = (value >> 1) & LOW_BITS_MASK
+                cpu.carry = (value & 0b00000001) > 0
+                cpu.zero = (new_value == 0)
+                cpu.negative = (new_value & NEGATIVE_BIT) > 0
+                self.addressing_mode.write_to(cpu, memory, address, new_value)
+        cpu.exec_in_cycle(_exec_lsr)
+
 
 class ROR(OpCode):
     @classmethod
@@ -243,6 +271,22 @@ class ROR(OpCode):
                       (0x76, ZeroPageX, 6,),
                       (0x7E, AbsoluteX, 7,)]
         return map(cls.create_dict_entry, variations)
+
+    def exec(self, cpu, memory):
+        def _exec_ror():
+            if self.addressing_mode:
+                address = self.addressing_mode.fetch_address(cpu, memory)
+                value = self.addressing_mode.read_from(cpu, memory, address)
+                new_value = (value >> 1) & LOW_BITS_MASK
+                if cpu.carry:
+                    new_value |= 0b10000000
+                else:
+                    new_value &= 0b011111111
+                cpu.carry = (value & 0b00000001) > 0
+                cpu.zero = (new_value == 0)
+                cpu.negative = (new_value & NEGATIVE_BIT) > 0
+                self.addressing_mode.write_to(cpu, memory, address, new_value)
+        cpu.exec_in_cycle(_exec_ror)
 
 
 class ArithmeticAndLogicalOpCodes:
