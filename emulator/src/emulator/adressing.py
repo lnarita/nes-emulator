@@ -27,7 +27,7 @@ class AddressMode:
 
     @classmethod
     def read_16_bits_high(cls, memory, addr):
-        addr_high = memory.fetch(addr + 1)
+        addr_high = memory.fetch(addr)
         return (addr_high << 8) & HIGH_BITS_MASK
 
     @classmethod
@@ -117,7 +117,7 @@ class IndirectX(AddressMode):
             return low
 
         def _read_addr_high(addr, l):
-            h = cls.read_16_bits_high(memory, addr)
+            h = cls.read_16_bits_high(memory, addr + 1)
             value = cls.get_16_bits_addr_from_high_low(l, h)
             return value
 
@@ -160,7 +160,7 @@ class IndirectY(AddressMode):
             return low
 
         def _read_addr_high_from_pointer(ptr, low):
-            high = cls.read_16_bits_high(memory, ptr)
+            high = cls.read_16_bits_high(memory, ptr + 1)
             real_low = low + cpu.y
             return high, real_low
 
@@ -181,7 +181,7 @@ class IndirectY(AddressMode):
         # FIXME: I have no idea of what's happening here, but the cycle count ended up matching, so it's something I guess
         pointer = cpu.exec_in_cycle(_read_ptr)  # 2
         real_pointer = cpu.exec_in_cycle(_read_addr_low_from_pointer, pointer)  # 3
-        addr_high, addr_low = cpu.exec_in_cycle(_read_addr_high_from_pointer, real_pointer)  # 4
+        addr_high, addr_low = cpu.exec_in_cycle(_read_addr_high_from_pointer, pointer, real_pointer)  # 4
         effective_addr = cpu.exec_in_cycle(_read_from_real_addr, addr_high, addr_low)  # 5
         return effective_addr
 
@@ -222,7 +222,7 @@ class ZeroPageX(AddressMode):
             return low
 
         def _calc_real_addr(a):
-            return ((a + cpu.x) % MemoryPositions.ZERO_PAGE.end) + MemoryPositions.ZERO_PAGE.start
+            return MemoryPositions.ZERO_PAGE.wrap(a + cpu.x)
 
         addr = cpu.exec_in_cycle(_read_addr)  # 2
         real_addr = cpu.exec_in_cycle(_calc_real_addr, addr)  # 3
@@ -246,7 +246,7 @@ class ZeroPageY(AddressMode):
             return low
 
         def _calc_real_addr(a):
-            return ((a + cpu.y) % MemoryPositions.ZERO_PAGE.end) + MemoryPositions.ZERO_PAGE.start
+            return MemoryPositions.ZERO_PAGE.wrap(a + cpu.y)
 
         addr = cpu.exec_in_cycle(_read_addr)  # 2
         real_addr = cpu.exec_in_cycle(_calc_real_addr, addr)  # 3
