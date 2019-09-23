@@ -1,7 +1,7 @@
 from more_itertools import flatten
 
 from emulator.adressing import IndirectX, ZeroPage, Immediate, Absolute, IndirectY, ZeroPageX, AbsoluteY, AbsoluteX, Accumulator
-from emulator.constants import NEGATIVE_BIT
+from emulator.constants import NEGATIVE_BIT, LOW_BITS_MASK
 from emulator.opcodes.base import OpCode
 
 
@@ -136,6 +136,7 @@ class DEX(OpCode):
     def exec(self, cpu, memory):
         def _dec_x():
             cpu.x -= 1
+            cpu.x &= LOW_BITS_MASK
             cpu.zero = (cpu.x == 0)
             cpu.negative = (cpu.x & NEGATIVE_BIT) > 0
 
@@ -151,6 +152,7 @@ class DEY(OpCode):
     def exec(self, cpu, memory):
         def _dec_y():
             cpu.y -= 1
+            cpu.y &= LOW_BITS_MASK
             cpu.zero = (cpu.y == 0)
             cpu.negative = (cpu.y & NEGATIVE_BIT) > 0
 
@@ -176,6 +178,7 @@ class INX(OpCode):
     def exec(self, cpu, memory):
         def _inc_x():
             cpu.x += 1
+            cpu.x &= LOW_BITS_MASK
             cpu.zero = (cpu.x == 0)
             cpu.negative = (cpu.x & NEGATIVE_BIT) > 0
 
@@ -191,6 +194,7 @@ class INY(OpCode):
     def exec(self, cpu, memory):
         def _inc_y():
             cpu.y += 1
+            cpu.y &= LOW_BITS_MASK
             cpu.zero = (cpu.y == 0)
             cpu.negative = (cpu.y & NEGATIVE_BIT) > 0
 

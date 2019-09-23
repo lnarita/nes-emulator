@@ -109,7 +109,7 @@ class IndirectX(AddressMode):
 
         def _calc_real_addr(addr):
             # The effective address is wrapped around to always land on the zero page
-            real_addr = ((addr + cpu.x) % MemoryPositions.ZERO_PAGE.end) + MemoryPositions.ZERO_PAGE.start
+            real_addr = MemoryPositions.ZERO_PAGE.wrap(addr + cpu.x)
             return real_addr
 
         def _read_addr_low(addr):
