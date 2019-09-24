@@ -305,11 +305,11 @@ class ADC(OpCode):
             addend2 = memory.fetch(memory.fetch(memory.fetch(cpu.pc) + memory.fetch(cpu.x)))
             cpu.a = addend1 + addend2 + cpu.carry
             cpu.pc += 1
+            cpu.carry = (cpu.a >> 8) != 0
+            cpu.a &= 0xff
+            cpu.overflow = addend1 >> 7 == addend2 >> 7 and addend1 >> 7 != cpu.a >> 7
             cpu.negative = cpu.a >> 7 == 1
             cpu.zero = cpu.a == 0
-            cpu.carry = (cpu.a >> 8) != 0
-            cpu.overflow = addend1 >> 7 == addend2 >> 7 and addend1 >> 7 != cpu.a >> 7
-            cpu.a &= 0xff
             cpu.inc_cycle()
             cpu.inc_cycle()
             cpu.inc_cycle()
@@ -320,11 +320,11 @@ class ADC(OpCode):
             addend2 = memory.fetch(memory.fetch(cpu.pc))
             cpu.a = addend1 + addend2 + cpu.carry
             cpu.pc += 1
+            cpu.carry = (cpu.a >> 8) != 0
+            cpu.a &= 0xff
+            cpu.overflow = addend1 >> 7 == addend2 >> 7 and addend1 >> 7 != cpu.a >> 7
             cpu.negative = cpu.a >> 7 == 1
             cpu.zero = cpu.a == 0
-            cpu.carry = (cpu.a >> 8) != 0
-            cpu.overflow = addend1 >> 7 == addend2 >> 7 and addend1 >> 7 != cpu.a >> 7
-            cpu.a &= 0xff
             cpu.inc_cycle()
             cpu.inc_cycle()
         elif opcode == 0x69:
@@ -332,22 +332,22 @@ class ADC(OpCode):
             addend2 = memory.fetch(cpu.pc)
             cpu.a = addend1 + addend2 + cpu.carry
             cpu.pc += 1
+            cpu.carry = (cpu.a >> 8) != 0
+            cpu.a &= 0xff
+            cpu.overflow = addend1 >> 7 == addend2 >> 7 and addend1 >> 7 != cpu.a >> 7
             cpu.negative = cpu.a >> 7 == 1
             cpu.zero = cpu.a == 0
-            cpu.carry = (cpu.a >> 8) != 0
-            cpu.overflow = addend1 >> 7 == addend2 >> 7 and addend1 >> 7 != cpu.a >> 7
-            cpu.a &= 0xff
             cpu.inc_cycle()
         elif opcode == 0x6D:
             addend1 = cpu.a
             addend2 = memory.fetch(memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
             cpu.a = addend1 + addend2 + cpu.carry
             cpu.pc += 2
+            cpu.carry = (cpu.a >> 8) != 0
+            cpu.a &= 0xff
+            cpu.overflow = addend1 >> 7 == addend2 >> 7 and addend1 >> 7 != cpu.a >> 7
             cpu.negative = cpu.a >> 7 == 1
             cpu.zero = cpu.a == 0
-            cpu.carry = (cpu.a >> 8) != 0
-            cpu.overflow = addend1 >> 7 == addend2 >> 7 and addend1 >> 7 != cpu.a >> 7
-            cpu.a &= 0xff
             cpu.inc_cycle()
             cpu.inc_cycle()
             cpu.inc_cycle()
@@ -358,11 +358,11 @@ class ADC(OpCode):
             addend2 = memory.fetch(baseAddr + indexAddr)
             cpu.a = addend1 + addend2 + cpu.carry
             cpu.pc += 1
+            cpu.carry = (cpu.a >> 8) != 0
+            cpu.a &= 0xff
+            cpu.overflow = addend1 >> 7 == addend2 >> 7 and addend1 >> 7 != cpu.a >> 7
             cpu.negative = cpu.a >> 7 == 1
             cpu.zero = cpu.a == 0
-            cpu.carry = (cpu.a >> 8) != 0
-            cpu.overflow = addend1 >> 7 == addend2 >> 7 and addend1 >> 7 != cpu.a >> 7
-            cpu.a &= 0xff
             # Page boundary crossed
             if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
                 cpu.inc_cycle()
@@ -375,11 +375,11 @@ class ADC(OpCode):
             addend2 = memory.fetch(memory.fetch(cpu.pc) + memory.fetch(cpu.x))
             cpu.a = addend1 + addend2 + cpu.carry
             cpu.pc += 1
+            cpu.carry = (cpu.a >> 8) != 0
+            cpu.a &= 0xff
+            cpu.overflow = addend1 >> 7 == addend2 >> 7 and addend1 >> 7 != cpu.a >> 7
             cpu.negative = cpu.a >> 7 == 1
             cpu.zero = cpu.a == 0
-            cpu.carry = (cpu.a >> 8) != 0
-            cpu.overflow = addend1 >> 7 == addend2 >> 7 and addend1 >> 7 != cpu.a >> 7
-            cpu.a &= 0xff
             cpu.inc_cycle()
             cpu.inc_cycle()
             cpu.inc_cycle()
@@ -390,11 +390,11 @@ class ADC(OpCode):
             addend2 = memory.fetch(baseAddr + indexAddr)
             cpu.a = addend1 + addend2 + cpu.carry
             cpu.pc += 2
+            cpu.carry = (cpu.a >> 8) != 0
+            cpu.a &= 0xff
+            cpu.overflow = addend1 >> 7 == addend2 >> 7 and addend1 >> 7 != cpu.a >> 7
             cpu.negative = cpu.a >> 7 == 1
             cpu.zero = cpu.a == 0
-            cpu.carry = (cpu.a >> 8) != 0
-            cpu.overflow = addend1 >> 7 == addend2 >> 7 and addend1 >> 7 != cpu.a >> 7
-            cpu.a &= 0xff
             # Page boundary crossed
             if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
                 cpu.inc_cycle()
@@ -408,11 +408,11 @@ class ADC(OpCode):
             addend2 = memory.fetch(baseAddr + indexAddr)
             cpu.a = addend1 + addend2 + cpu.carry
             cpu.pc += 2
+            cpu.carry = (cpu.a >> 8) != 0
+            cpu.a &= 0xff
+            cpu.overflow = addend1 >> 7 == addend2 >> 7 and addend1 >> 7 != cpu.a >> 7
             cpu.negative = cpu.a >> 7 == 1
             cpu.zero = cpu.a == 0
-            cpu.carry = (cpu.a >> 8) != 0
-            cpu.overflow = addend1 >> 7 == addend2 >> 7 and addend1 >> 7 != cpu.a >> 7
-            cpu.a &= 0xff
             # Page boundary crossed
             if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
                 cpu.inc_cycle()
