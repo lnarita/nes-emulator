@@ -265,6 +265,8 @@ class ADC(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(cls, cpu, memory):
+        # TODO: BCD
+
         opcode = memory.fetch(cpu.pc-1)
         if opcode == 0x61:
             addend1 = cpu.a
@@ -359,6 +361,8 @@ class SBC(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(cls, cpu, memory):
+        # TODO: BCD
+        
         opcode = memory.fetch(cpu.pc-1)
         if opcode == 0xE1:
             minuend = cpu.a
@@ -545,7 +549,7 @@ class CPX(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(cls, cpu, memory):
-        elif opcode == 0xE0:
+        if opcode == 0xE0:
             minuend = cpu.x
             subtrahend = memory.fetch(cpu.pc)
             cpu.pc += 1
@@ -581,7 +585,7 @@ class CPY(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(cls, cpu, memory):
-        elif opcode == 0xC0:
+        if opcode == 0xC0:
             minuend = cpu.y
             subtrahend = memory.fetch(cpu.pc)
             cpu.pc += 1
