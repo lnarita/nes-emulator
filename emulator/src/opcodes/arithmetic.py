@@ -432,7 +432,168 @@ class SBC(OpCode):
                       (0xF9, AddressingMode.ABSOLUTE_Y, 4,),
                       (0xFD, AddressingMode.ABSOLUTE_X, 4,)]
         return map(cls.create_dict_entry, variations)
-
+    def exec(cls, cpu, memory):
+        opcode = memory.fetch(cpu.pc-1)
+        if opcode == 0xE1:
+            minuend = cpu.a
+            subtrahend = memory.fetch(memory.fetch(memory.fetch(cpu.pc) + memory.fetch(cpu.x)))
+            cpu.pc += 1
+            # One's complement
+            subtrahend = abs(~subtrahend-1 ^ 0xFF)
+            cpu.a = minuend + subtrahend + cpu.carry
+            if cpu.a < 0:
+                cpu.a = ~cpu.a ^ 0xFF & 0xFF
+            else:
+                cpu.a = cpu.a & 0xFF
+            cpu.carry = cpu.a >> 7 == 0
+            cpu.overflow = minuend >> 7 == subtrahend >> 7 and minuend >> 7 != cpu.a >> 7
+            cpu.zero = cpu.a == 0
+            cpu.negative = cpu.a >> 7 == 1
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+        elif opcode == 0xE5:
+            minuend = cpu.a
+            subtrahend = memory.fetch(memory.fetch(cpu.pc))
+            cpu.pc += 1
+            # One's complement
+            subtrahend = abs(~subtrahend-1 ^ 0xFF)
+            cpu.a = minuend + subtrahend + cpu.carry
+            if cpu.a < 0:
+                cpu.a = ~cpu.a ^ 0xFF & 0xFF
+            else:
+                cpu.a = cpu.a & 0xFF
+            cpu.carry = cpu.a >> 7 == 0
+            cpu.overflow = minuend >> 7 == subtrahend >> 7 and minuend >> 7 != cpu.a >> 7
+            cpu.zero = cpu.a == 0
+            cpu.negative = cpu.a >> 7 == 1
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+        elif opcode == 0xE9:
+            minuend = cpu.a
+            subtrahend = memory.fetch(cpu.pc)
+            cpu.pc += 1
+            # One's complement
+            subtrahend = abs(~subtrahend-1 ^ 0xFF)
+            cpu.a = minuend + subtrahend + cpu.carry
+            if cpu.a < 0:
+                cpu.a = ~cpu.a ^ 0xFF & 0xFF
+            else:
+                cpu.a = cpu.a & 0xFF
+            cpu.carry = cpu.a >> 7 == 0
+            cpu.overflow = minuend >> 7 == subtrahend >> 7 and minuend >> 7 != cpu.a >> 7
+            cpu.zero = cpu.a == 0
+            cpu.negative = cpu.a >> 7 == 1
+            cpu.inc_cycle()
+        elif opcode == 0xED:
+            minuend = cpu.a
+            subtrahend = memory.fetch(memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
+            cpu.pc += 2
+            # One's complement
+            subtrahend = abs(~subtrahend-1 ^ 0xFF)
+            cpu.a = minuend + subtrahend + cpu.carry
+            if cpu.a < 0:
+                cpu.a = ~cpu.a ^ 0xFF & 0xFF
+            else:
+                cpu.a = cpu.a & 0xFF
+            cpu.carry = cpu.a >> 7 == 0
+            cpu.overflow = minuend >> 7 == subtrahend >> 7 and minuend >> 7 != cpu.a >> 7
+            cpu.zero = cpu.a == 0
+            cpu.negative = cpu.a >> 7 == 1
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+        elif opcode == 0xF1:
+            baseAddr = memory.fetch(memory.fetch(cpu.pc))
+            indexAddr = memory.fetch(cpu.y) 
+            cpu.pc += 1
+            minuend = cpu.a
+            subtrahend = memory.fetch(baseAddr + indexAddr)
+            # One's complement
+            subtrahend = abs(~subtrahend-1 ^ 0xFF)
+            cpu.a = minuend + subtrahend + cpu.carry
+            if cpu.a < 0:
+                cpu.a = ~cpu.a ^ 0xFF & 0xFF
+            else:
+                cpu.a = cpu.a & 0xFF
+            cpu.carry = cpu.a >> 7 == 0
+            cpu.overflow = minuend >> 7 == subtrahend >> 7 and minuend >> 7 != cpu.a >> 7
+            cpu.zero = cpu.a == 0
+            cpu.negative = cpu.a >> 7 == 1
+            # Page boundary crossed
+            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
+                cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+        elif opcode == 0xF5:
+            minuend = cpu.a
+            subtrahend = memory.fetch(memory.fetch(cpu.pc) + memory.fetch(cpu.x))
+            cpu.pc += 1
+            cpu.a = addend1 + addend2 + cpu.carry
+            # One's complement
+            subtrahend = abs(~subtrahend-1 ^ 0xFF)
+            cpu.a = minuend + subtrahend + cpu.carry
+            if cpu.a < 0:
+                cpu.a = ~cpu.a ^ 0xFF & 0xFF
+            else:
+                cpu.a = cpu.a & 0xFF
+            cpu.carry = cpu.a >> 7 == 0
+            cpu.overflow = minuend >> 7 == subtrahend >> 7 and minuend >> 7 != cpu.a >> 7
+            cpu.zero = cpu.a == 0
+            cpu.negative = cpu.a >> 7 == 1
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+        elif opcode == 0xF9:
+            baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
+            indexAddr = memory.fetch(cpu.y)
+            cpu.pc += 2
+            minuend = cpu.a
+            subtrahend = memory.fetch(baseAddr + indexAddr)
+            # One's complement
+            subtrahend = abs(~subtrahend-1 ^ 0xFF)
+            cpu.a = minuend + subtrahend + cpu.carry
+            if cpu.a < 0:
+                cpu.a = ~cpu.a ^ 0xFF & 0xFF
+            else:
+                cpu.a = cpu.a & 0xFF
+            cpu.carry = cpu.a >> 7 == 0
+            cpu.overflow = minuend >> 7 == subtrahend >> 7 and minuend >> 7 != cpu.a >> 7
+            cpu.zero = cpu.a == 0
+            cpu.negative = cpu.a >> 7 == 1
+            # Page boundary crossed
+            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
+                cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+        elif opcode == 0xF9D:
+            baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc))
+            indexAddr = memory.fetch(cpu.x)
+            cpu.pc += 2
+            minuend = cpu.a
+            subtrahend = memory.fetch(baseAddr + indexAddr)
+            # One's complement
+            subtrahend = abs(~subtrahend-1 ^ 0xFF)
+            cpu.a = minuend + subtrahend + cpu.carry
+            if cpu.a < 0:
+                cpu.a = ~cpu.a ^ 0xFF & 0xFF
+            else:
+                cpu.a = cpu.a & 0xFF
+            cpu.carry = cpu.a >> 7 == 0
+            cpu.overflow = minuend >> 7 == subtrahend >> 7 and minuend >> 7 != cpu.a >> 7
+            cpu.zero = cpu.a == 0
+            cpu.negative = cpu.a >> 7 == 1
+            # Page boundary crossed
+            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
+                cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
+            cpu.inc_cycle()
 
 class CMP(OpCode):
     @classmethod
