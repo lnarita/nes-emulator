@@ -243,6 +243,7 @@ class ASL(OpCode):
             value = (value << 1)
             
             cpu.carry = (value & 0b100000000) > 0
+            cpu.negative = (value & 0b10000000) > 0
             value = (value & 0b11111111) # truncates
             cpu.zero = (value == 0)
 
