@@ -52,7 +52,7 @@ class StatusRegisterFlags:
 
 
 class CPUState:
-    def __init__(self, pc=MemoryPositions.PRG_ROM_START.start, sp=MemoryPositions.STACK.start, a=0, x=0, y=0, p=StatusRegisterFlags(), addr=None, data=None,
+    def __init__(self, pc=MemoryPositions.PRG_ROM_START.start, sp=MemoryPositions.STACK.end, a=0, x=0, y=0, p=StatusRegisterFlags(), addr=None, data=None,
                  cycle=1):
         super().__init__()
         self.pc = pc
