@@ -166,6 +166,13 @@ class PLA(OpCode):
         variations = [(0x68, None, 4,)]
         return map(cls.create_dict_entry, variations)
 
+    def exec(self, cpu, memory):
+        cpu.sp += 1
+        cpu.sp = cpu.sp & 0xff ^ 0x0100
+        cpu.a = memory.fetch(cpu.sp)
+        cpu.inc_cycle()
+        cpu.inc_cycle()
+        cpu.inc_cycle()
 
 class PHA(OpCode):
     @classmethod
@@ -173,6 +180,12 @@ class PHA(OpCode):
         variations = [(0x48, None, 3,)]
         return map(cls.create_dict_entry, variations)
 
+    def exec(self, cpu, memory):
+        memory.store(cpu.sp, cpu.a)
+        cpu.sp -= 1
+        cpu.sp = cpu.sp & 0xff ^ 0x0100
+        cpu.inc_cycle()
+        cpu.inc_cycle()
 
 class PLP(OpCode):
     @classmethod
@@ -180,12 +193,43 @@ class PLP(OpCode):
         variations = [(0x28, None, 4,)]
         return map(cls.create_dict_entry, variations)
 
+    def exec(self, cpu, memory):
+        cpu.sp += 1
+        cpu.sp = cpu.sp & 0xff ^ 0x0100
+        status = memory.fetch(cpu.sp)
+        cpu.negative = status & 0b10000000 != 0
+        cpu.overflow = status & 0b01000000 != 0
+        cpu.break_command = status & 0b00010000 != 0
+        cpu.decimal = status & 0b00001000 != 0
+        cpu.interrupts_disabled = status & 0b00000100 != 0
+        cpu.zero = status & 0b00000010 != 0
+        cpu.carry = status & 0b00000001 != 0
+        cpu.inc_cycle()
+        cpu.inc_cycle()
+        cpu.inc_cycle()
 
 class PHP(OpCode):
     @classmethod
     def create_variations(cls):
         variations = [(0x08, None, 3,)]
         return map(cls.create_dict_entry, variations)
+
+    def exec(self, cpu, memory):
+        status = 0b00000000
+        status |= cpu.negative and 0b10000000
+        status |= cpu.overflow and 0b01000000
+        status |= True and 0b00100000
+        status |= True and 0b00010000
+        status |= cpu.decimal and 0b00001000
+        status |= cpu.interrupts_disabled and 0b00000100
+        status |= cpu.zero and 0b00000010
+        status |= cpu.carry and 0b00000001
+
+        memory.store(cpu.sp, status)
+        cpu.sp -= 1
+        cpu.sp = cpu.sp & 0xff ^ 0x0100
+        cpu.inc_cycle()
+        cpu.inc_cycle()
 
 
 class MoveOpCodes:
