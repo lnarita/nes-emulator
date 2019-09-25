@@ -6,7 +6,7 @@ RES=./emulator/res
 BIN=./emulator/bin
 LOG=./emulator/log
 EXT=./emulator/ext
-NES=./emulator/src/emulator/main.py
+NES=./emulator/src/main.py
 
 TESTS=$(addprefix ${BIN}/, $(notdir $(patsubst %.s,%,$(sort $(wildcard ${TST}/*.s)))))
 ASSMBLR_DIR=${EXT}/asm6/
@@ -53,5 +53,4 @@ test: ${BIN} ${LOG} ${TESTS}
 
 clean:
 	rm -rf ${BIN}/* ${LOG}/* ${CROSS_AS}
-	#{ [[ -f ${CROSS_AS} ]]; && rm ${CROSS_AS} }
 	
