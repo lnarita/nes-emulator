@@ -1,10 +1,10 @@
 #PY=./emulator/venv/bin/python
 PY=python3
 
-TST=./emulator/tst
-RES=./emulator/res
-BIN=./emulator/bin
-LOG=./emulator/log
+TST=./tst
+RES=./res
+BIN=./bin
+LOG=./log
 EXT=./emulator/ext
 NES=./emulator/src/main.py
 
