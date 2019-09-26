@@ -139,7 +139,7 @@ class DEX(OpCode):
             cpu.x &= LOW_BITS_MASK
             cpu.zero = (cpu.x == 0)
             cpu.negative = (cpu.x & NEGATIVE_BIT) > 0
-
+        cpu.clear_state_mem()
         cpu.exec_in_cycle(_dec_x)
 
 
@@ -155,7 +155,7 @@ class DEY(OpCode):
             cpu.y &= LOW_BITS_MASK
             cpu.zero = (cpu.y == 0)
             cpu.negative = (cpu.y & NEGATIVE_BIT) > 0
-
+        cpu.clear_state_mem()
         cpu.exec_in_cycle(_dec_y)
 
 
@@ -181,7 +181,7 @@ class INX(OpCode):
             cpu.x &= LOW_BITS_MASK
             cpu.zero = (cpu.x == 0)
             cpu.negative = (cpu.x & NEGATIVE_BIT) > 0
-
+        cpu.clear_state_mem()
         cpu.exec_in_cycle(_inc_x)
 
 
@@ -197,7 +197,7 @@ class INY(OpCode):
             cpu.y &= LOW_BITS_MASK
             cpu.zero = (cpu.y == 0)
             cpu.negative = (cpu.y & NEGATIVE_BIT) > 0
-
+        cpu.clear_state_mem()
         cpu.exec_in_cycle(_inc_y)
 
 
@@ -227,6 +227,7 @@ class ROL(OpCode):
             if self.addressing_mode:
                 address = self.addressing_mode.fetch_address(cpu, memory)
                 value = self.addressing_mode.read_from(cpu, memory, address)
+                self.addressing_mode.write_to(cpu, memory, address, value)
                 new_value = (value << 1) & LOW_BITS_MASK
                 if cpu.carry:
                     new_value |= 0b00000001
@@ -236,6 +237,7 @@ class ROL(OpCode):
                 cpu.zero = (new_value == 0)
                 cpu.negative = (new_value & NEGATIVE_BIT) > 0
                 self.addressing_mode.write_to(cpu, memory, address, new_value)
+        cpu.clear_state_mem()
         cpu.exec_in_cycle(_exec_rol)
 
 
@@ -254,11 +256,13 @@ class LSR(OpCode):
             if self.addressing_mode:
                 address = self.addressing_mode.fetch_address(cpu, memory)
                 value = self.addressing_mode.read_from(cpu, memory, address)
+                self.addressing_mode.write_to(cpu, memory, address, value)
                 new_value = (value >> 1) & LOW_BITS_MASK
                 cpu.carry = (value & 0b00000001) > 0
                 cpu.zero = (new_value == 0)
                 cpu.negative = (new_value & NEGATIVE_BIT) > 0
                 self.addressing_mode.write_to(cpu, memory, address, new_value)
+        cpu.clear_state_mem()
         cpu.exec_in_cycle(_exec_lsr)
 
 
@@ -277,6 +281,7 @@ class ROR(OpCode):
             if self.addressing_mode:
                 address = self.addressing_mode.fetch_address(cpu, memory)
                 value = self.addressing_mode.read_from(cpu, memory, address)
+                self.addressing_mode.write_to(cpu, memory, address, value)
                 new_value = (value >> 1) & LOW_BITS_MASK
                 if cpu.carry:
                     new_value |= 0b10000000
@@ -286,6 +291,7 @@ class ROR(OpCode):
                 cpu.zero = (new_value == 0)
                 cpu.negative = (new_value & NEGATIVE_BIT) > 0
                 self.addressing_mode.write_to(cpu, memory, address, new_value)
+        cpu.clear_state_mem()
         cpu.exec_in_cycle(_exec_ror)
 
 

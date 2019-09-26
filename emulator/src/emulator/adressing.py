@@ -167,7 +167,7 @@ class IndirectY(AddressMode):
         def _read_from_real_addr(high, low):
             def handle_overflow():
                 h = high + overflow
-                l = low + LOW_BITS_MASK
+                l = low & LOW_BITS_MASK
                 return h, l
 
             overflow = low & HIGH_BITS_MASK
@@ -309,7 +309,7 @@ class AbsoluteY(AddressMode):
         def _read_from_real_addr(high, low):
             def handle_overflow():
                 h = high + overflow
-                l = low + LOW_BITS_MASK
+                l = low & LOW_BITS_MASK
                 return h, l
 
             overflow = low & HIGH_BITS_MASK
@@ -356,7 +356,7 @@ class AbsoluteX(AddressMode):
         def _read_from_real_addr(high, low):
             def handle_overflow():
                 h = high + overflow
-                l = low + LOW_BITS_MASK
+                l = low & LOW_BITS_MASK
                 return h, l
 
             overflow = low & HIGH_BITS_MASK
