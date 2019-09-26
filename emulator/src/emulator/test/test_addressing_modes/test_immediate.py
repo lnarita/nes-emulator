@@ -14,7 +14,7 @@ def test_Immediate():
 
      assert address == 0x00
      assert value == 0x00
-     assert cpu.cycle == 1
+     assert cpu.cycle == 0
 
      cpu.inc_cycle_by(-cpu.cycle)
      cpu.inc_pc_by(-cpu.pc)
@@ -25,7 +25,7 @@ def test_Immediate():
 
      assert address == 0x10
      assert value == 0x10
-     assert cpu.cycle == 1
+     assert cpu.cycle == 0
 
      cpu.inc_cycle_by(-cpu.cycle)
      cpu.inc_pc_by(-cpu.pc)
@@ -36,4 +36,4 @@ def test_Immediate():
 
      assert address == 0xFF
      assert value == 0xFF
-     assert cpu.cycle == 1
+     assert cpu.cycle == 0
