@@ -45,6 +45,8 @@ class STA(OpCode):
         def cycle_sta():
             if self.addressing_mode:
                 address = self.addressing_mode.fetch_address(cpu, memory)
+                cpu.addr = address
+                cpu.data = cpu.a
                 self.addressing_mode.write_to(cpu, memory, address, cpu.a)
         cpu.exec_in_cycle(cycle_sta)
 
@@ -83,6 +85,8 @@ class STX(OpCode):
         def cycle_stx():
             if self.addressing_mode:
                 address = self.addressing_mode.fetch_address(cpu, memory)
+                cpu.addr = address
+                cpu.data = cpu.x
                 self.addressing_mode.write_to(cpu, memory, address, cpu.x)
         cpu.exec_in_cycle(cycle_stx)
 
@@ -121,6 +125,8 @@ class STY(OpCode):
         def cycle_sty():
             if self.addressing_mode:
                 address = self.addressing_mode.fetch_address(cpu, memory)
+                cpu.addr = address
+                cpu.data = cpu.y
                 self.addressing_mode.write_to(cpu, memory, address, cpu.y)
         cpu.exec_in_cycle(cycle_sty)
 
