@@ -5,6 +5,7 @@ import numpy as np
 from emulator.constants import CYCLE_PERIOD
 from emulator.memory import MemoryPositions
 
+
 class StatusRegisterFlags:
     def __init__(self, n=False, v=False, b=False, d=False, i=True, z=False, c=False, int_value=None):
         if int_value:
@@ -53,7 +54,7 @@ class StatusRegisterFlags:
 
 class CPUState:
     def __init__(self, pc=MemoryPositions.PRG_ROM_START.start, sp=MemoryPositions.STACK.end, a=0, x=0, y=0, p=StatusRegisterFlags(), addr=None, data=None,
-                 cycle=1):
+                 cycle=0, log_compatible_mode=False):
         super().__init__()
         self.pc = pc
         self.sp = sp
@@ -64,18 +65,24 @@ class CPUState:
         self.addr = addr
         self.data = data
         self.cycle = cycle
+        self.log_compatible_mode = log_compatible_mode
 
     def __str__(self):
-        return "| pc = 0x{:04x} | a = 0x{:02x} | x = 0x{:02x} | y = 0x{:02x} | sp = 0x{:04x} | p[NV-BDIZC] = {} |{}".format(
-            np.uint16(self.pc), np.uint8(self.a), np.uint8(self.x), np.uint8(self.y), np.uint16(self.sp), self.p, self.__load_store_str())
+        if self.log_compatible_mode:
+            return "A:%02X X:%02X Y:%02X P:%02X SP:%02X" % (
+            np.uint8(self.a), np.uint8(self.x), np.uint8(self.y), int(self.p.__str__(), 2), np.uint8(self.sp & 0x00FF))
+        else:
+            return "| pc = 0x{:04x} | a = 0x{:02x} | x = 0x{:02x} | y = 0x{:02x} | sp = 0x{:04x} | p[NV-BDIZC] = {} |{}".format(
+                np.uint16(self.pc), np.uint8(self.a), np.uint8(self.x), np.uint8(self.y), np.uint16(self.sp), self.p, self.__load_store_str())
 
     def __load_store_str(self):
         return " MEM[0x%04x] = 0x%02x |" % (np.uint16(self.addr), np.uint8(self.data)) if (self.addr and self.data) else ""
 
 
 class CPU:
-    def __init__(self, state=CPUState()):
+    def __init__(self, state=CPUState(), log_compatible_mode=False):
         self._state = state
+        self._state.log_compatible_mode = log_compatible_mode
 
     @property
     def pc(self):
@@ -136,6 +143,10 @@ class CPU:
     @property
     def cycle(self):
         return self._state.cycle
+
+    @property
+    def flags(self):
+        return int(self._state.p.__str__(), 2)
 
     @pc.setter
     def pc(self, value):

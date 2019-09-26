@@ -16,4 +16,20 @@ class OpCode(object):
         return tuple((x[0], cls(*x)))
 
     def __str__(self):
-        return "{}(code={:02x}, addr_mode={}, cycles={})".format(type(self).__name__, self.id, self.addressing_mode, self.cycles)
+        def __str_addr():
+            if self.addressing_mode is not None:
+                if self.addressing_mode.low is not None and self.addressing_mode.high is not None:
+                    return "{:02X} {:02X}".format(self.addressing_mode.low, (self.addressing_mode.high >> 8))
+                elif self.addressing_mode.low is not None:
+                    return "{:02X}".format(self.addressing_mode.low)
+            return ""
+
+        def __str_addr_2():
+            if self.addressing_mode is not None:
+                if self.addressing_mode.addr is not None and self.addressing_mode.data is not None:
+                    return "{} {} {}".format(type(self).__name__, self.addressing_mode.addr, self.addressing_mode.data)
+                elif self.addressing_mode.addr is not None:
+                    return "{} {}".format(type(self).__name__, self.addressing_mode.addr)
+            return "{}".format(type(self).__name__)
+
+        return "{:02X} {:<6} {:<30}".format(self.id, __str_addr(), __str_addr_2())

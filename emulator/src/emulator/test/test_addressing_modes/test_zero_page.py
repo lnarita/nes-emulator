@@ -14,7 +14,7 @@ def test_read_ZeroPage():
     value = address_mode.read_from(cpu, memory, address)
     assert address == 0
     assert value == 255
-    assert cpu.cycle == 2
+    assert cpu.cycle == 1
 
     cpu.inc_cycle_by(-cpu.cycle)
     cpu.inc_pc_by(-cpu.pc + MemoryPositions.PRG_ROM_START.start + 20)
@@ -23,7 +23,7 @@ def test_read_ZeroPage():
 
     assert address == 20
     assert value == 235
-    assert cpu.cycle == 2
+    assert cpu.cycle == 1
 
     cpu.inc_cycle_by(-cpu.cycle)
     cpu.inc_pc_by(-cpu.pc + MemoryPositions.PRG_ROM_START.start + 100)
@@ -32,7 +32,7 @@ def test_read_ZeroPage():
 
     assert address == 100
     assert value == 155
-    assert cpu.cycle == 2
+    assert cpu.cycle == 1
 
     cpu.inc_cycle_by(-cpu.cycle)
     cpu.inc_pc_by(-cpu.pc + MemoryPositions.PRG_ROM_START.start + 255)
@@ -41,7 +41,7 @@ def test_read_ZeroPage():
 
     assert address == 255
     assert value == 0
-    assert cpu.cycle == 2
+    assert cpu.cycle == 1
 
 
 def test_write_ZeroPage():
@@ -55,7 +55,7 @@ def test_write_ZeroPage():
     address_mode.write_to(cpu, memory, address, 6)
     assert address == 0
     assert memory.ram[address] == 6
-    assert cpu.cycle == 2
+    assert cpu.cycle == 1
 
     cpu.inc_cycle_by(-cpu.cycle)
     cpu.inc_pc_by(-cpu.pc + MemoryPositions.PRG_ROM_START.start + 20)
@@ -64,7 +64,7 @@ def test_write_ZeroPage():
 
     assert address == 20
     assert memory.ram[address] == 105
-    assert cpu.cycle == 2
+    assert cpu.cycle == 1
 
     cpu.inc_cycle_by(-cpu.cycle)
     cpu.inc_pc_by(-cpu.pc + MemoryPositions.PRG_ROM_START.start + 100)
@@ -73,7 +73,7 @@ def test_write_ZeroPage():
 
     assert address == 100
     assert memory.ram[address] == 143
-    assert cpu.cycle == 2
+    assert cpu.cycle == 1
 
     cpu.inc_cycle_by(-cpu.cycle)
     cpu.inc_pc_by(-cpu.pc + MemoryPositions.PRG_ROM_START.start + 255)
@@ -82,4 +82,4 @@ def test_write_ZeroPage():
 
     assert address == 255
     assert memory.ram[address] == 255
-    assert cpu.cycle == 2
+    assert cpu.cycle == 1
