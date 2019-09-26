@@ -48,11 +48,11 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
 
 Reset:
    LDA #$01
-   STA MyVariable0
+   STA MyVariable2
 
    ; Absolute
    LDA #$0F
-   ADC MyVariable0
+   ADC MyVariable2
 
 
 NMI:
