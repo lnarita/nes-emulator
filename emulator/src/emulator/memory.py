@@ -29,10 +29,19 @@ class MemoryPositions(Enum):
     def contains(self, addr):
         return self.start <= addr <= self.end
 
+    def wrap(self, addr):
+        return (addr % (self.end + 1)) + self.start
+
 
 class Memory:
-    def __init__(self, rom=None):
-        self.ram = [0x0] * Memory.ram_size()
+    def __init__(self, rom=None, ram=None):
+        def __pad_or_truncate(some_list, target_len):
+            return some_list[:target_len] + [0x0] * (target_len - len(some_list))
+
+        if not ram:
+            self.ram = [0x0] * Memory.ram_size()
+        else:
+            self.ram = __pad_or_truncate(ram, Memory.ram_size())
         self.rom = rom
 
     def fetch(self, addr):
