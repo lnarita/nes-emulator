@@ -158,20 +158,30 @@ class RTI(OpCode):
         variations = [(0x40, None, 6,)]
         return map(cls.create_dict_entry, variations)
 
-
 class JSR(OpCode):
     @classmethod
     def create_variations(cls):
         variations = [(0x20, Absolute, 6,)]
         return map(cls.create_dict_entry, variations)
-
+    def exec(self, cpu, memory):
+        if self.addressing_mode:
+            returnAdress = cpu.pc
+            self.addressing_mode.write_to(cpu, memory, cpu.sp, returnAdress)
+            cpu.sp -= 1
+            
+            destinationAddress = self.addressing_mode.fetch_address(cpu, memory)
+            cpu.pc = destinationAddress
 
 class RTS(OpCode):
     @classmethod
     def create_variations(cls):
         variations = [(0x60, None, 6,)]
         return map(cls.create_dict_entry, variations)
-
+    def exec(self, cpu, memory):
+        if self.addressing_mode:
+            cpu.sp += 1
+            returnAdress = self.addressing_mode.read_from(cpu, memory, cpu.sp)
+            cpu.pc = returnAdress
 
 class JMP(OpCode):
     @classmethod
@@ -180,6 +190,12 @@ class JMP(OpCode):
                       (0x6C, Indirect, 5,)]
         return map(cls.create_dict_entry, variations)
 
+    def exec(self, cpu, memory):
+        def cycle_jmp():
+            if self.addressing_mode:
+                jmpAddress = self.addressing_mode.fetch_address(cpu, memory)
+                cpu.pc = jmpAddress
+        cpu.exec_in_cycle(cycle_jmp)
 
 class JumpOpCodes:
     opcodes = [
