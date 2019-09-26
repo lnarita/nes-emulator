@@ -4,6 +4,7 @@ from emulator.adressing import Relative, Absolute, Indirect, AddressMode
 from emulator.constants import HIGH_BITS_MASK, LOW_BITS_MASK
 from emulator.opcodes.base import OpCode
 from emulator.constants import HIGH_BITS_MASK, LOW_BITS_MASK
+from emulator.cpu import StatusRegisterFlags
 
 
 class BPL(OpCode):
