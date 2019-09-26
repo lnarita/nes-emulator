@@ -21,7 +21,7 @@ class ORA(OpCode):
     def exec(cls, cpu, memory):
         opcode = memory.fetch(cpu.pc-1)
         if opcode == 0x01:
-            cpu.a = cpu.a | memory.fetch(memory.fetch(memory.fetch(cpu.pc) + memory.fetch(cpu.x)))
+            cpu.a = cpu.a | memory.fetch(memory.fetch(memory.fetch(cpu.pc) + cpu.x + 1) << 8 | memory.fetch(memory.fetch(cpu.pc) + cpu.x))
             cpu.pc += 1
             cpu.inc_cycle()
             cpu.inc_cycle()
@@ -44,8 +44,8 @@ class ORA(OpCode):
             cpu.inc_cycle()
             cpu.inc_cycle()
         elif opcode == 0x11:
-            baseAddr = memory.fetch(memory.fetch(cpu.pc))
-            indexAddr = memory.fetch(cpu.y) 
+            baseAddr = memory.fetch(cpu.pc) + 1 << 8 | memory.fetch(cpu.pc)
+            indexAddr = cpu.y 
             cpu.a = cpu.a | memory.fetch(baseAddr + indexAddr) 
             cpu.pc += 1
             # Page boundary crossed
@@ -56,14 +56,14 @@ class ORA(OpCode):
             cpu.inc_cycle()
             cpu.inc_cycle()
         elif opcode == 0x15:
-            cpu.a = cpu.a | memory.fetch(memory.fetch(cpu.pc) + memory.fetch(cpu.x))
+            cpu.a = cpu.a | memory.fetch(memory.fetch(cpu.pc) + cpu.x)
             cpu.pc += 1
             cpu.inc_cycle()
             cpu.inc_cycle()
             cpu.inc_cycle()
         elif opcode == 0x19:
             baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
-            indexAddr = memory.fetch(cpu.y)
+            indexAddr = cpu.y
             cpu.a = cpu.a | memory.fetch(baseAddr + indexAddr) 
             cpu.pc += 2
             # Page boundary crossed
@@ -74,7 +74,7 @@ class ORA(OpCode):
             cpu.inc_cycle()
         elif opcode == 0x1D:
             baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc))
-            indexAddr = memory.fetch(cpu.x)
+            indexAddr = cpu.x
             cpu.a = cpu.a | memory.fetch(baseAddr + indexAddr) 
             cpu.pc += 2
             # Page boundary crossed
@@ -103,7 +103,7 @@ class AND(OpCode):
     def exec(cls, cpu, memory):
         opcode = memory.fetch(cpu.pc-1)
         if opcode == 0x21:
-            cpu.a = cpu.a & memory.fetch(memory.fetch(memory.fetch(cpu.pc) + memory.fetch(cpu.x)))
+            cpu.a = cpu.a & memory.fetch(memory.fetch(memory.fetch(cpu.pc) + cpu.x + 1) << 8 | memory.fetch(memory.fetch(cpu.pc) + cpu.x))
             cpu.pc += 1
             cpu.inc_cycle()
             cpu.inc_cycle()
@@ -126,8 +126,8 @@ class AND(OpCode):
             cpu.inc_cycle()
             cpu.inc_cycle()
         elif opcode == 0x31:
-            baseAddr = memory.fetch(memory.fetch(cpu.pc))
-            indexAddr = memory.fetch(cpu.y) 
+            baseAddr = memory.fetch(cpu.pc) + 1 << 8 | memory.fetch(cpu.pc)
+            indexAddr = cpu.y  
             cpu.a = cpu.a & memory.fetch(baseAddr + indexAddr) 
             cpu.pc += 1
             # Page boundary crossed
@@ -138,14 +138,14 @@ class AND(OpCode):
             cpu.inc_cycle()
             cpu.inc_cycle()
         elif opcode == 0x35:
-            cpu.a = cpu.a & memory.fetch(memory.fetch(cpu.pc) + memory.fetch(cpu.x))
+            cpu.a = cpu.a & memory.fetch(memory.fetch(cpu.pc) + cpu.x)
             cpu.pc += 1
             cpu.inc_cycle()
             cpu.inc_cycle()
             cpu.inc_cycle()
         elif opcode == 0x39:
             baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
-            indexAddr = memory.fetch(cpu.y)
+            indexAddr = cpu.y
             cpu.a = cpu.a & memory.fetch(baseAddr + indexAddr) 
             cpu.pc += 2
             # Page boundary crossed
@@ -156,7 +156,7 @@ class AND(OpCode):
             cpu.inc_cycle()
         elif opcode == 0x3D:
             baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc))
-            indexAddr = memory.fetch(cpu.x)
+            indexAddr = cpu.x
             cpu.a = cpu.a & memory.fetch(baseAddr + indexAddr) 
             cpu.pc += 2
             # Page boundary crossed
@@ -185,7 +185,7 @@ class EOR(OpCode):
     def exec(cls, cpu, memory):
         opcode = memory.fetch(cpu.pc-1)
         if opcode == 0x41:
-            cpu.a = cpu.a ^ memory.fetch(memory.fetch(memory.fetch(cpu.pc) + memory.fetch(cpu.x)))
+            cpu.a = cpu.a ^ memory.fetch(memory.fetch(memory.fetch(cpu.pc) + cpu.x + 1) << 8 | memory.fetch(memory.fetch(cpu.pc) + cpu.x))
             cpu.pc += 1
             cpu.inc_cycle()
             cpu.inc_cycle()
@@ -208,8 +208,8 @@ class EOR(OpCode):
             cpu.inc_cycle()
             cpu.inc_cycle()
         elif opcode == 0x51:
-            baseAddr = memory.fetch(memory.fetch(cpu.pc))
-            indexAddr = memory.fetch(cpu.y) 
+            baseAddr = memory.fetch(cpu.pc) + 1 << 8 | memory.fetch(cpu.pc)
+            indexAddr = cpu.y  
             cpu.a = cpu.a ^ memory.fetch(baseAddr + indexAddr) 
             cpu.pc += 1
             # Page boundary crossed
@@ -220,14 +220,14 @@ class EOR(OpCode):
             cpu.inc_cycle()
             cpu.inc_cycle()
         elif opcode == 0x55:
-            cpu.a = cpu.a ^ memory.fetch(memory.fetch(cpu.pc) + memory.fetch(cpu.x))
+            cpu.a = cpu.a ^ memory.fetch(memory.fetch(cpu.pc) + cpu.x)
             cpu.pc += 1
             cpu.inc_cycle()
             cpu.inc_cycle()
             cpu.inc_cycle()
         elif opcode == 0x59:
             baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
-            indexAddr = memory.fetch(cpu.y)
+            indexAddr = cpu.y
             cpu.a = cpu.a ^ memory.fetch(baseAddr + indexAddr) 
             cpu.pc += 2
             # Page boundary crossed
@@ -238,7 +238,7 @@ class EOR(OpCode):
             cpu.inc_cycle()
         elif opcode == 0x5D:
             baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc))
-            indexAddr = memory.fetch(cpu.x)
+            indexAddr = cpu.x
             cpu.a = cpu.a ^ memory.fetch(baseAddr + indexAddr) 
             cpu.pc += 2
             # Page boundary crossed
@@ -265,12 +265,10 @@ class ADC(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(cls, cpu, memory):
-        # TODO: BCD
-
         opcode = memory.fetch(cpu.pc-1)
         if opcode == 0x61:
             addend1 = cpu.a
-            addend2 = memory.fetch(memory.fetch(memory.fetch(cpu.pc) + memory.fetch(cpu.x)))
+            addend2 = memory.fetch(memory.fetch(memory.fetch(cpu.pc) + cpu.x + 1) << 8 | memory.fetch(memory.fetch(cpu.pc) + cpu.x))
             cpu.pc += 1
             cpu.inc_cycle()
             cpu.inc_cycle()
@@ -296,8 +294,8 @@ class ADC(OpCode):
             cpu.inc_cycle()
             cpu.inc_cycle()
         elif opcode == 0x71:
-            baseAddr = memory.fetch(memory.fetch(cpu.pc))
-            indexAddr = memory.fetch(cpu.y) 
+            baseAddr = memory.fetch(cpu.pc) + 1 << 8 | memory.fetch(cpu.pc)
+            indexAddr = cpu.y  
             addend1 = cpu.a
             addend2 = memory.fetch(baseAddr + indexAddr)
             cpu.pc += 1
@@ -310,14 +308,14 @@ class ADC(OpCode):
             cpu.inc_cycle()
         elif opcode == 0x75:
             addend1 = cpu.a
-            addend2 = memory.fetch(memory.fetch(cpu.pc) + memory.fetch(cpu.x))
+            addend2 = memory.fetch(memory.fetch(cpu.pc) + cpu.x)
             cpu.pc += 1
             cpu.inc_cycle()
             cpu.inc_cycle()
             cpu.inc_cycle()
         elif opcode == 0x79:
             baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
-            indexAddr = memory.fetch(cpu.y)
+            indexAddr = cpu.y
             addend1 = cpu.a
             addend2 = memory.fetch(baseAddr + indexAddr)
             cpu.pc += 2
@@ -329,7 +327,7 @@ class ADC(OpCode):
             cpu.inc_cycle()
         elif opcode == 0x7D:
             baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc))
-            indexAddr = memory.fetch(cpu.x)
+            indexAddr = cpu.x
             addend1 = cpu.a
             addend2 = memory.fetch(baseAddr + indexAddr)
             cpu.pc += 2
@@ -361,12 +359,10 @@ class SBC(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(cls, cpu, memory):
-        # TODO: BCD
-        
         opcode = memory.fetch(cpu.pc-1)
         if opcode == 0xE1:
             minuend = cpu.a
-            subtrahend = memory.fetch(memory.fetch(memory.fetch(cpu.pc) + memory.fetch(cpu.x)))
+            subtrahend = memory.fetch(memory.fetch(memory.fetch(cpu.pc) + cpu.x + 1) << 8 | memory.fetch(memory.fetch(cpu.pc) + cpu.x))
             cpu.pc += 1
             cpu.inc_cycle()
             cpu.inc_cycle()
@@ -392,8 +388,8 @@ class SBC(OpCode):
             cpu.inc_cycle()
             cpu.inc_cycle()
         elif opcode == 0xF1:
-            baseAddr = memory.fetch(memory.fetch(cpu.pc))
-            indexAddr = memory.fetch(cpu.y) 
+            baseAddr = memory.fetch(cpu.pc) + 1 << 8 | memory.fetch(cpu.pc)
+            indexAddr = cpu.y  
             cpu.pc += 1
             minuend = cpu.a
             subtrahend = memory.fetch(baseAddr + indexAddr)
@@ -406,14 +402,14 @@ class SBC(OpCode):
             cpu.inc_cycle()
         elif opcode == 0xF5:
             minuend = cpu.a
-            subtrahend = memory.fetch(memory.fetch(cpu.pc) + memory.fetch(cpu.x))
+            subtrahend = memory.fetch(memory.fetch(cpu.pc) + cpu.x)
             cpu.pc += 1
             cpu.inc_cycle()
             cpu.inc_cycle()
             cpu.inc_cycle()
         elif opcode == 0xF9:
             baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
-            indexAddr = memory.fetch(cpu.y)
+            indexAddr = cpu.y
             cpu.pc += 2
             minuend = cpu.a
             subtrahend = memory.fetch(baseAddr + indexAddr)
@@ -425,7 +421,7 @@ class SBC(OpCode):
             cpu.inc_cycle()
         elif opcode == 0xFD:
             baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc))
-            indexAddr = memory.fetch(cpu.x)
+            indexAddr = cpu.x
             cpu.pc += 2
             minuend = cpu.a
             subtrahend = memory.fetch(baseAddr + indexAddr)
@@ -462,7 +458,7 @@ class CMP(OpCode):
         opcode = memory.fetch(cpu.pc-1)
         if opcode == 0xC1:
             minuend = cpu.a
-            subtrahend = memory.fetch(memory.fetch(memory.fetch(cpu.pc) + memory.fetch(cpu.x)))
+            subtrahend = memory.fetch(memory.fetch(memory.fetch(cpu.pc) + cpu.x + 1) << 8 | memory.fetch(memory.fetch(cpu.pc) + cpu.x))
             cpu.pc += 1
             cpu.inc_cycle()
             cpu.inc_cycle()
@@ -488,8 +484,8 @@ class CMP(OpCode):
             cpu.inc_cycle()
             cpu.inc_cycle()
         elif opcode == 0xD1:
-            baseAddr = memory.fetch(memory.fetch(cpu.pc))
-            indexAddr = memory.fetch(cpu.y) 
+            baseAddr = memory.fetch(cpu.pc) + 1 << 8 | memory.fetch(cpu.pc)
+            indexAddr = cpu.y  
             cpu.pc += 1
             minuend = cpu.a
             subtrahend = memory.fetch(baseAddr + indexAddr)
@@ -502,14 +498,14 @@ class CMP(OpCode):
             cpu.inc_cycle()
         elif opcode == 0xD5:
             minuend = cpu.a
-            subtrahend = memory.fetch(memory.fetch(cpu.pc) + memory.fetch(cpu.x))
+            subtrahend = memory.fetch(memory.fetch(cpu.pc) + cpu.x)
             cpu.pc += 1
             cpu.inc_cycle()
             cpu.inc_cycle()
             cpu.inc_cycle()
         elif opcode == 0xD9:
             baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
-            indexAddr = memory.fetch(cpu.y)
+            indexAddr = cpu.y
             cpu.pc += 2
             minuend = cpu.a
             subtrahend = memory.fetch(baseAddr + indexAddr)
@@ -521,7 +517,7 @@ class CMP(OpCode):
             cpu.inc_cycle()
         elif opcode == 0xDD:
             baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc))
-            indexAddr = memory.fetch(cpu.x)
+            indexAddr = cpu.x
             cpu.pc += 2
             minuend = cpu.a
             subtrahend = memory.fetch(baseAddr + indexAddr)
@@ -536,9 +532,9 @@ class CMP(OpCode):
         subtrahend = abs(~subtrahend ^ 0xFF) & 0xFF
         tmp = minuend + subtrahend
         tmp &= 0xFF
-        carry = tmp >> 7 == 0
-        zero = tmp == 0
-        negative = tmp >> 7 == 1
+        cpu.carry = tmp >> 7 == 0
+        cpu.zero = tmp == 0
+        cpu.negative = tmp >> 7 == 1
 
 class CPX(OpCode):
     @classmethod
@@ -549,6 +545,7 @@ class CPX(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(cls, cpu, memory):
+        opcode = memory.fetch(cpu.pc-1)
         if opcode == 0xE0:
             minuend = cpu.x
             subtrahend = memory.fetch(cpu.pc)
@@ -572,9 +569,10 @@ class CPX(OpCode):
         subtrahend = abs(~subtrahend ^ 0xFF) & 0xFF
         tmp = minuend + subtrahend
         tmp &= 0xFF
-        carry = tmp >> 7 == 0
-        zero = tmp == 0
-        negative = tmp >> 7 == 1
+
+        cpu.carry = tmp >> 7 == 0
+        cpu.zero = tmp == 0
+        cpu.negative = tmp >> 7 == 1
 
 class CPY(OpCode):
     @classmethod
@@ -585,6 +583,7 @@ class CPY(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(cls, cpu, memory):
+        opcode = memory.fetch(cpu.pc-1)
         if opcode == 0xC0:
             minuend = cpu.y
             subtrahend = memory.fetch(cpu.pc)
@@ -608,9 +607,9 @@ class CPY(OpCode):
         subtrahend = abs(~subtrahend ^ 0xFF) & 0xFF
         tmp = minuend + subtrahend
         tmp &= 0xFF
-        carry = tmp >> 7 == 0
-        zero = tmp == 0
-        negative = tmp >> 7 == 1
+        cpu.carry = tmp >> 7 == 0
+        cpu.zero = tmp == 0
+        cpu.negative = tmp >> 7 == 1
 
 class DEC(OpCode):
     @classmethod

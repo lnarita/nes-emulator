@@ -263,7 +263,7 @@ class PHP(OpCode):
         status |= cpu.negative and 0b10000000
         status |= cpu.overflow and 0b01000000
         status |= True and 0b00100000
-        status |= True and 0b00010000
+        status |= cpu.break_command and 0b00010000
         status |= cpu.decimal and 0b00001000
         status |= cpu.interrupts_disabled and 0b00000100
         status |= cpu.zero and 0b00000010
