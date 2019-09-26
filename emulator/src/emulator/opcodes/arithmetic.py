@@ -532,9 +532,9 @@ class CMP(OpCode):
         subtrahend = abs(~subtrahend ^ 0xFF) & 0xFF
         tmp = minuend + subtrahend
         tmp &= 0xFF
-        carry = tmp >> 7 == 0
-        zero = tmp == 0
-        negative = tmp >> 7 == 1
+        cpu.carry = tmp >> 7 == 0
+        cpu.zero = tmp == 0
+        cpu.negative = tmp >> 7 == 1
 
 class CPX(OpCode):
     @classmethod
@@ -568,9 +568,10 @@ class CPX(OpCode):
         subtrahend = abs(~subtrahend ^ 0xFF) & 0xFF
         tmp = minuend + subtrahend
         tmp &= 0xFF
-        carry = tmp >> 7 == 0
-        zero = tmp == 0
-        negative = tmp >> 7 == 1
+
+        cpu.carry = tmp >> 7 == 0
+        cpu.zero = tmp == 0
+        cpu.negative = tmp >> 7 == 1
 
 class CPY(OpCode):
     @classmethod
@@ -604,9 +605,9 @@ class CPY(OpCode):
         subtrahend = abs(~subtrahend ^ 0xFF) & 0xFF
         tmp = minuend + subtrahend
         tmp &= 0xFF
-        carry = tmp >> 7 == 0
-        zero = tmp == 0
-        negative = tmp >> 7 == 1
+        cpu.carry = tmp >> 7 == 0
+        cpu.zero = tmp == 0
+        cpu.negative = tmp >> 7 == 1
 
 class DEC(OpCode):
     @classmethod
