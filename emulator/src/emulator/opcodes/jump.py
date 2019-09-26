@@ -195,10 +195,8 @@ class BRK(OpCode):
         memory.store(cpu.sp, status)
         cpu.sp -= 1
 
-
         cpu.pc = address
         cpu.break_command = True
-        print("lalala")
         # TODO: pushes
 
 
