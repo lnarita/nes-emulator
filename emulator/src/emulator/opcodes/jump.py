@@ -180,6 +180,12 @@ class JMP(OpCode):
                       (0x6C, Indirect, 5,)]
         return map(cls.create_dict_entry, variations)
 
+    def exec(self, cpu, memory):
+        def cycle_jmp():
+            if self.addressing_mode:
+                jmpAddress = self.addressing_mode.fetch_address(cpu, memory)
+                cpu.pc = jmpAddress
+        cpu.exec_in_cycle(cycle_jmp)
 
 class JumpOpCodes:
     opcodes = [
