@@ -44,10 +44,10 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
    .base $10000-(PRG_COUNT*$4000)
 
 Reset:
-   NOP ; do nothing
-   NOP
-   NOP
-
+   LDA #%01010101
+   STA $0000
+   LDA #%10101010
+   BIT $0000   
 NMI:
 
    ;NOTE: NMI code goes here
