@@ -2,6 +2,7 @@ from more_itertools import flatten
 
 from emulator.adressing import Relative, Absolute, Indirect
 from emulator.opcodes.base import OpCode
+from emulator.constants import HIGH_BITS_MASK, LOW_BITS_MASK
 
 
 class BPL(OpCode):
@@ -148,7 +149,56 @@ class BRK(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
+        def _read_16_bits_low(memory, addr):
+            addr_low = memory.fetch(addr)
+            return addr_low & LOW_BITS_MASK
+        def _read_16_bits_high(memory, addr):
+            addr_high = memory.fetch(addr)
+            return (addr_high << 8) & HIGH_BITS_MASK
+        def _read_ptr_low():
+            low = _read_16_bits_low(memory, 0xfffe)
+            cpu.inc_pc_by(1)
+            return low
+        def _read_ptr_high():
+            high = _read_16_bits_high(memory, 0xffff)
+            cpu.inc_pc_by(1)
+            return high
+        def _read_addr_low(addr):
+            low = _read_16_bits_low(memory, addr)
+            return low
+        def _get_16_bits_addr_from_high_low(high, low):
+            return high | low
+        def _read_addr_high_and_return_address(addr, l):
+            h = _read_16_bits_high(memory, addr + 1)
+            value = _get_16_bits_addr_from_high_low(l, h)
+            return value
+
+        pointer_low = cpu.exec_in_cycle(_read_ptr_low)  # 2
+        pointer_high = cpu.exec_in_cycle(_read_ptr_high)  # 3
+        pointer = _get_16_bits_addr_from_high_low(pointer_low, pointer_high)
+        address_low = cpu.exec_in_cycle(_read_addr_low, pointer)  # 4
+        address = cpu.exec_in_cycle(_read_addr_high_and_return_address, pointer, address_low)  # 5
+
+        memory.store(cpu.sp, cpu.pc)
+        cpu.sp -= 1
+
+        status = 0b00000000
+        status |= cpu.negative and 0b10000000
+        status |= cpu.overflow and 0b01000000
+        status |= True and 0b00100000
+        status |= cpu.break_command and 0b00010000
+        status |= cpu.decimal and 0b00001000
+        status |= cpu.interrupts_disabled and 0b00000100
+        status |= cpu.zero and 0b00000010
+        status |= cpu.carry and 0b00000001
+
+        memory.store(cpu.sp, status)
+        cpu.sp -= 1
+
+
+        cpu.pc = address
         cpu.break_command = True
+        print("lalala")
         # TODO: pushes
 
 
