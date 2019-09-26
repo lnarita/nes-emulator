@@ -81,6 +81,8 @@ class RTI(OpCode):
     def create_variations(cls):
         variations = [(0x40, None, 6,)]
         return map(cls.create_dict_entry, variations)
+    def exec(self, cpu, memory):
+
 
 
 class JSR(OpCode):
@@ -88,7 +90,8 @@ class JSR(OpCode):
     def create_variations(cls):
         variations = [(0x20, Absolute, 6,)]
         return map(cls.create_dict_entry, variations)
-
+    def exec(self, cpu, memory):
+        
 
 class RTS(OpCode):
     @classmethod
