@@ -166,10 +166,10 @@ class JSR(OpCode):
     def exec(self, cpu, memory):
         if self.addressing_mode:
             returnAdress = cpu.pc
-            self.adressing_mode.write_to(cpu, memory, cpu.sp, returnAdress)
+            self.addressing_mode.write_to(cpu, memory, cpu.sp, returnAdress)
             cpu.sp -= 1
             
-            destinationAddress = self.addressing_mode.read_from(cpu, memory, address)
+            destinationAddress = self.addressing_mode.fetch_address(cpu, memory)
             cpu.pc = destinationAddress
 
 class RTS(OpCode):
@@ -180,7 +180,7 @@ class RTS(OpCode):
     def exec(self, cpu, memory):
         if self.addressing_mode:
             cpu.sp += 1
-            returnAdress = self.adressing_mode.read_from(cpu, memory, cpu.sp)
+            returnAdress = self.addressing_mode.read_from(cpu, memory, cpu.sp)
             cpu.pc = returnAdress
 
 class JMP(OpCode):
