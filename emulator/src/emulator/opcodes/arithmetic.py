@@ -545,6 +545,7 @@ class CPX(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(cls, cpu, memory):
+        opcode = memory.fetch(cpu.pc-1)
         if opcode == 0xE0:
             minuend = cpu.x
             subtrahend = memory.fetch(cpu.pc)
@@ -582,6 +583,7 @@ class CPY(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(cls, cpu, memory):
+        opcode = memory.fetch(cpu.pc-1)
         if opcode == 0xC0:
             minuend = cpu.y
             subtrahend = memory.fetch(cpu.pc)
