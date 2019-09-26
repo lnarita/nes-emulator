@@ -38,8 +38,9 @@ def emulate(file_path):
                     break
                 print_debug_line(cpu, previous_state, decoded, nestest_log_format)
                 cpu.clear_state_mem()
-        except IndexError:
+        except IndexError as e:
             # we've reached a program counter that is not within memory bounds
+            print(e)
             running = False
         except KeyError as e:
             # print("Can't find instruction by code {}".format(e))

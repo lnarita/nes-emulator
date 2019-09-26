@@ -3,6 +3,8 @@ from more_itertools import flatten
 from emulator.adressing import Relative, Absolute, Indirect, AddressMode
 from emulator.constants import HIGH_BITS_MASK, LOW_BITS_MASK
 from emulator.opcodes.base import OpCode
+from emulator.constants import HIGH_BITS_MASK, LOW_BITS_MASK
+from emulator.cpu import StatusRegisterFlags
 
 
 class BPL(OpCode):
@@ -43,6 +45,7 @@ class BPL(OpCode):
             if should_take_branch:
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
+                    cpu.inc_pc_by(operand - 1)
                 else:
                     cpu.inc_pc_by(operand)
                 if overflow:
@@ -89,6 +92,7 @@ class BMI(OpCode):
             if should_take_branch:
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
+                    cpu.inc_pc_by(operand - 1)
                 else:
                     cpu.inc_pc_by(operand)
                 if overflow:
@@ -135,6 +139,7 @@ class BVC(OpCode):
             if should_take_branch:
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
+                    cpu.inc_pc_by(operand - 1)
                 else:
                     cpu.inc_pc_by(operand)
                 if overflow:
@@ -181,6 +186,7 @@ class BVS(OpCode):
             if should_take_branch:
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
+                    cpu.inc_pc_by(operand - 1)
                 else:
                     cpu.inc_pc_by(operand)
                 if overflow:
@@ -227,6 +233,7 @@ class BCC(OpCode):
             if should_take_branch:
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
+                    cpu.inc_pc_by(operand - 1)
                 else:
                     cpu.inc_pc_by(operand)
                 if overflow:
@@ -273,6 +280,7 @@ class BCS(OpCode):
             if should_take_branch:
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
+                    cpu.inc_pc_by(operand - 1)
                 else:
                     cpu.inc_pc_by(operand)
                 if overflow:
@@ -319,6 +327,7 @@ class BNE(OpCode):
             if should_take_branch:
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
+                    cpu.inc_pc_by(operand - 1)
                 else:
                     cpu.inc_pc_by(operand)
                 if overflow:
@@ -365,6 +374,7 @@ class BEQ(OpCode):
             if should_take_branch:
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
+                    cpu.inc_pc_by(operand - 1)
                 else:
                     cpu.inc_pc_by(operand)
                 if overflow:
@@ -385,8 +395,18 @@ class BRK(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
+        cpu.exec_in_cycle(memory.stack_push, cpu, (cpu.pc & HIGH_BITS_MASK) >> 8)
+        cpu.exec_in_cycle(memory.stack_push, cpu, (cpu.pc & LOW_BITS_MASK))
+
+        status = cpu.flags
+        cpu.exec_in_cycle(memory.stack_push, cpu, (status | 0b00010000))
+
+        pcl = Absolute.read_from(cpu, memory, 0xFFFE)
+        pch = Absolute.read_from(cpu, memory, 0xFFFF)
+        new_pc = AddressMode.get_16_bits_addr_from_high_low((pch << 8), pcl)
+
+        cpu.pc = new_pc
         cpu.break_command = True
-        # TODO: pushes
 
 
 class RTI(OpCode):
@@ -396,7 +416,23 @@ class RTI(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        pass
+        from_stack = memory.stack_pop(cpu)
+        status = (from_stack & 0b11101111) | 0b00100000
+        new_status = StatusRegisterFlags(int_value=status)
+        cpu.negative = new_status.negative
+        cpu.overflow = new_status.overflow
+        cpu.break_command = new_status.break_command
+        cpu.decimal = new_status.decimal
+        cpu.interrupts_disabled = new_status.interrupts_disabled
+        cpu.zero = new_status.zero
+        cpu.carry = new_status.carry
+        cpu.inc_cycle()
+        cpu.inc_cycle()
+        cpu.inc_cycle()
+        pcl = memory.stack_pop(cpu)
+        pch = memory.stack_pop(cpu)
+        cpu.pc = AddressMode.get_16_bits_addr_from_high_low((pch << 8), pcl)
+
 
 
 class JSR(OpCode):
