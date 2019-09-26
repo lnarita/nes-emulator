@@ -17,7 +17,7 @@ def emulate(file_path):
     file_contents = read_file(file_path)
     cartridge = Cartridge.from_bytes(file_contents)
     memory = Memory(cartridge.prg_rom)
-    cpu = CPU()
+    cpu = CPU(log_compatible_mode=args.nestest)
 
     while running:
         try:
@@ -30,7 +30,7 @@ def emulate(file_path):
                 if cpu.break_command:
                     running = False
                     break
-                print_debug_line(cpu)
+                print_debug_line(cpu, args.nestest)
         except IndexError:
             # we've reached a program counter that is not within memory bounds
             running = False
@@ -61,8 +61,11 @@ def decode_instruction(instruction):
     return decoded
 
 
-def print_debug_line(cpu):
-    print(cpu)
+def print_debug_line(cpu, nestest):
+    if nestest:
+        print("%04X  %s             %s" % (cpu.pc, "meh", cpu))
+    else:
+        print(cpu)
 
 
 if __name__ == "__main__":
@@ -71,6 +74,7 @@ if __name__ == "__main__":
 
     # Required positional argument
     parser.add_argument("file", help="NES Cartridge file path")
+    parser.add_argument("--nestest", action="store_true")
 
     args = parser.parse_args()
     main(args)

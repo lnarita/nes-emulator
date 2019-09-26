@@ -18,74 +18,19 @@ class ORA(OpCode):
                       (0x1D, AbsoluteX, 4,)]
         return map(cls.create_dict_entry, variations)
 
-    def exec(cls, cpu, memory):
-        opcode = memory.fetch(cpu.pc-1)
-        if opcode == 0x01:
-            cpu.a = cpu.a | memory.fetch(memory.fetch(memory.fetch(cpu.pc) + cpu.x + 1) << 8 | memory.fetch(memory.fetch(cpu.pc) + cpu.x))
-            cpu.pc += 1
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x05:
-            cpu.a = cpu.a | memory.fetch(memory.fetch(cpu.pc))
-            cpu.pc += 1
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x09:
-            cpu.a = cpu.a | memory.fetch(cpu.pc)
-            cpu.pc += 1
-            cpu.inc_cycle()
-        elif opcode == 0x0D:
-            cpu.a = cpu.a | memory.fetch(memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
-            cpu.pc += 2
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x11:
-            baseAddr = memory.fetch(cpu.pc) + 1 << 8 | memory.fetch(cpu.pc)
-            indexAddr = cpu.y 
-            cpu.a = cpu.a | memory.fetch(baseAddr + indexAddr) 
-            cpu.pc += 1
-            # Page boundary crossed
-            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
-                cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x15:
-            cpu.a = cpu.a | memory.fetch(memory.fetch(cpu.pc) + cpu.x)
-            cpu.pc += 1
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x19:
-            baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
-            indexAddr = cpu.y
-            cpu.a = cpu.a | memory.fetch(baseAddr + indexAddr) 
-            cpu.pc += 2
-            # Page boundary crossed
-            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
-                cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x1D:
-            baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc))
-            indexAddr = cpu.x
-            cpu.a = cpu.a | memory.fetch(baseAddr + indexAddr) 
-            cpu.pc += 2
-            # Page boundary crossed
-            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
-                cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
+    def exec(self, cpu, memory):
+        cpu.clear_state_mem()
+        address = self.addressing_mode.fetch_address(cpu, memory)
+        value = self.addressing_mode.read_from(cpu, memory, address)
+        cpu.addr = address
+        cpu.data = value
+        cpu.a |= value
+        cpu.zero = (cpu.a == 0)
+        cpu.negative = (cpu.a & NEGATIVE_BIT) > 0
+        if self.addressing_mode != Immediate:
+            cpu.data = value
+            cpu.addr = address
 
-        cpu.negative = cpu.a >> 7 == 1
-        cpu.zero = cpu.a == 0
 
 class AND(OpCode):
     @classmethod
@@ -100,74 +45,19 @@ class AND(OpCode):
                       (0x3D, AbsoluteX, 4,)]
         return map(cls.create_dict_entry, variations)
 
-    def exec(cls, cpu, memory):
-        opcode = memory.fetch(cpu.pc-1)
-        if opcode == 0x21:
-            cpu.a = cpu.a & memory.fetch(memory.fetch(memory.fetch(cpu.pc) + cpu.x + 1) << 8 | memory.fetch(memory.fetch(cpu.pc) + cpu.x))
-            cpu.pc += 1
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x25:
-            cpu.a = cpu.a & memory.fetch(memory.fetch(cpu.pc))
-            cpu.pc += 1
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x29:
-            cpu.a = cpu.a & memory.fetch(cpu.pc)
-            cpu.pc += 1
-            cpu.inc_cycle()
-        elif opcode == 0x2D:
-            cpu.a = cpu.a & memory.fetch(memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
-            cpu.pc += 2
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x31:
-            baseAddr = memory.fetch(cpu.pc) + 1 << 8 | memory.fetch(cpu.pc)
-            indexAddr = cpu.y  
-            cpu.a = cpu.a & memory.fetch(baseAddr + indexAddr) 
-            cpu.pc += 1
-            # Page boundary crossed
-            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
-                cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x35:
-            cpu.a = cpu.a & memory.fetch(memory.fetch(cpu.pc) + cpu.x)
-            cpu.pc += 1
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x39:
-            baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
-            indexAddr = cpu.y
-            cpu.a = cpu.a & memory.fetch(baseAddr + indexAddr) 
-            cpu.pc += 2
-            # Page boundary crossed
-            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
-                cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x3D:
-            baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc))
-            indexAddr = cpu.x
-            cpu.a = cpu.a & memory.fetch(baseAddr + indexAddr) 
-            cpu.pc += 2
-            # Page boundary crossed
-            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
-                cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
+    def exec(self, cpu, memory):
+        cpu.clear_state_mem()
+        address = self.addressing_mode.fetch_address(cpu, memory)
+        value = self.addressing_mode.read_from(cpu, memory, address)
+        cpu.addr = address
+        cpu.data = value
+        cpu.a &= value
+        cpu.zero = (cpu.a == 0)
+        cpu.negative = (cpu.a & NEGATIVE_BIT) > 0
+        if self.addressing_mode != Immediate:
+            cpu.data = value
+            cpu.addr = address
 
-        cpu.negative = cpu.a >> 7 == 1
-        cpu.zero = cpu.a == 0
 
 class EOR(OpCode):
     @classmethod
@@ -182,74 +72,19 @@ class EOR(OpCode):
                       (0x5D, AbsoluteX, 4,)]
         return map(cls.create_dict_entry, variations)
 
-    def exec(cls, cpu, memory):
-        opcode = memory.fetch(cpu.pc-1)
-        if opcode == 0x41:
-            cpu.a = cpu.a ^ memory.fetch(memory.fetch(memory.fetch(cpu.pc) + cpu.x + 1) << 8 | memory.fetch(memory.fetch(cpu.pc) + cpu.x))
-            cpu.pc += 1
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x45:
-            cpu.a = cpu.a ^ memory.fetch(memory.fetch(cpu.pc))
-            cpu.pc += 1
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x49:
-            cpu.a = cpu.a ^ memory.fetch(cpu.pc)
-            cpu.pc += 1
-            cpu.inc_cycle()
-        elif opcode == 0x4D:
-            cpu.a = cpu.a ^ memory.fetch(memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
-            cpu.pc += 2
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x51:
-            baseAddr = memory.fetch(cpu.pc) + 1 << 8 | memory.fetch(cpu.pc)
-            indexAddr = cpu.y  
-            cpu.a = cpu.a ^ memory.fetch(baseAddr + indexAddr) 
-            cpu.pc += 1
-            # Page boundary crossed
-            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
-                cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x55:
-            cpu.a = cpu.a ^ memory.fetch(memory.fetch(cpu.pc) + cpu.x)
-            cpu.pc += 1
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x59:
-            baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
-            indexAddr = cpu.y
-            cpu.a = cpu.a ^ memory.fetch(baseAddr + indexAddr) 
-            cpu.pc += 2
-            # Page boundary crossed
-            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
-                cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x5D:
-            baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc))
-            indexAddr = cpu.x
-            cpu.a = cpu.a ^ memory.fetch(baseAddr + indexAddr) 
-            cpu.pc += 2
-            # Page boundary crossed
-            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
-                cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
+    def exec(self, cpu, memory):
+        cpu.clear_state_mem()
+        address = self.addressing_mode.fetch_address(cpu, memory)
+        value = self.addressing_mode.read_from(cpu, memory, address)
+        cpu.addr = address
+        cpu.data = value
+        cpu.a ^= value
+        cpu.zero = (cpu.a == 0)
+        cpu.negative = (cpu.a & NEGATIVE_BIT) > 0
+        if self.addressing_mode != Immediate:
+            cpu.data = value
+            cpu.addr = address
 
-        cpu.negative = cpu.a >> 7 == 1
-        cpu.zero = cpu.a == 0
 
 class ADC(OpCode):
     @classmethod
@@ -264,86 +99,22 @@ class ADC(OpCode):
                       (0x7D, AbsoluteX, 4,)]
         return map(cls.create_dict_entry, variations)
 
-    def exec(cls, cpu, memory):
-        opcode = memory.fetch(cpu.pc-1)
-        if opcode == 0x61:
-            addend1 = cpu.a
-            addend2 = memory.fetch(memory.fetch(memory.fetch(cpu.pc) + cpu.x + 1) << 8 | memory.fetch(memory.fetch(cpu.pc) + cpu.x))
-            cpu.pc += 1
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x65:
-            addend1 = cpu.a
-            addend2 = memory.fetch(memory.fetch(cpu.pc))
-            cpu.pc += 1
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x69:
-            addend1 = cpu.a
-            addend2 = memory.fetch(cpu.pc)
-            cpu.pc += 1
-            cpu.inc_cycle()
-        elif opcode == 0x6D:
-            addend1 = cpu.a
-            addend2 = memory.fetch(memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
-            cpu.pc += 2
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x71:
-            baseAddr = memory.fetch(cpu.pc) + 1 << 8 | memory.fetch(cpu.pc)
-            indexAddr = cpu.y  
-            addend1 = cpu.a
-            addend2 = memory.fetch(baseAddr + indexAddr)
-            cpu.pc += 1
-            # Page boundary crossed
-            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
-                cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x75:
-            addend1 = cpu.a
-            addend2 = memory.fetch(memory.fetch(cpu.pc) + cpu.x)
-            cpu.pc += 1
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x79:
-            baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
-            indexAddr = cpu.y
-            addend1 = cpu.a
-            addend2 = memory.fetch(baseAddr + indexAddr)
-            cpu.pc += 2
-            # Page boundary crossed
-            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
-                cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0x7D:
-            baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc))
-            indexAddr = cpu.x
-            addend1 = cpu.a
-            addend2 = memory.fetch(baseAddr + indexAddr)
-            cpu.pc += 2
-            # Page boundary crossed
-            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
-                cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-
-        cpu.a = addend1 + addend2 + cpu.carry
+    def exec(self, cpu, memory):
+        cpu.clear_state_mem()
+        address = self.addressing_mode.fetch_address(cpu, memory)
+        addend2 = self.addressing_mode.read_from(cpu, memory, address)
+        addend1 = cpu.a
+        cpu.a = addend1 + addend2 + (1 if cpu.carry else 0)
         cpu.carry = (cpu.a >> 8) != 0
         cpu.a &= 0xff
         cpu.overflow = addend1 >> 7 == addend2 >> 7 and addend1 >> 7 != cpu.a >> 7
         cpu.negative = cpu.a >> 7 == 1
         cpu.zero = cpu.a == 0
+
+        if self.addressing_mode != Immediate:
+            cpu.addr = address
+            cpu.data = addend2
+
 
 class SBC(OpCode):
     @classmethod
@@ -358,88 +129,21 @@ class SBC(OpCode):
                       (0xFD, AbsoluteX, 4,)]
         return map(cls.create_dict_entry, variations)
 
-    def exec(cls, cpu, memory):
-        opcode = memory.fetch(cpu.pc-1)
-        if opcode == 0xE1:
-            minuend = cpu.a
-            subtrahend = memory.fetch(memory.fetch(memory.fetch(cpu.pc) + cpu.x + 1) << 8 | memory.fetch(memory.fetch(cpu.pc) + cpu.x))
-            cpu.pc += 1
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0xE5:
-            minuend = cpu.a
-            subtrahend = memory.fetch(memory.fetch(cpu.pc))
-            cpu.pc += 1
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0xE9:
-            minuend = cpu.a
-            subtrahend = memory.fetch(cpu.pc)
-            cpu.pc += 1
-            cpu.inc_cycle()
-        elif opcode == 0xED:
-            minuend = cpu.a
-            subtrahend = memory.fetch(memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
-            cpu.pc += 2
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0xF1:
-            baseAddr = memory.fetch(cpu.pc) + 1 << 8 | memory.fetch(cpu.pc)
-            indexAddr = cpu.y  
-            cpu.pc += 1
-            minuend = cpu.a
-            subtrahend = memory.fetch(baseAddr + indexAddr)
-            # Page boundary crossed
-            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
-                cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0xF5:
-            minuend = cpu.a
-            subtrahend = memory.fetch(memory.fetch(cpu.pc) + cpu.x)
-            cpu.pc += 1
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0xF9:
-            baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
-            indexAddr = cpu.y
-            cpu.pc += 2
-            minuend = cpu.a
-            subtrahend = memory.fetch(baseAddr + indexAddr)
-            # Page boundary crossed
-            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
-                cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0xFD:
-            baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc))
-            indexAddr = cpu.x
-            cpu.pc += 2
-            minuend = cpu.a
-            subtrahend = memory.fetch(baseAddr + indexAddr)
-            # Page boundary crossed
-            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
-                cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-
-        # One's complement
-        subtrahend = abs(~subtrahend-1 ^ 0xFF) & 0xFF
-        cpu.a = minuend + subtrahend + cpu.carry
+    def exec(self, cpu, memory):
+        address = self.addressing_mode.fetch_address(cpu, memory)
+        subtrahend = self.addressing_mode.read_from(cpu, memory, address)
+        minuend = cpu.a
+        if self.addressing_mode != Immediate:
+            cpu.addr = address
+            cpu.data = subtrahend
+        subtrahend = abs(~subtrahend - 1 ^ 0xFF) & 0xFF
+        cpu.a = minuend + subtrahend + (1 if cpu.carry else 0)
         cpu.a = cpu.a & 0xFF
-        cpu.carry = cpu.a >> 7 == 0
+        cpu.carry = (cpu.a >> 7) == 0
         cpu.overflow = minuend >> 7 == subtrahend >> 7 and minuend >> 7 != cpu.a >> 7
         cpu.zero = cpu.a == 0
         cpu.negative = cpu.a >> 7 == 1
+
 
 class CMP(OpCode):
     @classmethod
@@ -454,80 +158,14 @@ class CMP(OpCode):
                       (0xDD, AbsoluteX, 4,)]
         return map(cls.create_dict_entry, variations)
 
-    def exec(cls, cpu, memory):
-        opcode = memory.fetch(cpu.pc-1)
-        if opcode == 0xC1:
-            minuend = cpu.a
-            subtrahend = memory.fetch(memory.fetch(memory.fetch(cpu.pc) + cpu.x + 1) << 8 | memory.fetch(memory.fetch(cpu.pc) + cpu.x))
-            cpu.pc += 1
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0xC5:
-            minuend = cpu.a
-            subtrahend = memory.fetch(memory.fetch(cpu.pc))
-            cpu.pc += 1
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0xC9:
-            minuend = cpu.a
-            subtrahend = memory.fetch(cpu.pc)
-            cpu.pc += 1
-            cpu.inc_cycle()
-        elif opcode == 0xCD:
-            minuend = cpu.a
-            subtrahend = memory.fetch(memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
-            cpu.pc += 2
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0xD1:
-            baseAddr = memory.fetch(cpu.pc) + 1 << 8 | memory.fetch(cpu.pc)
-            indexAddr = cpu.y  
-            cpu.pc += 1
-            minuend = cpu.a
-            subtrahend = memory.fetch(baseAddr + indexAddr)
-            # Page boundary crossed
-            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
-                cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0xD5:
-            minuend = cpu.a
-            subtrahend = memory.fetch(memory.fetch(cpu.pc) + cpu.x)
-            cpu.pc += 1
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0xD9:
-            baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
-            indexAddr = cpu.y
-            cpu.pc += 2
-            minuend = cpu.a
-            subtrahend = memory.fetch(baseAddr + indexAddr)
-            # Page boundary crossed
-            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
-                cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0xDD:
-            baseAddr = (memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc))
-            indexAddr = cpu.x
-            cpu.pc += 2
-            minuend = cpu.a
-            subtrahend = memory.fetch(baseAddr + indexAddr)
-            # Page boundary crossed
-            if (baseAddr + indexAddr >> 8) != (baseAddr >> 8):
-                cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-
+    def exec(self, cpu, memory):
+        cpu.clear_state_mem()
+        address = self.addressing_mode.fetch_address(cpu, memory)
+        subtrahend = self.addressing_mode.read_from(cpu, memory, address)
+        minuend = cpu.a
+        if self.addressing_mode != Immediate:
+            cpu.addr = address
+            cpu.data = subtrahend
         # Two's complement
         subtrahend = abs(~subtrahend ^ 0xFF) & 0xFF
         tmp = minuend + subtrahend
@@ -535,6 +173,7 @@ class CMP(OpCode):
         cpu.carry = tmp >> 7 == 0
         cpu.zero = tmp == 0
         cpu.negative = tmp >> 7 == 1
+
 
 class CPX(OpCode):
     @classmethod
@@ -544,26 +183,14 @@ class CPX(OpCode):
                       (0xEC, Absolute, 4,)]
         return map(cls.create_dict_entry, variations)
 
-    def exec(cls, cpu, memory):
-        if opcode == 0xE0:
-            minuend = cpu.x
-            subtrahend = memory.fetch(cpu.pc)
-            cpu.pc += 1
-            cpu.inc_cycle()
-        elif opcode == 0xE4:
-            minuend = cpu.x
-            subtrahend = memory.fetch(memory.fetch(cpu.pc))
-            cpu.pc += 1
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0xEC:
-            minuend = cpu.x
-            subtrahend = memory.fetch(memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
-            cpu.pc += 2
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-
+    def exec(self, cpu, memory):
+        cpu.clear_state_mem()
+        address = self.addressing_mode.fetch_address(cpu, memory)
+        subtrahend = self.addressing_mode.read_from(cpu, memory, address)
+        minuend = cpu.a
+        if self.addressing_mode != Immediate:
+            cpu.addr = address
+            cpu.data = subtrahend
         # Two's complement
         subtrahend = abs(~subtrahend ^ 0xFF) & 0xFF
         tmp = minuend + subtrahend
@@ -572,6 +199,7 @@ class CPX(OpCode):
         cpu.carry = tmp >> 7 == 0
         cpu.zero = tmp == 0
         cpu.negative = tmp >> 7 == 1
+
 
 class CPY(OpCode):
     @classmethod
@@ -581,25 +209,14 @@ class CPY(OpCode):
                       (0xCC, Absolute, 4,)]
         return map(cls.create_dict_entry, variations)
 
-    def exec(cls, cpu, memory):
-        if opcode == 0xC0:
-            minuend = cpu.y
-            subtrahend = memory.fetch(cpu.pc)
-            cpu.pc += 1
-            cpu.inc_cycle()
-        elif opcode == 0xC4:
-            minuend = cpu.y
-            subtrahend = memory.fetch(memory.fetch(cpu.pc))
-            cpu.pc += 1
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-        elif opcode == 0xCC:
-            minuend = cpu.y
-            subtrahend = memory.fetch(memory.fetch(cpu.pc+1) << 8 | memory.fetch(cpu.pc)) 
-            cpu.pc += 2
-            cpu.inc_cycle()
-            cpu.inc_cycle()
-            cpu.inc_cycle()
+    def exec(self, cpu, memory):
+        cpu.clear_state_mem()
+        address = self.addressing_mode.fetch_address(cpu, memory)
+        subtrahend = self.addressing_mode.read_from(cpu, memory, address)
+        minuend = cpu.a
+        if self.addressing_mode != Immediate:
+            cpu.addr = address
+            cpu.data = subtrahend
 
         # Two's complement
         subtrahend = abs(~subtrahend ^ 0xFF) & 0xFF
@@ -608,6 +225,7 @@ class CPY(OpCode):
         cpu.carry = tmp >> 7 == 0
         cpu.zero = tmp == 0
         cpu.negative = tmp >> 7 == 1
+
 
 class DEC(OpCode):
     @classmethod
@@ -633,7 +251,7 @@ class DEC(OpCode):
             cpu.negative = (value & 0b10000000) > 0
             cpu.zero = (value == 0)
 
-            self.addressing_mode.write_to(cpu,memory, address, value)
+            self.addressing_mode.write_to(cpu, memory, address, value)
 
 
 class DEX(OpCode):
@@ -648,6 +266,7 @@ class DEX(OpCode):
             cpu.x &= LOW_BITS_MASK
             cpu.zero = (cpu.x == 0)
             cpu.negative = (cpu.x & NEGATIVE_BIT) > 0
+
         cpu.clear_state_mem()
         cpu.exec_in_cycle(_dec_x)
 
@@ -664,6 +283,7 @@ class DEY(OpCode):
             cpu.y &= LOW_BITS_MASK
             cpu.zero = (cpu.y == 0)
             cpu.negative = (cpu.y & NEGATIVE_BIT) > 0
+
         cpu.clear_state_mem()
         cpu.exec_in_cycle(_dec_y)
 
@@ -677,7 +297,7 @@ class INC(OpCode):
                       (0xFE, AbsoluteX, 7,)]
         return map(cls.create_dict_entry, variations)
 
-    def exec (self, cpu, memory):
+    def exec(self, cpu, memory):
         if self.addressing_mode:
             def _inc_m(value):
                 if (value == 0b11111111):
@@ -692,8 +312,7 @@ class INC(OpCode):
             cpu.negative = (value & 0b10000000) > 0
             cpu.zero = (value == 0)
 
-            self.addressing_mode.write_to(cpu,memory, address, value)
-
+            self.addressing_mode.write_to(cpu, memory, address, value)
 
 
 class INX(OpCode):
@@ -708,6 +327,7 @@ class INX(OpCode):
             cpu.x &= LOW_BITS_MASK
             cpu.zero = (cpu.x == 0)
             cpu.negative = (cpu.x & NEGATIVE_BIT) > 0
+
         cpu.clear_state_mem()
         cpu.exec_in_cycle(_inc_x)
 
@@ -724,6 +344,7 @@ class INY(OpCode):
             cpu.y &= LOW_BITS_MASK
             cpu.zero = (cpu.y == 0)
             cpu.negative = (cpu.y & NEGATIVE_BIT) > 0
+
         cpu.clear_state_mem()
         cpu.exec_in_cycle(_inc_y)
 
@@ -738,18 +359,24 @@ class ASL(OpCode):
                       (0x1E, AbsoluteX, 7,)]
         return map(cls.create_dict_entry, variations)
 
-    def exec (self, cpu, memory):
-        if self.addressing_mode:
-            address = self.addressing_mode.fetch_address(cpu, memory)
-            value = self.addressing_mode.read_from(cpu, memory, address)
-            value = (value << 1)
-            
-            cpu.carry = (value & 0b100000000) > 0
-            cpu.negative = (value & 0b10000000) > 0
-            value = (value & 0b11111111) # truncates
-            cpu.zero = (value == 0)
+    def exec(self, cpu, memory):
+        def _exec_asl(value):
+            new_value = (value << 1)
 
-            self.addressing_mode.write_to(cpu,memory, address, value)
+            cpu.carry = (new_value & 0b100000000) > 0
+            cpu.negative = (new_value & 0b10000000) > 0
+            new_value = (new_value & 0b11111111)  # truncates
+            cpu.zero = (new_value == 0)
+            return new_value
+
+        cpu.clear_state_mem()
+        address = self.addressing_mode.fetch_address(cpu, memory)
+        value = self.addressing_mode.read_from(cpu, memory, address)
+        new_value = cpu.exec_in_cycle(_exec_asl, value)
+        self.addressing_mode.write_to(cpu, memory, address, new_value)
+        if self.addressing_mode != Accumulator:
+            cpu.addr = address
+            cpu.data = new_value
 
 
 class ROL(OpCode):
@@ -763,22 +390,26 @@ class ROL(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _exec_rol():
-            if self.addressing_mode:
-                address = self.addressing_mode.fetch_address(cpu, memory)
-                value = self.addressing_mode.read_from(cpu, memory, address)
-                self.addressing_mode.write_to(cpu, memory, address, value)
-                new_value = (value << 1) & LOW_BITS_MASK
-                if cpu.carry:
-                    new_value |= 0b00000001
-                else:
-                    new_value &= 0b111111110
-                cpu.carry = (value & 0b10000000) > 0
-                cpu.zero = (new_value == 0)
-                cpu.negative = (new_value & NEGATIVE_BIT) > 0
-                self.addressing_mode.write_to(cpu, memory, address, new_value)
+        def _exec_rol(value):
+            new_value = (value << 1) & LOW_BITS_MASK
+            if cpu.carry:
+                new_value |= 0b00000001
+            else:
+                new_value &= 0b111111110
+            cpu.carry = (value & 0b10000000) > 0
+            cpu.zero = (new_value == 0)
+            cpu.negative = (new_value & NEGATIVE_BIT) > 0
+            return new_value
+
         cpu.clear_state_mem()
-        cpu.exec_in_cycle(_exec_rol)
+        address = self.addressing_mode.fetch_address(cpu, memory)
+        value = self.addressing_mode.read_from(cpu, memory, address)
+        self.addressing_mode.write_to(cpu, memory, address, value)
+        new_value = cpu.exec_in_cycle(_exec_rol, value)
+        self.addressing_mode.write_to(cpu, memory, address, new_value)
+        if self.addressing_mode != Accumulator:
+            cpu.data = new_value
+            cpu.addr = address
 
 
 class LSR(OpCode):
@@ -792,18 +423,22 @@ class LSR(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _exec_lsr():
-            if self.addressing_mode:
-                address = self.addressing_mode.fetch_address(cpu, memory)
-                value = self.addressing_mode.read_from(cpu, memory, address)
-                self.addressing_mode.write_to(cpu, memory, address, value)
-                new_value = (value >> 1) & LOW_BITS_MASK
-                cpu.carry = (value & 0b00000001) > 0
-                cpu.zero = (new_value == 0)
-                cpu.negative = (new_value & NEGATIVE_BIT) > 0
-                self.addressing_mode.write_to(cpu, memory, address, new_value)
+        def _exec_lsr(value):
+            new_value = (value >> 1) & LOW_BITS_MASK
+            cpu.carry = (value & 0b00000001) > 0
+            cpu.zero = (new_value == 0)
+            cpu.negative = (new_value & NEGATIVE_BIT) > 0
+            return new_value
+
         cpu.clear_state_mem()
-        cpu.exec_in_cycle(_exec_lsr)
+        address = self.addressing_mode.fetch_address(cpu, memory)
+        value = self.addressing_mode.read_from(cpu, memory, address)
+        self.addressing_mode.write_to(cpu, memory, address, value)
+        new_value = cpu.exec_in_cycle(_exec_lsr, value)
+        self.addressing_mode.write_to(cpu, memory, address, new_value)
+        if self.addressing_mode != Accumulator:
+            cpu.data = new_value
+            cpu.addr = address
 
 
 class ROR(OpCode):
@@ -817,22 +452,26 @@ class ROR(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _exec_ror():
-            if self.addressing_mode:
-                address = self.addressing_mode.fetch_address(cpu, memory)
-                value = self.addressing_mode.read_from(cpu, memory, address)
-                self.addressing_mode.write_to(cpu, memory, address, value)
-                new_value = (value >> 1) & LOW_BITS_MASK
-                if cpu.carry:
-                    new_value |= 0b10000000
-                else:
-                    new_value &= 0b011111111
-                cpu.carry = (value & 0b00000001) > 0
-                cpu.zero = (new_value == 0)
-                cpu.negative = (new_value & NEGATIVE_BIT) > 0
-                self.addressing_mode.write_to(cpu, memory, address, new_value)
+        def _exec_ror(value):
+            new_value = (value >> 1) & LOW_BITS_MASK
+            if cpu.carry:
+                new_value |= 0b10000000
+            else:
+                new_value &= 0b011111111
+            cpu.carry = (value & 0b00000001) > 0
+            cpu.zero = (new_value == 0)
+            cpu.negative = (new_value & NEGATIVE_BIT) > 0
+            return new_value
+
         cpu.clear_state_mem()
-        cpu.exec_in_cycle(_exec_ror)
+        address = self.addressing_mode.fetch_address(cpu, memory)
+        value = self.addressing_mode.read_from(cpu, memory, address)
+        self.addressing_mode.write_to(cpu, memory, address, value)
+        new_value = cpu.exec_in_cycle(_exec_ror)
+        self.addressing_mode.write_to(cpu, memory, address, new_value)
+        if self.addressing_mode != Accumulator:
+            cpu.data = new_value
+            cpu.addr = address
 
 
 class ArithmeticAndLogicalOpCodes:
