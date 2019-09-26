@@ -1,6 +1,8 @@
 from more_itertools import flatten
 
 from emulator.adressing import Immediate, ZeroPage, Absolute, ZeroPageY, AbsoluteY, IndirectY, ZeroPageX, AbsoluteX, IndirectX
+from emulator.constants import NEGATIVE_BIT, LOW_BITS_MASK
+from emulator.cpu import StatusRegisterFlags
 from emulator.opcodes.base import OpCode
 
 
@@ -18,16 +20,19 @@ class LDA(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def cycle_lda(): 
+        def cycle_lda():
             if self.addressing_mode:
                 address = self.addressing_mode.fetch_address(cpu, memory)
                 value = self.addressing_mode.read_from(cpu, memory, address)
+                if self.addressing_mode != Immediate:
+                    self.addressing_mode.data = "= %02X" % memory.fetch(address)
 
                 cpu.a = value
-                cpu.zero = cpu.a == 0 
+                cpu.zero = cpu.a == 0
                 cpu.negative = (cpu.a & 0b10000000) > 0
 
         cpu.exec_in_cycle(cycle_lda)
+
 
 class STA(OpCode):
     @classmethod
@@ -47,7 +52,9 @@ class STA(OpCode):
                 address = self.addressing_mode.fetch_address(cpu, memory)
                 cpu.addr = address
                 cpu.data = cpu.a
+                self.addressing_mode.data = "= %02X" % memory.fetch(address)
                 self.addressing_mode.write_to(cpu, memory, address, cpu.a)
+
         cpu.exec_in_cycle(cycle_sta)
 
 
@@ -60,18 +67,21 @@ class LDX(OpCode):
                       (0xB6, ZeroPageY, 4,),
                       (0xBE, AbsoluteY, 4,)]
         return map(cls.create_dict_entry, variations)
-    
+
     def exec(self, cpu, memory):
-        def cycle_ldx(): 
+        def cycle_ldx():
             if self.addressing_mode:
                 address = self.addressing_mode.fetch_address(cpu, memory)
                 value = self.addressing_mode.read_from(cpu, memory, address)
+                if self.addressing_mode != Immediate:
+                    self.addressing_mode.data = "= %02X" % memory.fetch(address)
 
                 cpu.x = value
-                cpu.zero = cpu.x == 0 
+                cpu.zero = cpu.x == 0
                 cpu.negative = (cpu.x & 0b10000000) > 0
 
         cpu.exec_in_cycle(cycle_ldx)
+
 
 class STX(OpCode):
     @classmethod
@@ -87,8 +97,11 @@ class STX(OpCode):
                 address = self.addressing_mode.fetch_address(cpu, memory)
                 cpu.addr = address
                 cpu.data = cpu.x
+                self.addressing_mode.data = "= %02X" % memory.fetch(address)
                 self.addressing_mode.write_to(cpu, memory, address, cpu.x)
+
         cpu.exec_in_cycle(cycle_stx)
+
 
 class LDY(OpCode):
     @classmethod
@@ -101,13 +114,13 @@ class LDY(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def cycle_ldy(): 
+        def cycle_ldy():
             if self.addressing_mode:
                 address = self.addressing_mode.fetch_address(cpu, memory)
                 value = self.addressing_mode.read_from(cpu, memory, address)
 
                 cpu.y = value
-                cpu.zero = cpu.y == 0 
+                cpu.zero = cpu.y == 0
                 cpu.negative = (cpu.y & 0b10000000) > 0
 
         cpu.exec_in_cycle(cycle_ldy)
@@ -127,8 +140,11 @@ class STY(OpCode):
                 address = self.addressing_mode.fetch_address(cpu, memory)
                 cpu.addr = address
                 cpu.data = cpu.y
+                self.addressing_mode.data = "= %02X" % memory.fetch(address)
                 self.addressing_mode.write_to(cpu, memory, address, cpu.y)
+
         cpu.exec_in_cycle(cycle_sty)
+
 
 class TAX(OpCode):
     @classmethod
@@ -141,6 +157,7 @@ class TAX(OpCode):
             cpu.x = cpu.a
             cpu.zero = cpu.x == 0
             cpu.negative = (cpu.x & 0b10000000) > 0
+
         cpu.exec_in_cycle(cycle_tax)
 
 
@@ -155,6 +172,7 @@ class TXA(OpCode):
             cpu.a = cpu.x
             cpu.zero = cpu.a == 0
             cpu.negative = (cpu.a & 0b10000000) > 0
+
         cpu.exec_in_cycle(cycle_txa)
 
 
@@ -169,6 +187,7 @@ class TAY(OpCode):
             cpu.y = cpu.a
             cpu.zero = cpu.y == 0
             cpu.negative = (cpu.y & 0b10000000) > 0
+
         cpu.exec_in_cycle(cycle_tay)
 
 
@@ -183,6 +202,7 @@ class TYA(OpCode):
             cpu.a = cpu.y
             cpu.zero = cpu.a == 0
             cpu.negative = (cpu.a & 0b10000000) > 0
+
         cpu.exec_in_cycle(cycle_tya)
 
 
@@ -193,7 +213,7 @@ class TSX(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        cpu.x = cpu.sp
+        cpu.x = (cpu.sp & LOW_BITS_MASK)
         cpu.zero = cpu.x == 0
         cpu.negative = (cpu.x & 0b10000000) > 0
         cpu.inc_cycle()
@@ -206,7 +226,7 @@ class TXS(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        cpu.sp = cpu.x
+        cpu.sp = 0x0100 | (cpu.x & LOW_BITS_MASK)
         cpu.inc_cycle()
 
 
@@ -219,10 +239,14 @@ class PLA(OpCode):
     def exec(self, cpu, memory):
         cpu.sp += 1
         cpu.sp = cpu.sp & 0xff ^ 0x0100
-        cpu.a = memory.fetch(cpu.sp)
+        from_stack = memory.fetch(cpu.sp)
+        cpu.a = from_stack
+        cpu.zero = (cpu.a == 0)
+        cpu.negative = (cpu.a & NEGATIVE_BIT) > 0
         cpu.inc_cycle()
         cpu.inc_cycle()
         cpu.inc_cycle()
+
 
 class PHA(OpCode):
     @classmethod
@@ -237,6 +261,7 @@ class PHA(OpCode):
         cpu.inc_cycle()
         cpu.inc_cycle()
 
+
 class PLP(OpCode):
     @classmethod
     def create_variations(cls):
@@ -246,17 +271,20 @@ class PLP(OpCode):
     def exec(self, cpu, memory):
         cpu.sp += 1
         cpu.sp = cpu.sp & 0xff ^ 0x0100
-        status = memory.fetch(cpu.sp)
-        cpu.negative = status & 0b10000000 != 0
-        cpu.overflow = status & 0b01000000 != 0
-        cpu.break_command = status & 0b00010000 != 0
-        cpu.decimal = status & 0b00001000 != 0
-        cpu.interrupts_disabled = status & 0b00000100 != 0
-        cpu.zero = status & 0b00000010 != 0
-        cpu.carry = status & 0b00000001 != 0
+        from_stack = memory.fetch(cpu.sp)
+        status = (from_stack & 0b11101111) | 0b00100000
+        new_status = StatusRegisterFlags(int_value=status)
+        cpu.negative = new_status.negative
+        cpu.overflow = new_status.overflow
+        cpu.break_command = new_status.break_command
+        cpu.decimal = new_status.decimal
+        cpu.interrupts_disabled = new_status.interrupts_disabled
+        cpu.zero = new_status.zero
+        cpu.carry = new_status.carry
         cpu.inc_cycle()
         cpu.inc_cycle()
         cpu.inc_cycle()
+
 
 class PHP(OpCode):
     @classmethod
@@ -265,16 +293,10 @@ class PHP(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        status = 0b00000000
-        status |= cpu.negative and 0b10000000
-        status |= cpu.overflow and 0b01000000
-        status |= True and 0b00100000
-        status |= True and 0b00010000
-        status |= cpu.decimal and 0b00001000
-        status |= cpu.interrupts_disabled and 0b00000100
-        status |= cpu.zero and 0b00000010
-        status |= cpu.carry and 0b00000001
-
+        """
+        In the byte pushed, bit 5 is always set to 1, and bit 4 is 1 if from an instruction (PHP or BRK) or 0 if from an interrupt line being pulled low (/IRQ or /NMI).
+        """
+        status = cpu.flags | 0b00110000
         memory.store(cpu.sp, status)
         cpu.sp -= 1
         cpu.sp = cpu.sp & 0xff ^ 0x0100

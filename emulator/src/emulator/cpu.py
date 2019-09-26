@@ -69,8 +69,8 @@ class CPUState:
 
     def __str__(self):
         if self.log_compatible_mode:
-            return "A:%02X X:%02X Y:%02X P:%02X SP:%02X PPU:  0,  0 CYC:%d" % (
-            np.uint8(self.a), np.uint8(self.x), np.uint8(self.y), int(self.p.__str__(), 2), np.uint8(self.sp & 0x0011), self.cycle)
+            return "A:%02X X:%02X Y:%02X P:%02X SP:%02X" % (
+            np.uint8(self.a), np.uint8(self.x), np.uint8(self.y), int(self.p.__str__(), 2), np.uint8(self.sp & 0x00FF))
         else:
             return "| pc = 0x{:04x} | a = 0x{:02x} | x = 0x{:02x} | y = 0x{:02x} | sp = 0x{:04x} | p[NV-BDIZC] = {} |{}".format(
                 np.uint16(self.pc), np.uint8(self.a), np.uint8(self.x), np.uint8(self.y), np.uint16(self.sp), self.p, self.__load_store_str())
@@ -143,6 +143,10 @@ class CPU:
     @property
     def cycle(self):
         return self._state.cycle
+
+    @property
+    def flags(self):
+        return int(self._state.p.__str__(), 2)
 
     @pc.setter
     def pc(self, value):

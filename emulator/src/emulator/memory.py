@@ -92,6 +92,15 @@ class Memory:
         else:
             raise IndexError("Invalid Address 0x{:04x}".format(addr))
 
+    def stack_push(self, cpu, value):
+        self.store(cpu.sp, value)
+        cpu.sp -= 1
+
+    def stack_pop(self, cpu):
+        value = self.fetch(cpu.sp + 1)
+        cpu.sp += 1
+        return value
+
     @staticmethod
     def ram_size():
         return 2 * KB

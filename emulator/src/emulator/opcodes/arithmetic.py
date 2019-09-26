@@ -19,17 +19,15 @@ class ORA(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        cpu.clear_state_mem()
         address = self.addressing_mode.fetch_address(cpu, memory)
         value = self.addressing_mode.read_from(cpu, memory, address)
-        cpu.addr = address
-        cpu.data = value
         cpu.a |= value
         cpu.zero = (cpu.a == 0)
         cpu.negative = (cpu.a & NEGATIVE_BIT) > 0
         if self.addressing_mode != Immediate:
             cpu.data = value
             cpu.addr = address
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
 
 
 class AND(OpCode):
@@ -46,17 +44,15 @@ class AND(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        cpu.clear_state_mem()
         address = self.addressing_mode.fetch_address(cpu, memory)
         value = self.addressing_mode.read_from(cpu, memory, address)
-        cpu.addr = address
-        cpu.data = value
         cpu.a &= value
         cpu.zero = (cpu.a == 0)
         cpu.negative = (cpu.a & NEGATIVE_BIT) > 0
         if self.addressing_mode != Immediate:
             cpu.data = value
             cpu.addr = address
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
 
 
 class EOR(OpCode):
@@ -73,17 +69,15 @@ class EOR(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        cpu.clear_state_mem()
         address = self.addressing_mode.fetch_address(cpu, memory)
         value = self.addressing_mode.read_from(cpu, memory, address)
-        cpu.addr = address
-        cpu.data = value
         cpu.a ^= value
         cpu.zero = (cpu.a == 0)
         cpu.negative = (cpu.a & NEGATIVE_BIT) > 0
         if self.addressing_mode != Immediate:
             cpu.data = value
             cpu.addr = address
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
 
 
 class ADC(OpCode):
@@ -100,7 +94,6 @@ class ADC(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        cpu.clear_state_mem()
         address = self.addressing_mode.fetch_address(cpu, memory)
         addend2 = self.addressing_mode.read_from(cpu, memory, address)
         addend1 = cpu.a
@@ -114,6 +107,7 @@ class ADC(OpCode):
         if self.addressing_mode != Immediate:
             cpu.addr = address
             cpu.data = addend2
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
 
 
 class SBC(OpCode):
@@ -130,17 +124,22 @@ class SBC(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
+        def wrap_sub(a, b):
+            return (a - b) % 0x100
+
         address = self.addressing_mode.fetch_address(cpu, memory)
         subtrahend = self.addressing_mode.read_from(cpu, memory, address)
         minuend = cpu.a
         if self.addressing_mode != Immediate:
             cpu.addr = address
             cpu.data = subtrahend
-        subtrahend = abs(~subtrahend - 1 ^ 0xFF) & 0xFF
-        cpu.a = minuend + subtrahend + (1 if cpu.carry else 0)
-        cpu.a = cpu.a & 0xFF
-        cpu.carry = (cpu.a >> 7) == 0
-        cpu.overflow = minuend >> 7 == subtrahend >> 7 and minuend >> 7 != cpu.a >> 7
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
+
+        new_a = (wrap_sub(wrap_sub(minuend, subtrahend), (0 if cpu.carry else 1)))
+        cpu.carry = (new_a & 0b01111111) == new_a
+        cpu.overflow = ((cpu.a ^ subtrahend) & NEGATIVE_BIT > 0) and (((cpu.a ^ new_a) & LOW_BITS_MASK) & NEGATIVE_BIT > 0)
+        cpu.a = new_a
+        cpu.a &= 0xFF
         cpu.zero = cpu.a == 0
         cpu.negative = cpu.a >> 7 == 1
 
@@ -159,18 +158,18 @@ class CMP(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        cpu.clear_state_mem()
         address = self.addressing_mode.fetch_address(cpu, memory)
         subtrahend = self.addressing_mode.read_from(cpu, memory, address)
         minuend = cpu.a
         if self.addressing_mode != Immediate:
             cpu.addr = address
             cpu.data = subtrahend
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
         # Two's complement
         subtrahend = abs(~subtrahend ^ 0xFF) & 0xFF
         tmp = minuend + subtrahend
         tmp &= 0xFF
-        cpu.carry = tmp >> 7 == 0
+        cpu.carry = (minuend >= tmp)
         cpu.zero = tmp == 0
         cpu.negative = tmp >> 7 == 1
 
@@ -184,19 +183,18 @@ class CPX(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        cpu.clear_state_mem()
         address = self.addressing_mode.fetch_address(cpu, memory)
         subtrahend = self.addressing_mode.read_from(cpu, memory, address)
-        minuend = cpu.a
+        minuend = cpu.x
         if self.addressing_mode != Immediate:
             cpu.addr = address
             cpu.data = subtrahend
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
         # Two's complement
         subtrahend = abs(~subtrahend ^ 0xFF) & 0xFF
         tmp = minuend + subtrahend
         tmp &= 0xFF
-
-        cpu.carry = tmp >> 7 == 0
+        cpu.carry = (minuend >= tmp)
         cpu.zero = tmp == 0
         cpu.negative = tmp >> 7 == 1
 
@@ -210,19 +208,19 @@ class CPY(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        cpu.clear_state_mem()
         address = self.addressing_mode.fetch_address(cpu, memory)
         subtrahend = self.addressing_mode.read_from(cpu, memory, address)
-        minuend = cpu.a
+        minuend = cpu.y
         if self.addressing_mode != Immediate:
             cpu.addr = address
             cpu.data = subtrahend
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
 
         # Two's complement
         subtrahend = abs(~subtrahend ^ 0xFF) & 0xFF
         tmp = minuend + subtrahend
         tmp &= 0xFF
-        cpu.carry = tmp >> 7 == 0
+        cpu.carry = (minuend >= tmp)
         cpu.zero = tmp == 0
         cpu.negative = tmp >> 7 == 1
 
@@ -267,7 +265,6 @@ class DEX(OpCode):
             cpu.zero = (cpu.x == 0)
             cpu.negative = (cpu.x & NEGATIVE_BIT) > 0
 
-        cpu.clear_state_mem()
         cpu.exec_in_cycle(_dec_x)
 
 
@@ -284,7 +281,6 @@ class DEY(OpCode):
             cpu.zero = (cpu.y == 0)
             cpu.negative = (cpu.y & NEGATIVE_BIT) > 0
 
-        cpu.clear_state_mem()
         cpu.exec_in_cycle(_dec_y)
 
 
@@ -328,7 +324,6 @@ class INX(OpCode):
             cpu.zero = (cpu.x == 0)
             cpu.negative = (cpu.x & NEGATIVE_BIT) > 0
 
-        cpu.clear_state_mem()
         cpu.exec_in_cycle(_inc_x)
 
 
@@ -345,7 +340,6 @@ class INY(OpCode):
             cpu.zero = (cpu.y == 0)
             cpu.negative = (cpu.y & NEGATIVE_BIT) > 0
 
-        cpu.clear_state_mem()
         cpu.exec_in_cycle(_inc_y)
 
 
@@ -369,7 +363,6 @@ class ASL(OpCode):
             cpu.zero = (new_value == 0)
             return new_value
 
-        cpu.clear_state_mem()
         address = self.addressing_mode.fetch_address(cpu, memory)
         value = self.addressing_mode.read_from(cpu, memory, address)
         new_value = cpu.exec_in_cycle(_exec_asl, value)
@@ -377,6 +370,7 @@ class ASL(OpCode):
         if self.addressing_mode != Accumulator:
             cpu.addr = address
             cpu.data = new_value
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
 
 
 class ROL(OpCode):
@@ -401,7 +395,6 @@ class ROL(OpCode):
             cpu.negative = (new_value & NEGATIVE_BIT) > 0
             return new_value
 
-        cpu.clear_state_mem()
         address = self.addressing_mode.fetch_address(cpu, memory)
         value = self.addressing_mode.read_from(cpu, memory, address)
         self.addressing_mode.write_to(cpu, memory, address, value)
@@ -410,6 +403,7 @@ class ROL(OpCode):
         if self.addressing_mode != Accumulator:
             cpu.data = new_value
             cpu.addr = address
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
 
 
 class LSR(OpCode):
@@ -430,7 +424,6 @@ class LSR(OpCode):
             cpu.negative = (new_value & NEGATIVE_BIT) > 0
             return new_value
 
-        cpu.clear_state_mem()
         address = self.addressing_mode.fetch_address(cpu, memory)
         value = self.addressing_mode.read_from(cpu, memory, address)
         self.addressing_mode.write_to(cpu, memory, address, value)
@@ -439,6 +432,7 @@ class LSR(OpCode):
         if self.addressing_mode != Accumulator:
             cpu.data = new_value
             cpu.addr = address
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
 
 
 class ROR(OpCode):
@@ -463,15 +457,15 @@ class ROR(OpCode):
             cpu.negative = (new_value & NEGATIVE_BIT) > 0
             return new_value
 
-        cpu.clear_state_mem()
         address = self.addressing_mode.fetch_address(cpu, memory)
         value = self.addressing_mode.read_from(cpu, memory, address)
         self.addressing_mode.write_to(cpu, memory, address, value)
-        new_value = cpu.exec_in_cycle(_exec_ror)
+        new_value = cpu.exec_in_cycle(_exec_ror, value)
         self.addressing_mode.write_to(cpu, memory, address, new_value)
         if self.addressing_mode != Accumulator:
             cpu.data = new_value
             cpu.addr = address
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
 
 
 class ArithmeticAndLogicalOpCodes:

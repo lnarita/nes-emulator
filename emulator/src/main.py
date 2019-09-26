@@ -1,8 +1,9 @@
 import argparse
 
 from emulator.cartridge import Cartridge
-from emulator.cpu import CPU
+from emulator.cpu import CPU, CPUState, StatusRegisterFlags
 from emulator.memory import Memory
+from emulator.opcodes.jump import BRK
 from emulator.opcodes.opcodes import OpCodes
 
 
@@ -13,30 +14,35 @@ def main(args):
 # https://stackoverflow.com/questions/45305891/6502-cycle-timing-per-instruction
 # http://nesdev.com/6502_cpu.txt (6510 Instruction Timing)
 def emulate(file_path):
+    nestest_log_format = args.nestest
     running = True
     file_contents = read_file(file_path)
     cartridge = Cartridge.from_bytes(file_contents)
     memory = Memory(cartridge.prg_rom)
-    cpu = CPU(log_compatible_mode=args.nestest)
+    cpu = CPU(log_compatible_mode=nestest_log_format)
+
+    if nestest_log_format:
+        # hack for Nintendulator nestest log comparison
+        cpu.sp -= 2
 
     while running:
         try:
-            # print("Current cycle:", cpu.cycle)
+            previous_state = CPUState(pc=cpu.pc, sp=cpu.sp, a=cpu.a, x=cpu.x, y=cpu.y, p=StatusRegisterFlags(int_value=cpu.flags), addr=cpu.addr, data=cpu.data,
+                                      cycle=cpu.cycle, log_compatible_mode=nestest_log_format)
             decoded = cpu.exec_in_cycle(fetch_and_decode_instruction, cpu, memory)  # fetching and decoding a instruction always take 1 cycle
             if decoded:
-                # print(decoded)
                 decoded.exec(cpu, memory)
                 # TODO: proper execution abortion, this is probably wrong
-                if cpu.break_command:
+                if isinstance(decoded, BRK):
                     running = False
                     break
-                print_debug_line(cpu, args.nestest)
+                print_debug_line(cpu, previous_state, decoded, nestest_log_format)
                 cpu.clear_state_mem()
         except IndexError:
             # we've reached a program counter that is not within memory bounds
             running = False
         except KeyError as e:
-            print("Can't find instruction by code {}".format(e))
+            # print("Can't find instruction by code {}".format(e))
             cpu.inc_pc_by(1)
         except Exception as e:
             print(e)
@@ -62,9 +68,9 @@ def decode_instruction(instruction):
     return decoded
 
 
-def print_debug_line(cpu, nestest):
+def print_debug_line(cpu, previous, instruction, nestest):
     if nestest:
-        print("%04X  %s             %s" % (cpu.pc, "meh", cpu))
+        print("%04X  %s  %s" % (previous.pc, instruction, previous))
     else:
         print(cpu)
 
