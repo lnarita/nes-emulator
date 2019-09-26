@@ -419,22 +419,13 @@ class BRK(OpCode):
         memory.store(cpu.sp, cpu.pc)
         cpu.sp -= 1
 
-        status = 0b00000000
-        status |= cpu.negative and 0b10000000
-        status |= cpu.overflow and 0b01000000
-        status |= True and 0b00100000
-        status |= cpu.break_command and 0b00010000
-        status |= cpu.decimal and 0b00001000
-        status |= cpu.interrupts_disabled and 0b00000100
-        status |= cpu.zero and 0b00000010
-        status |= cpu.carry and 0b00000001
+        status = cpu.flags
 
         memory.store(cpu.sp, status)
         cpu.sp -= 1
 
         cpu.pc = address
         cpu.break_command = True
-        # TODO: pushes
 
 
 class RTI(OpCode):
@@ -444,7 +435,25 @@ class RTI(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        pass
+        cpu.sp += 1
+        cpu.sp = cpu.sp & 0xff ^ 0x0100
+        from_stack = memory.fetch(cpu.sp)
+        status = (from_stack & 0b11101111) | 0b00100000
+        new_status = StatusRegisterFlags(int_value=status)
+        cpu.negative = new_status.negative
+        cpu.overflow = new_status.overflow
+        cpu.break_command = new_status.break_command
+        cpu.decimal = new_status.decimal
+        cpu.interrupts_disabled = new_status.interrupts_disabled
+        cpu.zero = new_status.zero
+        cpu.carry = new_status.carry
+        cpu.inc_cycle()
+        cpu.inc_cycle()
+        cpu.inc_cycle()
+        cpu.sp += 1
+        from_stack = memory.fetch(cpu.sp)
+        cpu.pc = from_stack
+
 
 
 class JSR(OpCode):
