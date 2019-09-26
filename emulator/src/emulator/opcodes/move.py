@@ -27,7 +27,7 @@ class LDA(OpCode):
                 cpu.zero = cpu.a == 0 
                 cpu.negative = (cpu.a & 0b10000000) > 0
 
-        cpu.exec_in_cycle(cycle_lda, cpu, memory)
+        cpu.exec_in_cycle(cycle_lda)
 
 
 class STA(OpCode):
