@@ -14,18 +14,15 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
 
    ;NOTE: declare variables using the DSB and DSW directives, like this:
 
-   MyVariable0 .dsb 1
-   MyVariable1 .dsb 1
-   
+   ;MyVariable0 .dsb 1
+   ;MyVariable1 .dsb 3
 
    .ende
 
    ;NOTE: you can also split the variable declarations into individual pages, like this:
 
-   .enum $0100
-   MyVariable2 .dsb 1
-   MyVariable3 .dsb 1
-   .ende
+   ;.enum $0100
+   ;.ende
 
    ;.enum $0200
    ;.ende
@@ -47,13 +44,10 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
    .base $10000-(PRG_COUNT*$4000)
 
 Reset:
-   LDA #$01
-   STA MyVariable2
-
-   ; Absolute
-   LDA #$0F
-   ADC MyVariable2
-
+   LDA #$33
+   PHA
+   LDA #$FF
+   PLA
 
 NMI:
 

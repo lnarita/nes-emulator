@@ -48,11 +48,11 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
 
 Reset:
    LDA #$F0
-   STA MyVariable0
+   STA MyVariable2
 
    ; Absolute
    LDA #$0F
-   ORA MyVariable0
+   ORA MyVariable2
 
 
 NMI:

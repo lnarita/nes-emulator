@@ -47,13 +47,9 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
    .base $10000-(PRG_COUNT*$4000)
 
 Reset:
-   LDA #$01
-   STA MyVariable2
-
-   ; Absolute
-   LDA #$0F
-   ADC MyVariable2
-
+   ; Immediate
+   LDY #$FF
+   CPY #$F0
 
 NMI:
 
