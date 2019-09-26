@@ -29,17 +29,20 @@ def emulate(file_path):
         try:
             previous_state = CPUState(pc=cpu.pc, sp=cpu.sp, a=cpu.a, x=cpu.x, y=cpu.y, p=StatusRegisterFlags(int_value=cpu.flags), addr=cpu.addr, data=cpu.data,
                                       cycle=cpu.cycle, log_compatible_mode=nestest_log_format)
+            if previous_state.pc == 0xD959:
+                aaaaa = ""
             decoded = cpu.exec_in_cycle(fetch_and_decode_instruction, cpu, memory)  # fetching and decoding a instruction always take 1 cycle
             if decoded:
                 decoded.exec(cpu, memory)
                 # TODO: proper execution abortion, this is probably wrong
-                if isinstance(decoded, BRK):
-                    running = False
-                    break
+                # if isinstance(decoded, BRK):
+                #     running = False
+                #     break
                 print_debug_line(cpu, previous_state, decoded, nestest_log_format)
                 cpu.clear_state_mem()
-        except IndexError:
+        except IndexError as e:
             # we've reached a program counter that is not within memory bounds
+            print(e)
             running = False
         except KeyError as e:
             # print("Can't find instruction by code {}".format(e))

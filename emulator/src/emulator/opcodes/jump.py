@@ -45,6 +45,7 @@ class BPL(OpCode):
             if should_take_branch:
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
+                    cpu.inc_pc_by(operand - 1)
                 else:
                     cpu.inc_pc_by(operand)
                 if overflow:
@@ -91,6 +92,7 @@ class BMI(OpCode):
             if should_take_branch:
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
+                    cpu.inc_pc_by(operand - 1)
                 else:
                     cpu.inc_pc_by(operand)
                 if overflow:
@@ -137,6 +139,7 @@ class BVC(OpCode):
             if should_take_branch:
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
+                    cpu.inc_pc_by(operand - 1)
                 else:
                     cpu.inc_pc_by(operand)
                 if overflow:
@@ -183,6 +186,7 @@ class BVS(OpCode):
             if should_take_branch:
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
+                    cpu.inc_pc_by(operand - 1)
                 else:
                     cpu.inc_pc_by(operand)
                 if overflow:
@@ -229,6 +233,7 @@ class BCC(OpCode):
             if should_take_branch:
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
+                    cpu.inc_pc_by(operand - 1)
                 else:
                     cpu.inc_pc_by(operand)
                 if overflow:
@@ -275,6 +280,7 @@ class BCS(OpCode):
             if should_take_branch:
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
+                    cpu.inc_pc_by(operand - 1)
                 else:
                     cpu.inc_pc_by(operand)
                 if overflow:
@@ -321,6 +327,7 @@ class BNE(OpCode):
             if should_take_branch:
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
+                    cpu.inc_pc_by(operand - 1)
                 else:
                     cpu.inc_pc_by(operand)
                 if overflow:
@@ -367,6 +374,7 @@ class BEQ(OpCode):
             if should_take_branch:
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
+                    cpu.inc_pc_by(operand - 1)
                 else:
                     cpu.inc_pc_by(operand)
                 if overflow:
@@ -387,45 +395,17 @@ class BRK(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _read_16_bits_low(memory, addr):
-            addr_low = memory.fetch(addr)
-            return addr_low & LOW_BITS_MASK
-        def _read_16_bits_high(memory, addr):
-            addr_high = memory.fetch(addr)
-            return (addr_high << 8) & HIGH_BITS_MASK
-        def _read_ptr_low():
-            low = _read_16_bits_low(memory, 0xfffe)
-            cpu.inc_pc_by(1)
-            return low
-        def _read_ptr_high():
-            high = _read_16_bits_high(memory, 0xffff)
-            cpu.inc_pc_by(1)
-            return high
-        def _read_addr_low(addr):
-            low = _read_16_bits_low(memory, addr)
-            return low
-        def _get_16_bits_addr_from_high_low(high, low):
-            return high | low
-        def _read_addr_high_and_return_address(addr, l):
-            h = _read_16_bits_high(memory, addr + 1)
-            value = _get_16_bits_addr_from_high_low(l, h)
-            return value
-
-        pointer_low = cpu.exec_in_cycle(_read_ptr_low)  # 2
-        pointer_high = cpu.exec_in_cycle(_read_ptr_high)  # 3
-        pointer = _get_16_bits_addr_from_high_low(pointer_low, pointer_high)
-        address_low = cpu.exec_in_cycle(_read_addr_low, pointer)  # 4
-        address = cpu.exec_in_cycle(_read_addr_high_and_return_address, pointer, address_low)  # 5
-
-        memory.store(cpu.sp, cpu.pc)
-        cpu.sp -= 1
+        cpu.exec_in_cycle(memory.stack_push, cpu, (cpu.pc & HIGH_BITS_MASK) >> 8)
+        cpu.exec_in_cycle(memory.stack_push, cpu, (cpu.pc & LOW_BITS_MASK))
 
         status = cpu.flags
+        cpu.exec_in_cycle(memory.stack_push, cpu, (status | 0b00010000))
 
-        memory.store(cpu.sp, status)
-        cpu.sp -= 1
+        pcl = Absolute.read_from(cpu, memory, 0xFFFE)
+        pch = Absolute.read_from(cpu, memory, 0xFFFF)
+        new_pc = AddressMode.get_16_bits_addr_from_high_low((pch << 8), pcl)
 
-        cpu.pc = address
+        cpu.pc = new_pc
         cpu.break_command = True
 
 
@@ -436,9 +416,7 @@ class RTI(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        cpu.sp += 1
-        cpu.sp = cpu.sp & 0xff ^ 0x0100
-        from_stack = memory.fetch(cpu.sp)
+        from_stack = memory.stack_pop(cpu)
         status = (from_stack & 0b11101111) | 0b00100000
         new_status = StatusRegisterFlags(int_value=status)
         cpu.negative = new_status.negative
@@ -451,9 +429,9 @@ class RTI(OpCode):
         cpu.inc_cycle()
         cpu.inc_cycle()
         cpu.inc_cycle()
-        cpu.sp += 1
-        from_stack = memory.fetch(cpu.sp)
-        cpu.pc = from_stack
+        pcl = memory.stack_pop(cpu)
+        pch = memory.stack_pop(cpu)
+        cpu.pc = AddressMode.get_16_bits_addr_from_high_low((pch << 8), pcl)
 
 
 

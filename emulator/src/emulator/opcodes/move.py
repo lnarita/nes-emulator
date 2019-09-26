@@ -118,6 +118,8 @@ class LDY(OpCode):
             if self.addressing_mode:
                 address = self.addressing_mode.fetch_address(cpu, memory)
                 value = self.addressing_mode.read_from(cpu, memory, address)
+                if self.addressing_mode != Immediate:
+                    self.addressing_mode.data = "= %02X" % memory.fetch(address)
 
                 cpu.y = value
                 cpu.zero = cpu.y == 0

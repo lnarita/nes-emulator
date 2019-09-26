@@ -95,10 +95,12 @@ class Memory:
     def stack_push(self, cpu, value):
         self.store(cpu.sp, value)
         cpu.sp -= 1
+        cpu.sp = cpu.sp & 0xff ^ 0x0100
 
     def stack_pop(self, cpu):
         value = self.fetch(cpu.sp + 1)
         cpu.sp += 1
+        cpu.sp = cpu.sp & 0xff ^ 0x0100
         return value
 
     @staticmethod

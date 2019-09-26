@@ -249,6 +249,7 @@ class DEC(OpCode):
             cpu.negative = (value & 0b10000000) > 0
             cpu.zero = (value == 0)
 
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
             self.addressing_mode.write_to(cpu, memory, address, value)
 
 
@@ -308,6 +309,8 @@ class INC(OpCode):
             cpu.negative = (value & 0b10000000) > 0
             cpu.zero = (value == 0)
 
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
+
             self.addressing_mode.write_to(cpu, memory, address, value)
 
 
@@ -366,11 +369,12 @@ class ASL(OpCode):
         address = self.addressing_mode.fetch_address(cpu, memory)
         value = self.addressing_mode.read_from(cpu, memory, address)
         new_value = cpu.exec_in_cycle(_exec_asl, value)
+        if self.addressing_mode != Accumulator:
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
         self.addressing_mode.write_to(cpu, memory, address, new_value)
         if self.addressing_mode != Accumulator:
             cpu.addr = address
             cpu.data = new_value
-            self.addressing_mode.data = "= %02X" % memory.fetch(address)
 
 
 class ROL(OpCode):
@@ -399,11 +403,12 @@ class ROL(OpCode):
         value = self.addressing_mode.read_from(cpu, memory, address)
         self.addressing_mode.write_to(cpu, memory, address, value)
         new_value = cpu.exec_in_cycle(_exec_rol, value)
+        if self.addressing_mode != Accumulator:
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
         self.addressing_mode.write_to(cpu, memory, address, new_value)
         if self.addressing_mode != Accumulator:
             cpu.data = new_value
             cpu.addr = address
-            self.addressing_mode.data = "= %02X" % memory.fetch(address)
 
 
 class LSR(OpCode):
@@ -428,11 +433,12 @@ class LSR(OpCode):
         value = self.addressing_mode.read_from(cpu, memory, address)
         self.addressing_mode.write_to(cpu, memory, address, value)
         new_value = cpu.exec_in_cycle(_exec_lsr, value)
+        if self.addressing_mode != Accumulator:
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
         self.addressing_mode.write_to(cpu, memory, address, new_value)
         if self.addressing_mode != Accumulator:
             cpu.data = new_value
             cpu.addr = address
-            self.addressing_mode.data = "= %02X" % memory.fetch(address)
 
 
 class ROR(OpCode):
@@ -461,11 +467,12 @@ class ROR(OpCode):
         value = self.addressing_mode.read_from(cpu, memory, address)
         self.addressing_mode.write_to(cpu, memory, address, value)
         new_value = cpu.exec_in_cycle(_exec_ror, value)
+        if self.addressing_mode != Accumulator:
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
         self.addressing_mode.write_to(cpu, memory, address, new_value)
         if self.addressing_mode != Accumulator:
             cpu.data = new_value
             cpu.addr = address
-            self.addressing_mode.data = "= %02X" % memory.fetch(address)
 
 
 class ArithmeticAndLogicalOpCodes:

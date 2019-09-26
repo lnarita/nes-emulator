@@ -79,7 +79,10 @@ class Indirect(AddressMode):
             return low
 
         def _read_addr_high_and_return_address(addr, l):
-            h = cls.read_16_bits_high(memory, addr + 1)
+            if (addr & LOW_BITS_MASK) == 0xFF:
+                h = cls.read_16_bits_high(memory, addr & HIGH_BITS_MASK)
+            else:
+                h = cls.read_16_bits_high(memory, addr + 1)
             value = cls.get_16_bits_addr_from_high_low(l, h)
             return value
 
@@ -92,7 +95,8 @@ class Indirect(AddressMode):
         pointer = cls.get_16_bits_addr_from_high_low(pointer_low, pointer_high)
         address_low = cpu.exec_in_cycle(_read_addr_low, pointer)  # 4
         address = cpu.exec_in_cycle(_read_addr_high_and_return_address, pointer, address_low)  # 5
-        cls.addr = "$%04X" % address
+        cls.addr = "($%04X)" % pointer
+        cls.data = "= %04X" % address
         return address
 
 
@@ -125,7 +129,10 @@ class IndirectX(AddressMode):
             return low
 
         def _read_addr_high(addr, l):
-            h = cls.read_16_bits_high(memory, addr + 1)
+            if (addr & LOW_BITS_MASK) == 0xFF:
+                h = cls.read_16_bits_high(memory, addr & HIGH_BITS_MASK)
+            else:
+                h = cls.read_16_bits_high(memory, addr + 1)
             value = cls.get_16_bits_addr_from_high_low(l, h)
             return value
 
@@ -137,7 +144,7 @@ class IndirectX(AddressMode):
         real_pointer = cpu.exec_in_cycle(_calc_real_addr, pointer)  # 3
         addr_low = cpu.exec_in_cycle(_read_addr_low, real_pointer)  # 4
         effective_addr = cpu.exec_in_cycle(_read_addr_high, real_pointer, addr_low)  # 5
-        cls.addr = "$%04X" % effective_addr
+        cls.addr = "(${0:02X},X) @ {1:02X} = {2:04X}".format(pointer, real_pointer, effective_addr)
         return effective_addr
 
 
@@ -174,13 +181,13 @@ class IndirectY(AddressMode):
             return low
 
         def _read_addr_high_from_pointer(ptr, low):
-            high = cls.read_16_bits_high(memory, ptr + 1)
+            high = cls.read_16_bits_high(memory, MemoryPositions.ZERO_PAGE.wrap(ptr + 1))
             real_low = low + cpu.y
             return high, real_low
 
         def _read_from_real_addr(high, low):
             def handle_overflow():
-                h = high + overflow
+                h = (high + overflow) & HIGH_BITS_MASK
                 l = low & LOW_BITS_MASK
                 return h, l
 
@@ -201,7 +208,7 @@ class IndirectY(AddressMode):
         real_pointer = cpu.exec_in_cycle(_read_addr_low_from_pointer, pointer)  # 3
         addr_high, addr_low = cpu.exec_in_cycle(_read_addr_high_from_pointer, pointer, real_pointer)  # 4
         effective_addr = cpu.exec_in_cycle(_read_from_real_addr, addr_high, addr_low)  # 5
-        cls.addr = "$%04X" % effective_addr
+        cls.addr = "($%02X),Y = %04X @ %04X" % (pointer, (addr_high & HIGH_BITS_MASK) | (real_pointer & LOW_BITS_MASK), effective_addr)
         return effective_addr
 
 
@@ -256,7 +263,7 @@ class ZeroPageX(AddressMode):
         cls.data = None
         addr = cpu.exec_in_cycle(_read_addr)  # 2
         real_addr = cpu.exec_in_cycle(_calc_real_addr, addr)  # 3
-        cls.addr = "$%04X" % real_addr
+        cls.addr = "$%02X,X @ %02X" % (addr, real_addr)
         return real_addr
 
 
@@ -286,7 +293,7 @@ class ZeroPageY(AddressMode):
         cls.data = None
         addr = cpu.exec_in_cycle(_read_addr)  # 2
         real_addr = cpu.exec_in_cycle(_calc_real_addr, addr)  # 3
-        cls.addr = "$%04X" % real_addr
+        cls.addr = "$%02X,Y @ %02X" % (addr, real_addr)
         return real_addr
 
 
@@ -354,7 +361,7 @@ class AbsoluteY(AddressMode):
 
         def _read_from_real_addr(high, low):
             def handle_overflow():
-                h = high + overflow
+                h = (high + overflow) & HIGH_BITS_MASK
                 l = low & LOW_BITS_MASK
                 return h, l
 
@@ -374,7 +381,7 @@ class AbsoluteY(AddressMode):
         low_before_inc = cpu.exec_in_cycle(_read_addr_low)  # 2
         high_no_fix, low = cpu.exec_in_cycle(_read_addr_high, low_before_inc)  # 3
         effective_addr = cpu.exec_in_cycle(_read_from_real_addr, high_no_fix, low)  # 4
-        cls.addr = "$%04X" % effective_addr
+        cls.addr = "$%04X,Y @ %04X" % ((high_no_fix | low_before_inc), effective_addr)
         return effective_addr
 
 
@@ -408,7 +415,7 @@ class AbsoluteX(AddressMode):
 
         def _read_from_real_addr(high, low):
             def handle_overflow():
-                h = high + overflow
+                h = (high + overflow) & HIGH_BITS_MASK
                 l = low & LOW_BITS_MASK
                 return h, l
 
@@ -428,7 +435,7 @@ class AbsoluteX(AddressMode):
         low_before_inc = cpu.exec_in_cycle(_read_addr_low)  # 2
         high_no_fix, low = cpu.exec_in_cycle(_read_addr_high, low_before_inc)  # 3
         effective_addr = cpu.exec_in_cycle(_read_from_real_addr, high_no_fix, low)  # 4
-        cls.addr = "$%04X" % effective_addr
+        cls.addr = "$%04X,X @ %04X" % ((high_no_fix | low_before_inc), effective_addr)
         return effective_addr
 
 
