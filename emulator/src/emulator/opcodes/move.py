@@ -29,7 +29,6 @@ class LDA(OpCode):
 
         cpu.exec_in_cycle(cycle_lda)
 
-
 class STA(OpCode):
     @classmethod
     def create_variations(cls):
