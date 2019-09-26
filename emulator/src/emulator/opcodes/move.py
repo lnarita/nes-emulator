@@ -18,10 +18,16 @@ class LDA(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        if self.addressing_mode:
-            address = self.addressing_mode.fetch_address(cpu, memory)
-            value = self.addressing_mode.read_from(cpu, memory, address)
-            cpu.a = value
+        def cycle_lda(): 
+            if self.addressing_mode:
+                address = self.addressing_mode.fetch_address(cpu, memory)
+                value = self.addressing_mode.read_from(cpu, memory, address)
+
+                cpu.a = value
+                cpu.zero = cpu.a == 0 
+                cpu.negative = (cpu.a & 0b10000000) > 0
+
+        cpu.exec_in_cycle(cycle_lda)
 
 class STA(OpCode):
     @classmethod
@@ -36,12 +42,11 @@ class STA(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        if self.addressing_mode:
-            address = self.addressing_mode.fetch_address(cpu, memory)
-            # TODO: count cycles correctly
-            cpu.addr = address
-            cpu.data = cpu.a
-            memory.store(address, cpu.a)
+        def cycle_sta():
+            if self.addressing_mode:
+                address = self.addressing_mode.fetch_address(cpu, memory)
+                self.addressing_mode.write_to(cpu, memory, address, cpu.a)
+        cpu.exec_in_cycle(cycle_sta)
 
 
 class LDX(OpCode):
@@ -53,7 +58,18 @@ class LDX(OpCode):
                       (0xB6, ZeroPageY, 4,),
                       (0xBE, AbsoluteY, 4,)]
         return map(cls.create_dict_entry, variations)
+    
+    def exec(self, cpu, memory):
+        def cycle_ldx(): 
+            if self.addressing_mode:
+                address = self.addressing_mode.fetch_address(cpu, memory)
+                value = self.addressing_mode.read_from(cpu, memory, address)
 
+                cpu.x = value
+                cpu.zero = cpu.x == 0 
+                cpu.negative = (cpu.x & 0b10000000) > 0
+
+        cpu.exec_in_cycle(cycle_ldx)
 
 class STX(OpCode):
     @classmethod
@@ -63,6 +79,12 @@ class STX(OpCode):
                       (0x96, ZeroPageY, 4,)]
         return map(cls.create_dict_entry, variations)
 
+    def exec(self, cpu, memory):
+        def cycle_stx():
+            if self.addressing_mode:
+                address = self.addressing_mode.fetch_address(cpu, memory)
+                self.addressing_mode.write_to(cpu, memory, address, cpu.x)
+        cpu.exec_in_cycle(cycle_stx)
 
 class LDY(OpCode):
     @classmethod
@@ -74,6 +96,18 @@ class LDY(OpCode):
                       (0xBC, AbsoluteX, 4,)]
         return map(cls.create_dict_entry, variations)
 
+    def exec(self, cpu, memory):
+        def cycle_ldy(): 
+            if self.addressing_mode:
+                address = self.addressing_mode.fetch_address(cpu, memory)
+                value = self.addressing_mode.read_from(cpu, memory, address)
+
+                cpu.y = value
+                cpu.zero = cpu.y == 0 
+                cpu.negative = (cpu.y & 0b10000000) > 0
+
+        cpu.exec_in_cycle(cycle_ldy)
+
 
 class STY(OpCode):
     @classmethod
@@ -83,6 +117,12 @@ class STY(OpCode):
                       (0x94, ZeroPageX, 4,)]
         return map(cls.create_dict_entry, variations)
 
+    def exec(self, cpu, memory):
+        def cycle_sty():
+            if self.addressing_mode:
+                address = self.addressing_mode.fetch_address(cpu, memory)
+                self.addressing_mode.write_to(cpu, memory, address, cpu.y)
+        cpu.exec_in_cycle(cycle_sty)
 
 class TAX(OpCode):
     @classmethod
@@ -91,10 +131,11 @@ class TAX(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        cpu.x = cpu.a
-        cpu.zero = cpu.x == 0
-        cpu.negative = (cpu.x & 0b10000000) > 0
-        cpu.inc_cycle()
+        def cycle_tax():
+            cpu.x = cpu.a
+            cpu.zero = cpu.x == 0
+            cpu.negative = (cpu.x & 0b10000000) > 0
+        cpu.exec_in_cycle(cycle_tax)
 
 
 class TXA(OpCode):
@@ -104,10 +145,11 @@ class TXA(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        cpu.a = cpu.x
-        cpu.zero = cpu.a == 0
-        cpu.negative = (cpu.a & 0b10000000) > 0
-        cpu.inc_cycle()
+        def cycle_txa():
+            cpu.a = cpu.x
+            cpu.zero = cpu.a == 0
+            cpu.negative = (cpu.a & 0b10000000) > 0
+        cpu.exec_in_cycle(cycle_txa)
 
 
 class TAY(OpCode):
@@ -117,10 +159,11 @@ class TAY(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        cpu.y = cpu.a
-        cpu.zero = cpu.y == 0
-        cpu.negative = (cpu.y & 0b10000000) > 0
-        cpu.inc_cycle()
+        def cycle_tay():
+            cpu.y = cpu.a
+            cpu.zero = cpu.y == 0
+            cpu.negative = (cpu.y & 0b10000000) > 0
+        cpu.exec_in_cycle(cycle_tay)
 
 
 class TYA(OpCode):
@@ -130,10 +173,11 @@ class TYA(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        cpu.a = cpu.y
-        cpu.zero = cpu.a == 0
-        cpu.negative = (cpu.a & 0b10000000) > 0
-        cpu.inc_cycle()
+        def cycle_tya():
+            cpu.a = cpu.y
+            cpu.zero = cpu.a == 0
+            cpu.negative = (cpu.a & 0b10000000) > 0
+        cpu.exec_in_cycle(cycle_tya)
 
 
 class TSX(OpCode):
@@ -166,6 +210,13 @@ class PLA(OpCode):
         variations = [(0x68, None, 4,)]
         return map(cls.create_dict_entry, variations)
 
+    def exec(self, cpu, memory):
+        cpu.sp += 1
+        cpu.sp = cpu.sp & 0xff ^ 0x0100
+        cpu.a = memory.fetch(cpu.sp)
+        cpu.inc_cycle()
+        cpu.inc_cycle()
+        cpu.inc_cycle()
 
 class PHA(OpCode):
     @classmethod
@@ -173,6 +224,12 @@ class PHA(OpCode):
         variations = [(0x48, None, 3,)]
         return map(cls.create_dict_entry, variations)
 
+    def exec(self, cpu, memory):
+        memory.store(cpu.sp, cpu.a)
+        cpu.sp -= 1
+        cpu.sp = cpu.sp & 0xff ^ 0x0100
+        cpu.inc_cycle()
+        cpu.inc_cycle()
 
 class PLP(OpCode):
     @classmethod
@@ -180,12 +237,43 @@ class PLP(OpCode):
         variations = [(0x28, None, 4,)]
         return map(cls.create_dict_entry, variations)
 
+    def exec(self, cpu, memory):
+        cpu.sp += 1
+        cpu.sp = cpu.sp & 0xff ^ 0x0100
+        status = memory.fetch(cpu.sp)
+        cpu.negative = status & 0b10000000 != 0
+        cpu.overflow = status & 0b01000000 != 0
+        cpu.break_command = status & 0b00010000 != 0
+        cpu.decimal = status & 0b00001000 != 0
+        cpu.interrupts_disabled = status & 0b00000100 != 0
+        cpu.zero = status & 0b00000010 != 0
+        cpu.carry = status & 0b00000001 != 0
+        cpu.inc_cycle()
+        cpu.inc_cycle()
+        cpu.inc_cycle()
 
 class PHP(OpCode):
     @classmethod
     def create_variations(cls):
         variations = [(0x08, None, 3,)]
         return map(cls.create_dict_entry, variations)
+
+    def exec(self, cpu, memory):
+        status = 0b00000000
+        status |= cpu.negative and 0b10000000
+        status |= cpu.overflow and 0b01000000
+        status |= True and 0b00100000
+        status |= True and 0b00010000
+        status |= cpu.decimal and 0b00001000
+        status |= cpu.interrupts_disabled and 0b00000100
+        status |= cpu.zero and 0b00000010
+        status |= cpu.carry and 0b00000001
+
+        memory.store(cpu.sp, status)
+        cpu.sp -= 1
+        cpu.sp = cpu.sp & 0xff ^ 0x0100
+        cpu.inc_cycle()
+        cpu.inc_cycle()
 
 
 class MoveOpCodes:

@@ -24,8 +24,10 @@ def test_TXA():
 
      cpu.x = 0b10000001
      cpu.a = 1
+     cpu.inc_cycle_by(-cpu.cycle)
      TXA.exec(cpu, memory)
 
+     assert cpu.cycle == (TXA.cycles - 1)
      assert cpu.a == 0b10000001
      assert cpu.zero == False
      print(cpu.negative)
@@ -45,8 +47,10 @@ def test_TAX():
 
      cpu.a = 0
      cpu.x = 1
+     cpu.inc_cycle_by(-cpu.cycle)
      TAX.exec(cpu, memory)
 
+     assert cpu.cycle == (TAX.cycles - 1)
      assert cpu.x == 0
      assert cpu.zero == True
      assert cpu.negative == False
@@ -75,8 +79,10 @@ def test_TYA():
 
      cpu.y = 0
      cpu.a = 1
+     cpu.inc_cycle_by(-cpu.cycle)
      TYA.exec(cpu, memory)
 
+     assert cpu.cycle == (TYA.cycles - 1)
      assert cpu.a == 0
      assert cpu.zero == True
      assert cpu.negative == False
@@ -104,8 +110,10 @@ def test_TAY():
 
      cpu.a = 0
      cpu.y = 1
+     cpu.inc_cycle_by(-cpu.cycle)
      TAY.exec(cpu, memory)
 
+     assert cpu.cycle == (TAY.cycles - 1)
      assert cpu.y == 0
      assert cpu.zero == True
      assert cpu.negative == False
