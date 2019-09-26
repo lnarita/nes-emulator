@@ -31,6 +31,8 @@ def emulate(file_path):
                     running = False
                     break
                 print_debug_line(cpu)
+                cpu.addr = None
+                cpu.data = None
         except IndexError:
             # we've reached a program counter that is not within memory bounds
             running = False
