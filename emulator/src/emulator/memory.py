@@ -30,7 +30,7 @@ class MemoryPositions(Enum):
         return self.start <= addr <= self.end
 
     def wrap(self, addr):
-        return (addr % (self.end + 1)) + self.start
+        return (self.start + (addr - self.start) % ((self.end + 1) - self.start))
 
 
 class Memory:

@@ -1,8 +1,10 @@
 import argparse
 
+from emulator.adressing import AddressMode
 from emulator.cartridge import Cartridge
+from emulator.constants import HIGH_BITS_MASK, LOW_BITS_MASK
 from emulator.cpu import CPU, CPUState, StatusRegisterFlags
-from emulator.memory import Memory
+from emulator.memory import Memory, MemoryPositions
 from emulator.opcodes.jump import BRK
 from emulator.opcodes.opcodes import OpCodes
 
@@ -15,16 +17,25 @@ def main(args):
 # http://nesdev.com/6502_cpu.txt (6510 Instruction Timing)
 def emulate(file_path):
     nestest_log_format = args.nestest
+    automation_mode = args.automation
     running = True
     file_contents = read_file(file_path)
     cartridge = Cartridge.from_bytes(file_contents)
     memory = Memory(cartridge.prg_rom)
     cpu = CPU(log_compatible_mode=nestest_log_format)
 
+    reset_pos_low = memory.fetch(MemoryPositions.RESET.start)
+    reset_pos_high = memory.fetch(MemoryPositions.RESET.end)
+    reset_pos = MemoryPositions.PRG_ROM_START.wrap(
+        AddressMode.get_16_bits_addr_from_high_low((reset_pos_high << 8) & HIGH_BITS_MASK, reset_pos_low & LOW_BITS_MASK))
+    cpu.pc = reset_pos
+
     if nestest_log_format:
         # hack for Nintendulator nestest log comparison
         cpu.sp -= 2
         cpu.inc_cycle_by(7)
+    if automation_mode:
+        cpu.pc = MemoryPositions.PRG_ROM_START.start
 
     while running:
         try:
@@ -85,6 +96,7 @@ if __name__ == "__main__":
     # Required positional argument
     parser.add_argument("file", help="NES Cartridge file path")
     parser.add_argument("--nestest", action="store_true")
+    parser.add_argument("--automation", action="store_true")
 
     args = parser.parse_args()
     main(args)
