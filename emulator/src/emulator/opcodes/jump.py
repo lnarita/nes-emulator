@@ -43,6 +43,7 @@ class BPL(OpCode):
                 new_pc = cpu.pc + 1
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
+                cpu.exec_in_cycle(_stall)
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
                     cpu.inc_pc_by(operand - 1)
@@ -90,6 +91,7 @@ class BMI(OpCode):
                 new_pc = cpu.pc + 1
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
+                cpu.exec_in_cycle(_stall)
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
                     cpu.inc_pc_by(operand - 1)
@@ -137,6 +139,7 @@ class BVC(OpCode):
                 new_pc = cpu.pc + 1
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
+                cpu.exec_in_cycle(_stall)
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
                     cpu.inc_pc_by(operand - 1)
@@ -184,6 +187,7 @@ class BVS(OpCode):
                 new_pc = cpu.pc + 1
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
+                cpu.exec_in_cycle(_stall)
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
                     cpu.inc_pc_by(operand - 1)
@@ -231,6 +235,7 @@ class BCC(OpCode):
                 new_pc = cpu.pc + 1
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
+                cpu.exec_in_cycle(_stall)
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
                     cpu.inc_pc_by(operand - 1)
@@ -278,6 +283,7 @@ class BCS(OpCode):
                 new_pc = cpu.pc + 1
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
+                cpu.exec_in_cycle(_stall)
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
                     cpu.inc_pc_by(operand - 1)
@@ -325,6 +331,7 @@ class BNE(OpCode):
                 new_pc = cpu.pc + 1
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
+                cpu.exec_in_cycle(_stall)
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
                     cpu.inc_pc_by(operand - 1)
@@ -372,6 +379,7 @@ class BEQ(OpCode):
                 new_pc = cpu.pc + 1
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
+                cpu.exec_in_cycle(_stall)
                 if next_instruction == new_next_instruction:
                     cpu.inc_pc_by(1)
                     cpu.inc_pc_by(operand - 1)
@@ -453,10 +461,12 @@ class JSR(OpCode):
         6    PC     R  copy low address byte to PCL, fetch high address
                        byte to PCH
         """
-        addr = self.addressing_mode.fetch_address(cpu, memory)
-        cpu.exec_in_cycle(memory.stack_push, cpu, ((cpu.pc - 1) & HIGH_BITS_MASK) >> 8)
-        cpu.exec_in_cycle(memory.stack_push, cpu, ((cpu.pc - 1) & LOW_BITS_MASK))
-        cpu.pc = addr
+        def _cycle() :
+            addr = self.addressing_mode.fetch_address(cpu, memory)
+            cpu.exec_in_cycle(memory.stack_push, cpu, ((cpu.pc - 1) & HIGH_BITS_MASK) >> 8)
+            cpu.exec_in_cycle(memory.stack_push, cpu, ((cpu.pc - 1) & LOW_BITS_MASK))
+            cpu.pc = addr
+        cpu.exec_in_cycle(_cycle)
 
 
 class RTS(OpCode):
@@ -476,11 +486,17 @@ class RTS(OpCode):
         5  $0100,S  R  pull PCH from stack
         6    PC     R  increment PC
         """
+        def _stall():
+            pass
         addr_low = cpu.exec_in_cycle(memory.stack_pop, cpu)
         addr_high = cpu.exec_in_cycle(memory.stack_pop, cpu)
         addr_high = addr_high << 8
         addr = AddressMode.get_16_bits_addr_from_high_low(addr_high, addr_low)
         cpu.pc = addr + 1
+        cpu.exec_in_cycle(_stall)
+        cpu.exec_in_cycle(_stall)
+        cpu.exec_in_cycle(_stall)
+        
 
 
 class JMP(OpCode):

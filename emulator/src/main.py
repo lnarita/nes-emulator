@@ -71,7 +71,7 @@ def decode_instruction(instruction):
 
 def print_debug_line(cpu, previous, instruction, nestest):
     if nestest:
-        print("%04X  %s  %s" % (previous.pc, instruction, previous))
+        print("%04X  %s  %s  CYC:%s" % (previous.pc, instruction, previous, previous.cycle + 7))
     else:
         print(cpu)
 

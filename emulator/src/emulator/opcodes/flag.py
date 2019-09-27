@@ -20,12 +20,14 @@ class BIT(OpCode):
 
     def exec(self, cpu, memory):
         if self.addressing_mode:
-            address = self.addressing_mode.fetch_address(cpu, memory)
-            value = self.addressing_mode.read_from(cpu, memory, address)
-            self.addressing_mode.data = "= %02X" % memory.fetch(address)
-            cpu.negative = (value & 0b10000000) > 0
-            cpu.overflow = (value & 0b01000000) > 0
-            cpu.zero = (value & cpu.a) == 0
+            def _cycle():
+                address = self.addressing_mode.fetch_address(cpu, memory)
+                value = self.addressing_mode.read_from(cpu, memory, address)
+                self.addressing_mode.data = "= %02X" % memory.fetch(address)
+                cpu.negative = (value & 0b10000000) > 0
+                cpu.overflow = (value & 0b01000000) > 0
+                cpu.zero = (value & cpu.a) == 0
+            cpu.exec_in_cycle(_cycle)
 
 
 class CLC(OpCode):
@@ -161,7 +163,9 @@ class NOP(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        pass
+        def _stall():
+            pass
+        cpu.exec_in_cycle(_stall)
 
 
 class FlagOpCodes:

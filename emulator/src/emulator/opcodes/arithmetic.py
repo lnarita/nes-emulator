@@ -44,15 +44,17 @@ class AND(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        address = self.addressing_mode.fetch_address(cpu, memory)
-        value = self.addressing_mode.read_from(cpu, memory, address)
-        cpu.a &= value
-        cpu.zero = (cpu.a == 0)
-        cpu.negative = (cpu.a & NEGATIVE_BIT) > 0
-        if self.addressing_mode != Immediate:
-            cpu.data = value
-            cpu.addr = address
-            self.addressing_mode.data = "= %02X" % memory.fetch(address)
+        def _cycle():
+            address = self.addressing_mode.fetch_address(cpu, memory)
+            value = self.addressing_mode.read_from(cpu, memory, address)
+            cpu.a &= value
+            cpu.zero = (cpu.a == 0)
+            cpu.negative = (cpu.a & NEGATIVE_BIT) > 0
+            if self.addressing_mode != Immediate:
+                cpu.data = value
+                cpu.addr = address
+                self.addressing_mode.data = "= %02X" % memory.fetch(address)
+            cpu.exec_in_cycle(_cycle)
 
 
 class EOR(OpCode):
