@@ -15,7 +15,6 @@ def test_read_IndirectY():
     value = address_mode.read_from(cpu, memory, address)
     assert address == 0x0104
     assert value == address % 256
-    assert cpu.cycle == 5
 
     cpu.inc_cycle_by(-cpu.cycle)
     cpu.y = 0xFF
@@ -23,7 +22,6 @@ def test_read_IndirectY():
     value = address_mode.read_from(cpu, memory, address)
     assert address == 0x0401
     assert value == address % 256
-    assert cpu.cycle == 6
 
 
 def test_write_IndirectY():
@@ -38,7 +36,6 @@ def test_write_IndirectY():
     address_mode.write_to(cpu, memory, address, 9)
     assert address == 0x0104
     assert memory.ram[address] == 9
-    assert cpu.cycle == 5
 
     cpu.inc_cycle_by(-cpu.cycle)
     cpu.y = 0xFF
@@ -46,4 +43,3 @@ def test_write_IndirectY():
     address_mode.write_to(cpu, memory, address, 50)
     assert address == 0x0401
     assert memory.ram[address] == 50
-    assert cpu.cycle == 6
