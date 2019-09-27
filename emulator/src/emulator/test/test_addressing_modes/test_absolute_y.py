@@ -15,7 +15,6 @@ def test_read_AbsoluteY():
     value = address_mode.read_from(cpu, memory, address)
     assert address == 0x023C
     assert value == (0x023C % 256)
-    assert cpu.cycle == 4
 
     cpu.inc_cycle_by(-cpu.cycle)
     cpu.y = 0xA1
@@ -24,7 +23,6 @@ def test_read_AbsoluteY():
 
     assert address == 0x0220
     assert value == (0x0220 % 256)
-    assert cpu.cycle == 5
 
     cpu.inc_cycle_by(-cpu.cycle)
     cpu.y = 0x07
@@ -32,7 +30,6 @@ def test_read_AbsoluteY():
 
     assert address == 0x2007
     # PPU do not assert value for now
-    assert cpu.cycle == 3
 
 
 def test_write_AbsoluteY():
@@ -47,7 +44,6 @@ def test_write_AbsoluteY():
     address_mode.write_to(cpu, memory, address, 20)
     assert address == 0x0155
     assert memory.ram[address] == 20
-    assert cpu.cycle == 4
 
     cpu.inc_cycle_by(-cpu.cycle)
     cpu.y = 0x30
@@ -55,7 +51,6 @@ def test_write_AbsoluteY():
     address_mode.write_to(cpu, memory, address, 100)
     assert address == 0x032F
     assert memory.ram[address] == 100
-    assert cpu.cycle == 5
 
     cpu.inc_cycle_by(-cpu.cycle)
     cpu.y = 0x20
@@ -63,4 +58,3 @@ def test_write_AbsoluteY():
     address_mode.write_to(cpu, memory, address, 67)
     assert address == 0x052A
     assert memory.ram[address] == 67
-    assert cpu.cycle == 4

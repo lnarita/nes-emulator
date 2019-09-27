@@ -15,7 +15,6 @@ def test_read_Accumulator():
 
     assert address is None
     assert value == 0x00
-    assert cpu.cycle == 0
 
     cpu.inc_cycle_by(-cpu.cycle)
     cpu.inc_pc_by(-cpu.pc)
@@ -26,7 +25,6 @@ def test_read_Accumulator():
 
     assert address is None
     assert value == 0x10
-    assert cpu.cycle == 0
 
     cpu.inc_cycle_by(-cpu.cycle)
     cpu.inc_pc_by(-cpu.pc)
@@ -37,7 +35,6 @@ def test_read_Accumulator():
 
     assert address is None
     assert value == 0xFF
-    assert cpu.cycle == 0
 
 
 def test_read_Accumulator():
@@ -51,7 +48,6 @@ def test_read_Accumulator():
 
     assert address is None
     assert cpu.a == 5
-    assert cpu.cycle == 0
 
     cpu.inc_cycle_by(-cpu.cycle)
     cpu.inc_pc_by(-cpu.pc)
@@ -62,7 +58,6 @@ def test_read_Accumulator():
 
     assert address is None
     assert cpu.a == 105
-    assert cpu.cycle == 0
 
     cpu.inc_cycle_by(-cpu.cycle)
     cpu.inc_pc_by(-cpu.pc)
@@ -73,4 +68,3 @@ def test_read_Accumulator():
 
     assert address is None
     assert cpu.a == 255
-    assert cpu.cycle == 0

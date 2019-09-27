@@ -26,12 +26,14 @@ class LDA(OpCode):
                 value = self.addressing_mode.read_from(cpu, memory, address)
                 if self.addressing_mode != Immediate:
                     self.addressing_mode.data = "= %02X" % memory.fetch(address)
+                    cpu.addr = address
+                    cpu.data = value
 
                 cpu.a = value
                 cpu.zero = cpu.a == 0
                 cpu.negative = (cpu.a & 0b10000000) > 0
 
-        cpu.exec_in_cycle(cycle_lda)
+        cycle_lda()
 
 
 class STA(OpCode):
@@ -47,6 +49,9 @@ class STA(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
+        def _stall():
+            pass
+
         def cycle_sta():
             if self.addressing_mode:
                 address = self.addressing_mode.fetch_address(cpu, memory)
@@ -55,7 +60,15 @@ class STA(OpCode):
                 self.addressing_mode.data = "= %02X" % memory.fetch(address)
                 self.addressing_mode.write_to(cpu, memory, address, cpu.a)
 
-        cpu.exec_in_cycle(cycle_sta)
+        if self.addressing_mode in [IndirectY, AbsoluteY, AbsoluteX]:
+            # FIXME: this is ugly, but it works
+            cycle_start = cpu.cycle
+            cycle_sta()
+            cycle_end = cpu.cycle
+            if (cycle_end - cycle_start) < (self.cycles - 1):
+                cpu.exec_in_cycle(_stall)
+        else:
+            cycle_sta()
 
 
 class LDX(OpCode):
@@ -75,12 +88,14 @@ class LDX(OpCode):
                 value = self.addressing_mode.read_from(cpu, memory, address)
                 if self.addressing_mode != Immediate:
                     self.addressing_mode.data = "= %02X" % memory.fetch(address)
+                    cpu.addr = address
+                    cpu.data = value
 
                 cpu.x = value
                 cpu.zero = cpu.x == 0
                 cpu.negative = (cpu.x & 0b10000000) > 0
 
-        cpu.exec_in_cycle(cycle_ldx)
+        cycle_ldx()
 
 
 class STX(OpCode):
@@ -93,6 +108,14 @@ class STX(OpCode):
 
     def exec(self, cpu, memory):
         def cycle_stx():
+            """
+            #  address R/W description
+           --- ------- --- ------------------------------------------
+            1    PC     R  fetch opcode, increment PC
+            2    PC     R  fetch low byte of address, increment PC
+            3    PC     R  fetch high byte of address, increment PC
+            4  address  W  write register to effective address
+            """
             if self.addressing_mode:
                 address = self.addressing_mode.fetch_address(cpu, memory)
                 cpu.addr = address
@@ -100,7 +123,7 @@ class STX(OpCode):
                 self.addressing_mode.data = "= %02X" % memory.fetch(address)
                 self.addressing_mode.write_to(cpu, memory, address, cpu.x)
 
-        cpu.exec_in_cycle(cycle_stx)
+        cycle_stx()
 
 
 class LDY(OpCode):
@@ -120,12 +143,14 @@ class LDY(OpCode):
                 value = self.addressing_mode.read_from(cpu, memory, address)
                 if self.addressing_mode != Immediate:
                     self.addressing_mode.data = "= %02X" % memory.fetch(address)
+                    cpu.addr = address
+                    cpu.data = value
 
                 cpu.y = value
                 cpu.zero = cpu.y == 0
                 cpu.negative = (cpu.y & 0b10000000) > 0
 
-        cpu.exec_in_cycle(cycle_ldy)
+        cycle_ldy()
 
 
 class STY(OpCode):
@@ -145,7 +170,7 @@ class STY(OpCode):
                 self.addressing_mode.data = "= %02X" % memory.fetch(address)
                 self.addressing_mode.write_to(cpu, memory, address, cpu.y)
 
-        cpu.exec_in_cycle(cycle_sty)
+        cycle_sty()
 
 
 class TAX(OpCode):
