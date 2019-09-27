@@ -24,6 +24,8 @@ class BIT(OpCode):
                 address = self.addressing_mode.fetch_address(cpu, memory)
                 value = self.addressing_mode.read_from(cpu, memory, address)
                 self.addressing_mode.data = "= %02X" % memory.fetch(address)
+                cpu.addr = address
+                cpu.data = value
                 cpu.negative = (value & 0b10000000) > 0
                 cpu.overflow = (value & 0b01000000) > 0
                 cpu.zero = (value & cpu.a) == 0

@@ -27,7 +27,7 @@ class LDA(OpCode):
                 if self.addressing_mode != Immediate:
                     self.addressing_mode.data = "= %02X" % memory.fetch(address)
                     cpu.addr = address
-                    cpu.value = value
+                    cpu.data = value
 
                 cpu.a = value
                 cpu.zero = cpu.a == 0
@@ -92,7 +92,7 @@ class LDX(OpCode):
                 if self.addressing_mode != Immediate:
                     self.addressing_mode.data = "= %02X" % memory.fetch(address)
                     cpu.addr = address
-                    cpu.value = value
+                    cpu.data = value
 
                 cpu.x = value
                 cpu.zero = cpu.x == 0
@@ -152,6 +152,8 @@ class LDY(OpCode):
                 value = self.addressing_mode.read_from(cpu, memory, address)
                 if self.addressing_mode != Immediate:
                     self.addressing_mode.data = "= %02X" % memory.fetch(address)
+                    cpu.addr = address
+                    cpu.data = value
 
                 cpu.y = value
                 cpu.zero = cpu.y == 0

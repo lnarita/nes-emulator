@@ -279,6 +279,8 @@ class DEC(OpCode):
 
             self.addressing_mode.data = "= %02X" % memory.fetch(address)
             self.addressing_mode.write_to(cpu, memory, address, value)
+            cpu.addr = address
+            cpu.data = value
 
         if self.addressing_mode == AbsoluteX:
             # FIXME: this is ugly, but it works
@@ -351,8 +353,9 @@ class INC(OpCode):
             cpu.zero = (value == 0)
 
             self.addressing_mode.data = "= %02X" % memory.fetch(address)
-
             self.addressing_mode.write_to(cpu, memory, address, value)
+            cpu.addr = address
+            cpu.data = value
 
         if self.addressing_mode == AbsoluteX:
             # FIXME: this is ugly, but it works
