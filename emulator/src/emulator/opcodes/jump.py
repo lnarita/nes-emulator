@@ -2,9 +2,8 @@ from more_itertools import flatten
 
 from emulator.adressing import Relative, Absolute, Indirect, AddressMode
 from emulator.constants import HIGH_BITS_MASK, LOW_BITS_MASK
-from emulator.opcodes.base import OpCode
-from emulator.constants import HIGH_BITS_MASK, LOW_BITS_MASK
 from emulator.cpu import StatusRegisterFlags
+from emulator.opcodes.base import OpCode
 
 """
 Branching cycles:
@@ -58,14 +57,19 @@ class BPL(OpCode):
             next_instruction = memory.fetch(cpu.pc)
             should_take_branch = not cpu.negative
             overflow = False
-            self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             if should_take_branch:
                 new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, operand)
             else:
                 new_pc = cpu.pc + 1
+            if ((cpu.pc + operand) & 0xF0000) > 0:
+                self.addressing_mode.addr = "$%04X" % (new_pc)
+            else:
+                self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
                 cpu.inc_pc_by(operand)
+                if ((cpu.pc + operand) & 0xF0000) > 0:
+                    cpu.pc = new_pc
                 if overflow:
                     cpu.exec_in_cycle(_stall)
 
@@ -94,14 +98,19 @@ class BMI(OpCode):
             next_instruction = memory.fetch(cpu.pc)
             should_take_branch = cpu.negative
             overflow = False
-            self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             if should_take_branch:
                 new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, operand)
             else:
                 new_pc = cpu.pc + 1
+            if ((cpu.pc + operand) & 0xF0000) > 0:
+                self.addressing_mode.addr = "$%04X" % (new_pc)
+            else:
+                self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
                 cpu.inc_pc_by(operand)
+                if ((cpu.pc + operand) & 0xF0000) > 0:
+                    cpu.pc = new_pc
                 if overflow:
                     cpu.exec_in_cycle(_stall)
 
@@ -130,14 +139,19 @@ class BVC(OpCode):
             next_instruction = memory.fetch(cpu.pc)
             should_take_branch = not cpu.overflow
             overflow = False
-            self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             if should_take_branch:
                 new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, operand)
             else:
                 new_pc = cpu.pc + 1
+            if ((cpu.pc + operand) & 0xF0000) > 0:
+                self.addressing_mode.addr = "$%04X" % (new_pc)
+            else:
+                self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
                 cpu.inc_pc_by(operand)
+                if ((cpu.pc + operand) & 0xF0000) > 0:
+                    cpu.pc = new_pc
                 if overflow:
                     cpu.exec_in_cycle(_stall)
 
@@ -166,14 +180,19 @@ class BVS(OpCode):
             next_instruction = memory.fetch(cpu.pc)
             should_take_branch = cpu.overflow
             overflow = False
-            self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             if should_take_branch:
                 new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, operand)
             else:
                 new_pc = cpu.pc + 1
+            if ((cpu.pc + operand) & 0xF0000) > 0:
+                self.addressing_mode.addr = "$%04X" % (new_pc)
+            else:
+                self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
                 cpu.inc_pc_by(operand)
+                if ((cpu.pc + operand) & 0xF0000) > 0:
+                    cpu.pc = new_pc
                 if overflow:
                     cpu.exec_in_cycle(_stall)
 
@@ -202,14 +221,19 @@ class BCC(OpCode):
             next_instruction = memory.fetch(cpu.pc)
             should_take_branch = not cpu.carry
             overflow = False
-            self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             if should_take_branch:
                 new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, operand)
             else:
                 new_pc = cpu.pc + 1
+            if ((cpu.pc + operand) & 0xF0000) > 0:
+                self.addressing_mode.addr = "$%04X" % (new_pc)
+            else:
+                self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
                 cpu.inc_pc_by(operand)
+                if ((cpu.pc + operand) & 0xF0000) > 0:
+                    cpu.pc = new_pc
                 if overflow:
                     cpu.exec_in_cycle(_stall)
 
@@ -238,14 +262,19 @@ class BCS(OpCode):
             next_instruction = memory.fetch(cpu.pc)
             should_take_branch = cpu.carry
             overflow = False
-            self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             if should_take_branch:
                 new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, operand)
             else:
                 new_pc = cpu.pc + 1
+            if ((cpu.pc + operand) & 0xF0000) > 0:
+                self.addressing_mode.addr = "$%04X" % (new_pc)
+            else:
+                self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
                 cpu.inc_pc_by(operand)
+                if ((cpu.pc + operand) & 0xF0000) > 0:
+                    cpu.pc = new_pc
                 if overflow:
                     cpu.exec_in_cycle(_stall)
 
@@ -274,14 +303,19 @@ class BNE(OpCode):
             next_instruction = memory.fetch(cpu.pc)
             should_take_branch = not cpu.zero
             overflow = False
-            self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             if should_take_branch:
                 new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, operand)
             else:
                 new_pc = cpu.pc + 1
+            if ((cpu.pc + operand) & 0xF0000) > 0:
+                self.addressing_mode.addr = "$%04X" % (new_pc)
+            else:
+                self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
                 cpu.inc_pc_by(operand)
+                if ((cpu.pc + operand) & 0xF0000) > 0:
+                    cpu.pc = new_pc
                 if overflow:
                     cpu.exec_in_cycle(_stall)
 
@@ -310,14 +344,19 @@ class BEQ(OpCode):
             next_instruction = memory.fetch(cpu.pc)
             should_take_branch = cpu.zero
             overflow = False
-            self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             if should_take_branch:
                 new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, operand)
             else:
                 new_pc = cpu.pc + 1
+            if ((cpu.pc + operand) & 0xF0000) > 0:
+                self.addressing_mode.addr = "$%04X" % (new_pc)
+            else:
+                self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
                 cpu.inc_pc_by(operand)
+                if ((cpu.pc + operand) & 0xF0000) > 0:
+                    cpu.pc = new_pc
                 if overflow:
                     cpu.exec_in_cycle(_stall)
 
