@@ -118,7 +118,7 @@ class NOP(OpCode):
         return "{:02X} {:<6}{:<30} ".format(self.id, __str_addr(), __str_addr_2())
 
 
-class UnoficialOpcodes:
+class UnofficialOpcodes:
     opcodes = [
         IGN,
         NOP, 
@@ -128,5 +128,5 @@ class UnoficialOpcodes:
     @staticmethod
     def all_commands():
         return flatten(
-            map(lambda x: list(x.create_variations()), UnoficialOpcodes.opcodes)
+            map(lambda x: list(x.create_variations()), UnofficialOpcodes.opcodes)
         )
