@@ -43,6 +43,7 @@ class Memory:
         else:
             self.ram = __pad_or_truncate(ram, Memory.ram_size())
         self.rom = rom
+        self.debug_mem = []
 
     def fetch(self, addr):
         if MemoryPositions.ZERO_PAGE.contains(addr) or \
@@ -80,6 +81,9 @@ class Memory:
             self.ram[addr - MemoryPositions.RAM_MIRROR_2.start] = value
         elif MemoryPositions.RAM_MIRROR_3.contains(addr):
             self.ram[addr - MemoryPositions.RAM_MIRROR_3.start] = value
+        elif 0x2000 <= addr <= 0xFFFF:
+            # TODO: remove this if later
+            self.debug_mem.append(("%04X" % addr, "%04X" % value))
         elif MemoryPositions.PPU_REGISTERS.contains(addr):
             # TODO
             return
