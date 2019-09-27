@@ -22,10 +22,12 @@ class BIT(OpCode):
         if self.addressing_mode:
             address = self.addressing_mode.fetch_address(cpu, memory)
             value = self.addressing_mode.read_from(cpu, memory, address)
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
             cpu.negative = (value & 0b10000000) > 0
             cpu.overflow = (value & 0b01000000) > 0
             cpu.zero = (value & cpu.a) == 0
-            
+
+
 class CLC(OpCode):
     """
     C = 0
@@ -41,7 +43,6 @@ class CLC(OpCode):
         def _set_flag():
             cpu.carry = False
 
-        cpu.clear_state_mem()
         cpu.exec_in_cycle(_set_flag)
 
 
@@ -60,7 +61,6 @@ class SEC(OpCode):
         def _set_flag():
             cpu.carry = True
 
-        cpu.clear_state_mem()
         cpu.exec_in_cycle(_set_flag)
 
 
@@ -79,7 +79,6 @@ class CLD(OpCode):
         def _set_flag():
             cpu.decimal = False
 
-        cpu.clear_state_mem()
         cpu.exec_in_cycle(_set_flag)
 
 
@@ -98,7 +97,6 @@ class SED(OpCode):
         def _set_flag():
             cpu.decimal = True
 
-        cpu.clear_state_mem()
         cpu.exec_in_cycle(_set_flag)
 
 
@@ -117,7 +115,6 @@ class CLI(OpCode):
         def _set_flag():
             cpu.interrupts_disabled = False
 
-        cpu.clear_state_mem()
         cpu.exec_in_cycle(_set_flag)
 
 
@@ -136,7 +133,6 @@ class SEI(OpCode):
         def _set_flag():
             cpu.interrupts_disabled = True
 
-        cpu.clear_state_mem()
         cpu.exec_in_cycle(_set_flag)
 
 
@@ -155,7 +151,6 @@ class CLV(OpCode):
         def _set_flag():
             cpu.overflow = False
 
-        cpu.clear_state_mem()
         cpu.exec_in_cycle(_set_flag)
 
 
@@ -166,7 +161,6 @@ class NOP(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        cpu.clear_state_mem()
         pass
 
 
