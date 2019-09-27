@@ -171,7 +171,6 @@ class NOP(OpCode):
 
         cpu.exec_in_cycle(_stall)
 
-
 class FlagOpCodes:
     opcodes = [
         BIT,
