@@ -44,8 +44,8 @@ def emulate(file_path):
             decoded = cpu.exec_in_cycle(fetch_and_decode_instruction, cpu, memory)  # fetching and decoding a instruction always take 1 cycle
             if decoded:
                 decoded.exec(cpu, memory)
-                # TODO: proper execution abortion, this is probably wrong
                 if isinstance(decoded, BRK):
+                    # abort program on BRK
                     running = False
                     break
                 print_debug_line(cpu, previous_state, decoded, nestest_log_format)

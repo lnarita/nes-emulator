@@ -33,9 +33,6 @@ class LDA(OpCode):
                 cpu.zero = cpu.a == 0
                 cpu.negative = (cpu.a & 0b10000000) > 0
 
-        # if self.addressing_mode != ZeroPage:
-        #     cpu.exec_in_cycle(cycle_lda)
-        # else:
         cycle_lda()
 
 
@@ -98,9 +95,6 @@ class LDX(OpCode):
                 cpu.zero = cpu.x == 0
                 cpu.negative = (cpu.x & 0b10000000) > 0
 
-        # if self.addressing_mode != ZeroPage:
-        #     cpu.exec_in_cycle(cycle_ldx)
-        # else:
         cycle_ldx()
 
 
@@ -129,9 +123,6 @@ class STX(OpCode):
                 self.addressing_mode.data = "= %02X" % memory.fetch(address)
                 self.addressing_mode.write_to(cpu, memory, address, cpu.x)
 
-        # if self.addressing_mode != ZeroPage:
-        #     cpu.exec_in_cycle(cycle_stx)
-        # else:
         cycle_stx()
 
 
@@ -159,9 +150,6 @@ class LDY(OpCode):
                 cpu.zero = cpu.y == 0
                 cpu.negative = (cpu.y & 0b10000000) > 0
 
-        # if self.addressing_mode != ZeroPage:
-        #     cpu.exec_in_cycle(cycle_ldy)
-        # else:
         cycle_ldy()
 
 
@@ -182,9 +170,6 @@ class STY(OpCode):
                 self.addressing_mode.data = "= %02X" % memory.fetch(address)
                 self.addressing_mode.write_to(cpu, memory, address, cpu.y)
 
-        # if self.addressing_mode != ZeroPage:
-        #     cpu.exec_in_cycle(cycle_sty)
-        # else:
         cycle_sty()
 
 

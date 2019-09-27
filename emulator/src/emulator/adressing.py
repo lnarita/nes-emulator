@@ -203,7 +203,7 @@ class IndirectY(AddressMode):
         cls.high = None
         cls.addr = None
         cls.data = None
-        # FIXME: I have no idea of what's happening here, but the cycle count ended up matching, so it's something I guess
+
         pointer = cpu.exec_in_cycle(_read_ptr)  # 2
         real_pointer = cpu.exec_in_cycle(_read_addr_low_from_pointer, pointer)  # 3
         addr_high, addr_low = cpu.exec_in_cycle(_read_addr_high_from_pointer, pointer, real_pointer)  # 4
@@ -377,7 +377,7 @@ class AbsoluteY(AddressMode):
         cls.high = None
         cls.addr = None
         cls.data = None
-        # FIXME: I have no idea of what's happening here, but the cycle count ended up matching, so it's something I guess
+
         low_before_inc = cpu.exec_in_cycle(_read_addr_low)  # 2
         high_no_fix, low = cpu.exec_in_cycle(_read_addr_high, low_before_inc)  # 3
         effective_addr = _read_from_real_addr(high_no_fix, low)
@@ -431,7 +431,7 @@ class AbsoluteX(AddressMode):
         cls.high = None
         cls.addr = None
         cls.data = None
-        # FIXME: I also have no idea of what's happening here, but the cycle count ended up matching, so it's something I guess
+
         low_before_inc = cpu.exec_in_cycle(_read_addr_low)  # 2
         high_no_fix, low = cpu.exec_in_cycle(_read_addr_high, low_before_inc)  # 3
         effective_addr = _read_from_real_addr(high_no_fix, low)
