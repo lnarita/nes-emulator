@@ -6,6 +6,35 @@ from emulator.opcodes.base import OpCode
 from emulator.constants import HIGH_BITS_MASK, LOW_BITS_MASK
 from emulator.cpu import StatusRegisterFlags
 
+"""
+Branching cycles:
+
+ #   address  R/W description
+--- --------- --- ---------------------------------------------
+1     PC      R  fetch opcode, increment PC
+2     PC      R  fetch operand, increment PC
+3     PC      R  Fetch opcode of next instruction,
+                 If branch is taken, add operand to PCL.
+                 Otherwise increment PC.
+4+    PC*     R  Fetch opcode of next instruction.
+                 Fix PCH. If it did not change, increment PC.
+5!    PC      R  Fetch opcode of next instruction,
+                 increment PC.
+
+Notes: The opcode fetch of the next instruction is included to
+      this diagram for illustration purposes. When determining
+      real execution times, remember to subtract the last
+      cycle.
+
+      * The high byte of Program Counter (PCH) may be invalid
+        at this time, i.e. it may be smaller or bigger by $100.
+
+      + If branch is taken, this cycle will be executed.
+
+      ! If branch occurs to different page, this cycle will be
+        executed.
+"""
+
 
 class BPL(OpCode):
     @classmethod
@@ -17,38 +46,26 @@ class BPL(OpCode):
         def _stall():
             pass
 
+        def _calculate_new_pc(operand):
+            pcl = ((cpu.pc & LOW_BITS_MASK) + operand)
+            overflow = (pcl & HIGH_BITS_MASK) > 0
+            pcl &= LOW_BITS_MASK
+            new_pc = (cpu.pc & HIGH_BITS_MASK) | pcl
+            return new_pc, overflow
+
         def _add_cycle():
             operand = self.addressing_mode.fetch_address(cpu, memory)
             next_instruction = memory.fetch(cpu.pc)
             should_take_branch = not cpu.negative
-            """
-            3     PC      R  Fetch opcode of next instruction,
-                             If branch is taken, add operand to PCL.
-                             Otherwise increment PC.
-            4+    PC*     R  Fetch opcode of next instruction.
-                             Fix PCH. If it did not change, increment PC.
-            5!    PC      R  Fetch opcode of next instruction,
-                             increment PC.
-            """
-            pcl = cpu.pc
             overflow = False
-            new_pc = cpu.pc
             self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             if should_take_branch:
-                pcl = ((cpu.pc & LOW_BITS_MASK) + operand)
-                overflow = (pcl & HIGH_BITS_MASK) > 0
-                pcl &= LOW_BITS_MASK
-                new_pc = (cpu.pc & HIGH_BITS_MASK) | pcl
+                new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, operand)
             else:
                 new_pc = cpu.pc + 1
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
-                cpu.exec_in_cycle(_stall)
-                if next_instruction == new_next_instruction:
-                    cpu.inc_pc_by(1)
-                    cpu.inc_pc_by(operand - 1)
-                else:
-                    cpu.inc_pc_by(operand)
+                cpu.inc_pc_by(operand)
                 if overflow:
                     cpu.exec_in_cycle(_stall)
 
@@ -65,38 +82,26 @@ class BMI(OpCode):
         def _stall():
             pass
 
+        def _calculate_new_pc(operand):
+            pcl = ((cpu.pc & LOW_BITS_MASK) + operand)
+            overflow = (pcl & HIGH_BITS_MASK) > 0
+            pcl &= LOW_BITS_MASK
+            new_pc = (cpu.pc & HIGH_BITS_MASK) | pcl
+            return new_pc, overflow
+
         def _add_cycle():
             operand = self.addressing_mode.fetch_address(cpu, memory)
             next_instruction = memory.fetch(cpu.pc)
             should_take_branch = cpu.negative
-            """
-            3     PC      R  Fetch opcode of next instruction,
-                             If branch is taken, add operand to PCL.
-                             Otherwise increment PC.
-            4+    PC*     R  Fetch opcode of next instruction.
-                             Fix PCH. If it did not change, increment PC.
-            5!    PC      R  Fetch opcode of next instruction,
-                             increment PC.
-            """
-            pcl = cpu.pc
             overflow = False
-            new_pc = cpu.pc
             self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             if should_take_branch:
-                pcl = ((cpu.pc & LOW_BITS_MASK) + operand)
-                overflow = (pcl & HIGH_BITS_MASK) > 0
-                pcl &= LOW_BITS_MASK
-                new_pc = (cpu.pc & HIGH_BITS_MASK) | pcl
+                new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, operand)
             else:
                 new_pc = cpu.pc + 1
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
-                cpu.exec_in_cycle(_stall)
-                if next_instruction == new_next_instruction:
-                    cpu.inc_pc_by(1)
-                    cpu.inc_pc_by(operand - 1)
-                else:
-                    cpu.inc_pc_by(operand)
+                cpu.inc_pc_by(operand)
                 if overflow:
                     cpu.exec_in_cycle(_stall)
 
@@ -113,38 +118,26 @@ class BVC(OpCode):
         def _stall():
             pass
 
+        def _calculate_new_pc(operand):
+            pcl = ((cpu.pc & LOW_BITS_MASK) + operand)
+            overflow = (pcl & HIGH_BITS_MASK) > 0
+            pcl &= LOW_BITS_MASK
+            new_pc = (cpu.pc & HIGH_BITS_MASK) | pcl
+            return new_pc, overflow
+
         def _add_cycle():
             operand = self.addressing_mode.fetch_address(cpu, memory)
             next_instruction = memory.fetch(cpu.pc)
             should_take_branch = not cpu.overflow
-            """
-            3     PC      R  Fetch opcode of next instruction,
-                             If branch is taken, add operand to PCL.
-                             Otherwise increment PC.
-            4+    PC*     R  Fetch opcode of next instruction.
-                             Fix PCH. If it did not change, increment PC.
-            5!    PC      R  Fetch opcode of next instruction,
-                             increment PC.
-            """
-            pcl = cpu.pc
             overflow = False
-            new_pc = cpu.pc
             self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             if should_take_branch:
-                pcl = ((cpu.pc & LOW_BITS_MASK) + operand)
-                overflow = (pcl & HIGH_BITS_MASK) > 0
-                pcl &= LOW_BITS_MASK
-                new_pc = (cpu.pc & HIGH_BITS_MASK) | pcl
+                new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, operand)
             else:
                 new_pc = cpu.pc + 1
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
-                cpu.exec_in_cycle(_stall)
-                if next_instruction == new_next_instruction:
-                    cpu.inc_pc_by(1)
-                    cpu.inc_pc_by(operand - 1)
-                else:
-                    cpu.inc_pc_by(operand)
+                cpu.inc_pc_by(operand)
                 if overflow:
                     cpu.exec_in_cycle(_stall)
 
@@ -161,38 +154,26 @@ class BVS(OpCode):
         def _stall():
             pass
 
+        def _calculate_new_pc(operand):
+            pcl = ((cpu.pc & LOW_BITS_MASK) + operand)
+            overflow = (pcl & HIGH_BITS_MASK) > 0
+            pcl &= LOW_BITS_MASK
+            new_pc = (cpu.pc & HIGH_BITS_MASK) | pcl
+            return new_pc, overflow
+
         def _add_cycle():
             operand = self.addressing_mode.fetch_address(cpu, memory)
             next_instruction = memory.fetch(cpu.pc)
             should_take_branch = cpu.overflow
-            """
-            3     PC      R  Fetch opcode of next instruction,
-                             If branch is taken, add operand to PCL.
-                             Otherwise increment PC.
-            4+    PC*     R  Fetch opcode of next instruction.
-                             Fix PCH. If it did not change, increment PC.
-            5!    PC      R  Fetch opcode of next instruction,
-                             increment PC.
-            """
-            pcl = cpu.pc
             overflow = False
-            new_pc = cpu.pc
             self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             if should_take_branch:
-                pcl = ((cpu.pc & LOW_BITS_MASK) + operand)
-                overflow = (pcl & HIGH_BITS_MASK) > 0
-                pcl &= LOW_BITS_MASK
-                new_pc = (cpu.pc & HIGH_BITS_MASK) | pcl
+                new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, operand)
             else:
                 new_pc = cpu.pc + 1
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
-                cpu.exec_in_cycle(_stall)
-                if next_instruction == new_next_instruction:
-                    cpu.inc_pc_by(1)
-                    cpu.inc_pc_by(operand - 1)
-                else:
-                    cpu.inc_pc_by(operand)
+                cpu.inc_pc_by(operand)
                 if overflow:
                     cpu.exec_in_cycle(_stall)
 
@@ -209,38 +190,26 @@ class BCC(OpCode):
         def _stall():
             pass
 
+        def _calculate_new_pc(operand):
+            pcl = ((cpu.pc & LOW_BITS_MASK) + operand)
+            overflow = (pcl & HIGH_BITS_MASK) > 0
+            pcl &= LOW_BITS_MASK
+            new_pc = (cpu.pc & HIGH_BITS_MASK) | pcl
+            return new_pc, overflow
+
         def _add_cycle():
             operand = self.addressing_mode.fetch_address(cpu, memory)
             next_instruction = memory.fetch(cpu.pc)
             should_take_branch = not cpu.carry
-            """
-            3     PC      R  Fetch opcode of next instruction,
-                             If branch is taken, add operand to PCL.
-                             Otherwise increment PC.
-            4+    PC*     R  Fetch opcode of next instruction.
-                             Fix PCH. If it did not change, increment PC.
-            5!    PC      R  Fetch opcode of next instruction,
-                             increment PC.
-            """
-            pcl = cpu.pc
             overflow = False
-            new_pc = cpu.pc
             self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             if should_take_branch:
-                pcl = ((cpu.pc & LOW_BITS_MASK) + operand)
-                overflow = (pcl & HIGH_BITS_MASK) > 0
-                pcl &= LOW_BITS_MASK
-                new_pc = (cpu.pc & HIGH_BITS_MASK) | pcl
+                new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, operand)
             else:
                 new_pc = cpu.pc + 1
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
-                cpu.exec_in_cycle(_stall)
-                if next_instruction == new_next_instruction:
-                    cpu.inc_pc_by(1)
-                    cpu.inc_pc_by(operand - 1)
-                else:
-                    cpu.inc_pc_by(operand)
+                cpu.inc_pc_by(operand)
                 if overflow:
                     cpu.exec_in_cycle(_stall)
 
@@ -257,38 +226,26 @@ class BCS(OpCode):
         def _stall():
             pass
 
+        def _calculate_new_pc(operand):
+            pcl = ((cpu.pc & LOW_BITS_MASK) + operand)
+            overflow = (pcl & HIGH_BITS_MASK) > 0
+            pcl &= LOW_BITS_MASK
+            new_pc = (cpu.pc & HIGH_BITS_MASK) | pcl
+            return new_pc, overflow
+
         def _add_cycle():
             operand = self.addressing_mode.fetch_address(cpu, memory)
             next_instruction = memory.fetch(cpu.pc)
             should_take_branch = cpu.carry
-            """
-            3     PC      R  Fetch opcode of next instruction,
-                             If branch is taken, add operand to PCL.
-                             Otherwise increment PC.
-            4+    PC*     R  Fetch opcode of next instruction.
-                             Fix PCH. If it did not change, increment PC.
-            5!    PC      R  Fetch opcode of next instruction,
-                             increment PC.
-            """
-            pcl = cpu.pc
             overflow = False
-            new_pc = cpu.pc
             self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             if should_take_branch:
-                pcl = ((cpu.pc & LOW_BITS_MASK) + operand)
-                overflow = (pcl & HIGH_BITS_MASK) > 0
-                pcl &= LOW_BITS_MASK
-                new_pc = (cpu.pc & HIGH_BITS_MASK) | pcl
+                new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, operand)
             else:
                 new_pc = cpu.pc + 1
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
-                cpu.exec_in_cycle(_stall)
-                if next_instruction == new_next_instruction:
-                    cpu.inc_pc_by(1)
-                    cpu.inc_pc_by(operand - 1)
-                else:
-                    cpu.inc_pc_by(operand)
+                cpu.inc_pc_by(operand)
                 if overflow:
                     cpu.exec_in_cycle(_stall)
 
@@ -305,38 +262,26 @@ class BNE(OpCode):
         def _stall():
             pass
 
+        def _calculate_new_pc(operand):
+            pcl = ((cpu.pc & LOW_BITS_MASK) + operand)
+            overflow = (pcl & HIGH_BITS_MASK) > 0
+            pcl &= LOW_BITS_MASK
+            new_pc = (cpu.pc & HIGH_BITS_MASK) | pcl
+            return new_pc, overflow
+
         def _add_cycle():
             operand = self.addressing_mode.fetch_address(cpu, memory)
             next_instruction = memory.fetch(cpu.pc)
             should_take_branch = not cpu.zero
-            """
-            3     PC      R  Fetch opcode of next instruction,
-                             If branch is taken, add operand to PCL.
-                             Otherwise increment PC.
-            4+    PC*     R  Fetch opcode of next instruction.
-                             Fix PCH. If it did not change, increment PC.
-            5!    PC      R  Fetch opcode of next instruction,
-                             increment PC.
-            """
-            pcl = cpu.pc
             overflow = False
-            new_pc = cpu.pc
             self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             if should_take_branch:
-                pcl = ((cpu.pc & LOW_BITS_MASK) + operand)
-                overflow = (pcl & HIGH_BITS_MASK) > 0
-                pcl &= LOW_BITS_MASK
-                new_pc = (cpu.pc & HIGH_BITS_MASK) | pcl
+                new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, operand)
             else:
                 new_pc = cpu.pc + 1
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
-                cpu.exec_in_cycle(_stall)
-                if next_instruction == new_next_instruction:
-                    cpu.inc_pc_by(1)
-                    cpu.inc_pc_by(operand - 1)
-                else:
-                    cpu.inc_pc_by(operand)
+                cpu.inc_pc_by(operand)
                 if overflow:
                     cpu.exec_in_cycle(_stall)
 
@@ -353,38 +298,26 @@ class BEQ(OpCode):
         def _stall():
             pass
 
+        def _calculate_new_pc(operand):
+            pcl = ((cpu.pc & LOW_BITS_MASK) + operand)
+            overflow = (pcl & HIGH_BITS_MASK) > 0
+            pcl &= LOW_BITS_MASK
+            new_pc = (cpu.pc & HIGH_BITS_MASK) | pcl
+            return new_pc, overflow
+
         def _add_cycle():
             operand = self.addressing_mode.fetch_address(cpu, memory)
             next_instruction = memory.fetch(cpu.pc)
             should_take_branch = cpu.zero
-            """
-            3     PC      R  Fetch opcode of next instruction,
-                             If branch is taken, add operand to PCL.
-                             Otherwise increment PC.
-            4+    PC*     R  Fetch opcode of next instruction.
-                             Fix PCH. If it did not change, increment PC.
-            5!    PC      R  Fetch opcode of next instruction,
-                             increment PC.
-            """
-            pcl = cpu.pc
             overflow = False
-            new_pc = cpu.pc
             self.addressing_mode.addr = "$%04X" % (cpu.pc + operand)
             if should_take_branch:
-                pcl = ((cpu.pc & LOW_BITS_MASK) + operand)
-                overflow = (pcl & HIGH_BITS_MASK) > 0
-                pcl &= LOW_BITS_MASK
-                new_pc = (cpu.pc & HIGH_BITS_MASK) | pcl
+                new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, operand)
             else:
                 new_pc = cpu.pc + 1
             new_next_instruction = memory.fetch(new_pc)
             if should_take_branch:
-                cpu.exec_in_cycle(_stall)
-                if next_instruction == new_next_instruction:
-                    cpu.inc_pc_by(1)
-                    cpu.inc_pc_by(operand - 1)
-                else:
-                    cpu.inc_pc_by(operand)
+                cpu.inc_pc_by(operand)
                 if overflow:
                     cpu.exec_in_cycle(_stall)
 
@@ -424,7 +357,20 @@ class RTI(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        from_stack = memory.stack_pop(cpu)
+        def _stall():
+            pass
+        """
+        #  address R/W description
+       --- ------- --- -----------------------------------------------
+        1    PC     R  fetch opcode, increment PC
+        2    PC     R  read next instruction byte (and throw it away)
+        3  $0100,S  R  increment S
+        4  $0100,S  R  pull P from stack, increment S
+        5  $0100,S  R  pull PCL from stack, increment S
+        6  $0100,S  R  pull PCH from stack
+        """
+        from_stack = cpu.exec_in_cycle(memory.stack_pop, cpu)
+        cpu.exec_in_cycle(_stall)
         status = (from_stack & 0b11101111) | 0b00100000
         new_status = StatusRegisterFlags(int_value=status)
         cpu.negative = new_status.negative
@@ -434,13 +380,10 @@ class RTI(OpCode):
         cpu.interrupts_disabled = new_status.interrupts_disabled
         cpu.zero = new_status.zero
         cpu.carry = new_status.carry
-        cpu.inc_cycle()
-        cpu.inc_cycle()
-        cpu.inc_cycle()
-        pcl = memory.stack_pop(cpu)
-        pch = memory.stack_pop(cpu)
+        cpu.exec_in_cycle(_stall)
+        pcl = cpu.exec_in_cycle(memory.stack_pop,cpu)
+        pch = cpu.exec_in_cycle(memory.stack_pop,cpu)
         cpu.pc = AddressMode.get_16_bits_addr_from_high_low((pch << 8), pcl)
-
 
 
 class JSR(OpCode):
@@ -461,11 +404,13 @@ class JSR(OpCode):
         6    PC     R  copy low address byte to PCL, fetch high address
                        byte to PCH
         """
-        def _cycle() :
+
+        def _cycle():
             addr = self.addressing_mode.fetch_address(cpu, memory)
             cpu.exec_in_cycle(memory.stack_push, cpu, ((cpu.pc - 1) & HIGH_BITS_MASK) >> 8)
             cpu.exec_in_cycle(memory.stack_push, cpu, ((cpu.pc - 1) & LOW_BITS_MASK))
             cpu.pc = addr
+
         cpu.exec_in_cycle(_cycle)
 
 
@@ -486,8 +431,10 @@ class RTS(OpCode):
         5  $0100,S  R  pull PCH from stack
         6    PC     R  increment PC
         """
+
         def _stall():
             pass
+
         addr_low = cpu.exec_in_cycle(memory.stack_pop, cpu)
         addr_high = cpu.exec_in_cycle(memory.stack_pop, cpu)
         addr_high = addr_high << 8
@@ -496,7 +443,6 @@ class RTS(OpCode):
         cpu.exec_in_cycle(_stall)
         cpu.exec_in_cycle(_stall)
         cpu.exec_in_cycle(_stall)
-        
 
 
 class JMP(OpCode):

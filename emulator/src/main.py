@@ -24,6 +24,7 @@ def emulate(file_path):
     if nestest_log_format:
         # hack for Nintendulator nestest log comparison
         cpu.sp -= 2
+        cpu.inc_cycle_by(7)
 
     while running:
         try:
@@ -71,7 +72,8 @@ def decode_instruction(instruction):
 
 def print_debug_line(cpu, previous, instruction, nestest):
     if nestest:
-        print("%04X  %s  %s  CYC:%s" % (previous.pc, instruction, previous, previous.cycle + 7))
+        print("%04X  %s  %s  CYC:%d" % (previous.pc, instruction, previous, previous.cycle))
+        # print("%04X  %s  %s  CYC:%d (Δ = %d; expected = %d)" % (previous.pc, instruction, previous, previous.cycle, (cpu.cycle - previous.cycle), instruction.cycles))
     else:
         print(cpu)
 

@@ -27,7 +27,8 @@ class BIT(OpCode):
                 cpu.negative = (value & 0b10000000) > 0
                 cpu.overflow = (value & 0b01000000) > 0
                 cpu.zero = (value & cpu.a) == 0
-            cpu.exec_in_cycle(_cycle)
+
+            _cycle()
 
 
 class CLC(OpCode):
@@ -165,6 +166,7 @@ class NOP(OpCode):
     def exec(self, cpu, memory):
         def _stall():
             pass
+
         cpu.exec_in_cycle(_stall)
 
 
