@@ -53,7 +53,7 @@ class StatusRegisterFlags:
 
 
 class CPUState:
-    def __init__(self, pc=MemoryPositions.PRG_ROM_START.start, sp=MemoryPositions.STACK.end, a=0, x=0, y=0, p=StatusRegisterFlags(), addr=None, data=None,
+    def __init__(self, pc=MemoryPositions.PRG_ROM_START.start, sp=MemoryPositions.STACK.end - 2, a=0, x=0, y=0, p=StatusRegisterFlags(int_value=0x34), addr=None, data=None,
                  cycle=0, log_compatible_mode=False):
         super().__init__()
         self.pc = pc
@@ -70,7 +70,7 @@ class CPUState:
     def __str__(self):
         if self.log_compatible_mode:
             return "A:%02X X:%02X Y:%02X P:%02X SP:%02X" % (
-            np.uint8(self.a), np.uint8(self.x), np.uint8(self.y), int(self.p.__str__(), 2), np.uint8(self.sp & 0x00FF))
+                np.uint8(self.a), np.uint8(self.x), np.uint8(self.y), int(self.p.__str__(), 2), np.uint8(self.sp & 0x00FF))
         else:
             return "| pc = 0x{:04x} | a = 0x{:02x} | x = 0x{:02x} | y = 0x{:02x} | sp = 0x{:04x} | p[NV-BDIZC] = {} |{}".format(
                 np.uint16(self.pc), np.uint8(self.a), np.uint8(self.x), np.uint8(self.y), np.uint16(self.sp), self.p, self.__load_store_str())
@@ -147,6 +147,17 @@ class CPU:
     @property
     def flags(self):
         return int(self._state.p.__str__(), 2)
+
+    @flags.setter
+    def flags(self, value):
+        new_status = StatusRegisterFlags(int_value=value)
+        self.negative = new_status.negative
+        self.overflow = new_status.overflow
+        self.break_command = new_status.break_command
+        self.decimal = new_status.decimal
+        self.interrupts_disabled = new_status.interrupts_disabled
+        self.zero = new_status.zero
+        self.carry = new_status.carry
 
     @pc.setter
     def pc(self, value):
