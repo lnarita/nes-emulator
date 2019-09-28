@@ -2,7 +2,6 @@ from more_itertools import flatten
 
 from emulator.adressing import Immediate, ZeroPage, Absolute, ZeroPageY, AbsoluteY, IndirectY, ZeroPageX, AbsoluteX, IndirectX
 from emulator.constants import NEGATIVE_BIT, LOW_BITS_MASK
-from emulator.cpu import StatusRegisterFlags
 from emulator.opcodes.base import OpCode
 
 
@@ -300,14 +299,7 @@ class PLP(OpCode):
         cpu.sp = cpu.sp & 0xff ^ 0x0100
         from_stack = memory.fetch(cpu.sp)
         status = (from_stack & 0b11101111) | 0b00100000
-        new_status = StatusRegisterFlags(int_value=status)
-        cpu.negative = new_status.negative
-        cpu.overflow = new_status.overflow
-        cpu.break_command = new_status.break_command
-        cpu.decimal = new_status.decimal
-        cpu.interrupts_disabled = new_status.interrupts_disabled
-        cpu.zero = new_status.zero
-        cpu.carry = new_status.carry
+        cpu.flags = status
         cpu.inc_cycle()
         cpu.inc_cycle()
         cpu.inc_cycle()

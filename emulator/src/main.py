@@ -32,7 +32,7 @@ def emulate(file_path):
 
     if nestest_log_format:
         # hack for Nintendulator nestest log comparison
-        cpu.sp -= 2
+        cpu.flags = 0x24
         cpu.inc_cycle_by(7)
     if automation_mode:
         cpu.pc = MemoryPositions.PRG_ROM_START.start

@@ -2,7 +2,6 @@ from more_itertools import flatten
 
 from emulator.adressing import Relative, Absolute, Indirect, AddressMode
 from emulator.constants import HIGH_BITS_MASK, LOW_BITS_MASK
-from emulator.cpu import StatusRegisterFlags
 from emulator.opcodes.base import OpCode
 
 """
@@ -411,14 +410,7 @@ class RTI(OpCode):
         from_stack = cpu.exec_in_cycle(memory.stack_pop, cpu)
         cpu.exec_in_cycle(_stall)
         status = (from_stack & 0b11101111) | 0b00100000
-        new_status = StatusRegisterFlags(int_value=status)
-        cpu.negative = new_status.negative
-        cpu.overflow = new_status.overflow
-        cpu.break_command = new_status.break_command
-        cpu.decimal = new_status.decimal
-        cpu.interrupts_disabled = new_status.interrupts_disabled
-        cpu.zero = new_status.zero
-        cpu.carry = new_status.carry
+        cpu.flags = status
         cpu.exec_in_cycle(_stall)
         pcl = cpu.exec_in_cycle(memory.stack_pop,cpu)
         pch = cpu.exec_in_cycle(memory.stack_pop,cpu)
