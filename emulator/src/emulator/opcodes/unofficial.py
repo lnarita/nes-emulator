@@ -25,8 +25,10 @@ def unofficial_opcode_str(self, name=None):
             elif self.addressing_mode.addr is not None:
                 return "*{} {}".format(name, self.addressing_mode.addr)
         return "*{}".format(name)
-    with_space = "{:02X} {:<6}{:<30} ".format(self.id, __str_addr(), __str_addr_2())
-    without_space = "{:02X} {:<6}{:<30}".format(self.id, __str_addr(), __str_addr_2())
+    with_space = "{:02X} {:<6}{:<30} ".format(
+        self.id, __str_addr(), __str_addr_2())
+    without_space = "{:02X} {:<6}{:<30}".format(
+        self.id, __str_addr(), __str_addr_2())
 
     if len(with_space) > 40:
         return without_space
@@ -147,13 +149,77 @@ class LAX(OpCode):
     def __str__(self):
         return unofficial_opcode_str(self)
 
+# SAX (d,X) ($83 dd; 6 cycles)
+# SAX d ($87 dd; 3 cycles)
+# SAX a ($8F aa aa; 4 cycles)
+# SAX d,Y ($97 dd; 4 cycles)
+class SAX(OpCode):
+    @classmethod
+    def create_variations(cls):
+        variations = [(0x83, IndirectX, 6),
+                      (0x87, ZeroPage, 3),
+                      (0x8F, Absolute, 4),
+                      (0x97, ZeroPageY, 4)]
+        return map(cls.create_dict_entry, variations)
+
+    def exec(self, cpu, memory):
+        def _stall():
+            pass
+
+        def cycle_sta():
+            if self.addressing_mode:
+                address = self.addressing_mode.fetch_address(cpu, memory)
+                cpu.addr = address
+                cpu.data = cpu.a & cpu.x
+                self.addressing_mode.data = "= %02X" % memory.fetch(address)
+                self.addressing_mode.write_to(cpu, memory, address, cpu.a & cpu.x)
+
+        cycle_sta()
+
+    def __str__(self):
+        return unofficial_opcode_str(self)
+
+class SBC(OpCode):
+    @classmethod
+    def create_variations(cls):
+        variations = [(0xEB, Immediate, 2,)]
+        return map(cls.create_dict_entry, variations)
+
+    def exec(self, cpu, memory):
+        def _cycle():
+            def wrap_sub(a, b):
+                return (a - b) % 0x100
+
+            address = self.addressing_mode.fetch_address(cpu, memory)
+            subtrahend = self.addressing_mode.read_from(cpu, memory, address)
+            minuend = cpu.a
+            if self.addressing_mode != Immediate:
+                cpu.addr = address
+                cpu.data = subtrahend
+                self.addressing_mode.data = "= %02X" % memory.fetch(address)
+
+            new_a = (wrap_sub(wrap_sub(minuend, subtrahend), (0 if cpu.carry else 1)))
+            cpu.carry = (new_a & 0b01111111) == new_a
+            cpu.overflow = ((cpu.a ^ subtrahend) & NEGATIVE_BIT > 0) and (((cpu.a ^ new_a) & LOW_BITS_MASK) & NEGATIVE_BIT > 0)
+            cpu.a = new_a
+            cpu.a &= 0xFF
+            cpu.zero = cpu.a == 0
+            cpu.negative = cpu.a >> 7 == 1
+
+        _cycle()
+        
+    def __str__(self):
+        return unofficial_opcode_str(self)
+
 
 class UnofficialOpcodes:
     opcodes = [
         IGN,
         NOP,
         SKB,
-        LAX
+        LAX,
+        SAX,
+        SBC
     ]
 
     @staticmethod
