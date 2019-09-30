@@ -25,7 +25,7 @@ class LDA(OpCode):
                 value = self.addressing_mode.read_from(cpu, memory, address)
                 if self.addressing_mode != Immediate:
                     self.addressing_mode.data = "= %02X" % memory.fetch(address)
-                    cpu.addr = address
+                    cpu.addr = memory.get_effective_address(address)
                     cpu.data = value
 
                 cpu.a = value
@@ -54,7 +54,7 @@ class STA(OpCode):
         def cycle_sta():
             if self.addressing_mode:
                 address = self.addressing_mode.fetch_address(cpu, memory)
-                cpu.addr = address
+                cpu.addr = memory.get_effective_address(address)
                 cpu.data = cpu.a
                 self.addressing_mode.data = "= %02X" % memory.fetch(address)
                 self.addressing_mode.write_to(cpu, memory, address, cpu.a)
@@ -87,7 +87,7 @@ class LDX(OpCode):
                 value = self.addressing_mode.read_from(cpu, memory, address)
                 if self.addressing_mode != Immediate:
                     self.addressing_mode.data = "= %02X" % memory.fetch(address)
-                    cpu.addr = address
+                    cpu.addr = memory.get_effective_address(address)
                     cpu.data = value
 
                 cpu.x = value
@@ -117,7 +117,7 @@ class STX(OpCode):
             """
             if self.addressing_mode:
                 address = self.addressing_mode.fetch_address(cpu, memory)
-                cpu.addr = address
+                cpu.addr = memory.get_effective_address(address)
                 cpu.data = cpu.x
                 self.addressing_mode.data = "= %02X" % memory.fetch(address)
                 self.addressing_mode.write_to(cpu, memory, address, cpu.x)
@@ -142,7 +142,7 @@ class LDY(OpCode):
                 value = self.addressing_mode.read_from(cpu, memory, address)
                 if self.addressing_mode != Immediate:
                     self.addressing_mode.data = "= %02X" % memory.fetch(address)
-                    cpu.addr = address
+                    cpu.addr = memory.get_effective_address(address)
                     cpu.data = value
 
                 cpu.y = value
@@ -164,7 +164,7 @@ class STY(OpCode):
         def cycle_sty():
             if self.addressing_mode:
                 address = self.addressing_mode.fetch_address(cpu, memory)
-                cpu.addr = address
+                cpu.addr = memory.get_effective_address(address)
                 cpu.data = cpu.y
                 self.addressing_mode.data = "= %02X" % memory.fetch(address)
                 self.addressing_mode.write_to(cpu, memory, address, cpu.y)

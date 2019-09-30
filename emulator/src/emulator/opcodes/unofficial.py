@@ -66,7 +66,7 @@ class IGN(OpCode):
                 if self.addressing_mode != Immediate:
                     self.addressing_mode.data = "= %02X" % memory.fetch(
                         address)
-                    cpu.addr = address
+                    cpu.addr = memory.get_effective_address(address)
                     cpu.data = value
         _cycle()
 
@@ -132,7 +132,7 @@ class LAX(OpCode):
                 if self.addressing_mode != Immediate:
                     self.addressing_mode.data = "= %02X" % memory.fetch(
                         address)
-                    cpu.addr = address
+                    cpu.addr = memory.get_effective_address(address)
                     cpu.data = value
 
                 cpu.a = value
@@ -170,7 +170,7 @@ class SAX(OpCode):
         def cycle_sta():
             if self.addressing_mode:
                 address = self.addressing_mode.fetch_address(cpu, memory)
-                cpu.addr = address
+                cpu.addr = memory.get_effective_address(address)
                 cpu.data = cpu.a & cpu.x
                 self.addressing_mode.data = "= %02X" % memory.fetch(address)
                 self.addressing_mode.write_to(cpu, memory, address, cpu.a & cpu.x)
@@ -195,7 +195,7 @@ class SBC(OpCode):
             subtrahend = self.addressing_mode.read_from(cpu, memory, address)
             minuend = cpu.a
             if self.addressing_mode != Immediate:
-                cpu.addr = address
+                cpu.addr = memory.get_effective_address(address)
                 cpu.data = subtrahend
                 self.addressing_mode.data = "= %02X" % memory.fetch(address)
 
@@ -254,12 +254,12 @@ class DCP(OpCode):
 
                 self.addressing_mode.data = "= %02X" % memory.fetch(address)
                 self.addressing_mode.write_to(cpu, memory, address, value)
-                cpu.addr = address
+                cpu.addr = memory.get_effective_address(address)
                 cpu.data = value
 
                 minuend = cpu.a
                 if self.addressing_mode != Immediate:
-                    cpu.addr = address
+                    cpu.addr = memory.get_effective_address(address)
                     cpu.data = value
                 # Two's complement
                 subatrend = value
@@ -318,13 +318,13 @@ class ISC(OpCode):
 
             self.addressing_mode.data = "= %02X" % memory.fetch(address)
             self.addressing_mode.write_to(cpu, memory, address, value)
-            cpu.addr = address
+            cpu.addr = memory.get_effective_address(address)
             cpu.data = value
 
             subtrahend = value
             minuend = cpu.a
             if self.addressing_mode != Immediate:
-                cpu.addr = address
+                cpu.addr = memory.get_effective_address(address)
                 cpu.data = subtrahend
 
             n = np.int16(minuend) - np.int16(subtrahend) - np.int16(0 if cpu.carry else 1)
@@ -387,7 +387,7 @@ class SLO(OpCode):
             self.addressing_mode.write_to(cpu, memory, address, new_value)
 
             if self.addressing_mode != Accumulator:
-                cpu.addr = address
+                cpu.addr = memory.get_effective_address(address)
                 cpu.data = new_value
 
             value = new_value
@@ -396,7 +396,7 @@ class SLO(OpCode):
             cpu.negative = (cpu.a & NEGATIVE_BIT) > 0
             if self.addressing_mode != Immediate:
                 cpu.data = value
-                cpu.addr = address
+                cpu.addr = memory.get_effective_address(address)
 
         if self.addressing_mode == AbsoluteX:
             # FIXME: this is ugly, but it works
@@ -450,7 +450,7 @@ class RLA(OpCode):
             self.addressing_mode.write_to(cpu, memory, address, new_value)
             if self.addressing_mode != Accumulator:
                 cpu.data = new_value
-                cpu.addr = address
+                cpu.addr = memory.get_effective_address(address)
 
             value = new_value
             cpu.a &= value

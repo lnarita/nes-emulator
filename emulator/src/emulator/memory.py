@@ -107,6 +107,16 @@ class Memory:
         cpu.sp = cpu.sp & 0xff ^ 0x0100
         return value
 
+    def get_effective_address(self, addr):
+        if MemoryPositions.RAM_MIRROR_1.contains(addr):
+            return addr - MemoryPositions.RAM_MIRROR_1.start
+        elif MemoryPositions.RAM_MIRROR_2.contains(addr):
+            return addr - MemoryPositions.RAM_MIRROR_2.start
+        elif MemoryPositions.RAM_MIRROR_3.contains(addr):
+            return addr - MemoryPositions.RAM_MIRROR_3.start
+        else:
+            return addr
+
     @staticmethod
     def ram_size():
         return 2 * KB
