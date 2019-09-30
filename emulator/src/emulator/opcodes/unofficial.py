@@ -212,6 +212,79 @@ class SBC(OpCode):
         return unofficial_opcode_str(self)
 
 
+# DCP (d,X) ($C3 dd; 8 cycles)
+# DCP d ($C7 dd; 5 cycles)
+# DCP a ($CF aa aa; 6 cycles)
+# DCP (d),Y ($D3 dd; 8 cycles)
+# DCP d,X ($D7 dd; 6 cycles)
+# DCP a,Y ($DB aa aa; 7 cycles)
+# DCP a,X ($DF aa aa; 7 cycles)
+class DCP(OpCode):
+    @classmethod
+    def create_variations(cls):
+        variations = [
+            (0xC3, IndirectX, 8),
+            (0xC7, ZeroPage, 5),
+            (0xCF, Absolute, 6),
+            (0xD3, IndirectY, 8),
+            (0xD7, ZeroPageX, 6),
+            (0xDB, AbsoluteY, 7),
+            (0xDF, AbsoluteX, 7),
+        ]
+        return map(cls.create_dict_entry, variations)
+
+    def exec(self, cpu, memory):
+        def _stall():
+            pass
+        def _dec():
+            def _dec_m(value):
+                if (value == 0):
+                    value = 0b11111111
+                else:
+                    value -= 1
+                return value
+
+            def _cycle():
+                address = self.addressing_mode.fetch_address(cpu, memory)
+                value = self.addressing_mode.read_from(cpu, memory, address)
+                value = cpu.exec_in_cycle(_dec_m, value)
+                cpu.negative = (value & 0b10000000) > 0
+                cpu.zero = (value == 0)
+
+                self.addressing_mode.data = "= %02X" % memory.fetch(address)
+                self.addressing_mode.write_to(cpu, memory, address, value)
+                cpu.addr = address
+                cpu.data = value
+
+                minuend = cpu.a
+                if self.addressing_mode != Immediate:
+                    cpu.addr = address
+                    cpu.data = value
+                # Two's complement
+                subatrend = value
+                subatrend = abs(~subatrend ^ 0xFF) & 0xFF
+                tmp = minuend + subatrend
+                tmp &= 0xFF
+                cpu.carry = (minuend >= tmp)
+                cpu.zero = tmp == 0
+                cpu.negative = tmp >> 7 == 1
+
+            if self.addressing_mode == AbsoluteX:
+                # FIXME: this is ugly, but it works
+                cycle_start = cpu.cycle
+                _cycle()
+                cycle_end = cpu.cycle
+                if (cycle_end - cycle_start) < (self.cycles - 1):
+                    cpu.exec_in_cycle(_stall)
+            else:
+                _cycle()
+
+        _dec()
+        
+    def __str__(self):
+        return unofficial_opcode_str(self)
+
+
 class UnofficialOpcodes:
     opcodes = [
         IGN,
@@ -219,7 +292,8 @@ class UnofficialOpcodes:
         SKB,
         LAX,
         SAX,
-        SBC
+        SBC,
+        DCP
     ]
 
     @staticmethod
