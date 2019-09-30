@@ -3,7 +3,7 @@ from more_itertools import flatten
 from emulator.adressing import IndirectX, ZeroPage, Immediate, Absolute, IndirectY, ZeroPageX, AbsoluteY, AbsoluteX, Accumulator
 from emulator.constants import NEGATIVE_BIT, LOW_BITS_MASK
 from emulator.opcodes.base import OpCode
-
+import numpy as np
 
 class ORA(OpCode):
     @classmethod
@@ -137,9 +137,6 @@ class SBC(OpCode):
 
     def exec(self, cpu, memory):
         def _cycle():
-            def wrap_sub(a, b):
-                return (a - b) % 0x100
-
             address = self.addressing_mode.fetch_address(cpu, memory)
             subtrahend = self.addressing_mode.read_from(cpu, memory, address)
             minuend = cpu.a
@@ -148,13 +145,13 @@ class SBC(OpCode):
                 cpu.data = subtrahend
                 self.addressing_mode.data = "= %02X" % memory.fetch(address)
 
-            new_a = (wrap_sub(wrap_sub(minuend, subtrahend), (0 if cpu.carry else 1)))
-            cpu.carry = (new_a & 0b01111111) == new_a
-            cpu.overflow = ((cpu.a ^ subtrahend) & NEGATIVE_BIT > 0) and (((cpu.a ^ new_a) & LOW_BITS_MASK) & NEGATIVE_BIT > 0)
-            cpu.a = new_a
-            cpu.a &= 0xFF
-            cpu.zero = cpu.a == 0
-            cpu.negative = cpu.a >> 7 == 1
+            n = np.int16(minuend) - np.int16(subtrahend) - np.int16(0 if cpu.carry else 1)
+            a = np.uint8(n)
+            cpu.zero = a == 0
+            cpu.negative = (a & NEGATIVE_BIT) > 0
+            cpu.carry = n >= 0
+            cpu.overflow = ((minuend ^ subtrahend) & 0x80 > 0) and ((minuend ^ a) & 0x80 > 0);
+            cpu.a = int(a)
 
         _cycle()
 

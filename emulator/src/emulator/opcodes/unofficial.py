@@ -4,6 +4,7 @@ from emulator.adressing import Immediate, ZeroPage, Absolute, ZeroPageY, Absolut
 from emulator.constants import NEGATIVE_BIT, LOW_BITS_MASK
 from emulator.cpu import StatusRegisterFlags
 from emulator.opcodes.base import OpCode
+import numpy as np
 
 
 def unofficial_opcode_str(self, name=None):
@@ -236,7 +237,7 @@ class DCP(OpCode):
     def exec(self, cpu, memory):
         def _stall():
             pass
-        def _dec():
+        def _exec():
             def _dec_m(value):
                 if (value == 0):
                     value = 0b11111111
@@ -279,11 +280,73 @@ class DCP(OpCode):
             else:
                 _cycle()
 
-        _dec()
+        _exec()
         
     def __str__(self):
         return unofficial_opcode_str(self)
 
+class ISC(OpCode):
+    @classmethod
+    def create_variations(cls):
+        variations = [
+            (0xE3, IndirectX, 8),
+            (0xE7, ZeroPage, 5),
+            (0xEF, Absolute, 6),
+            (0xF3, IndirectY, 8),
+            (0xF7, ZeroPageX, 6),
+            (0xFB, AbsoluteY, 7),
+            (0xFF, AbsoluteX, 7),
+        ]
+        return map(cls.create_dict_entry, variations)
+
+    def exec(self, cpu, memory):
+        def _cycle():
+            def _stall():
+                pass
+            def _inc_m(value):
+                if (value == 0b11111111):
+                    value = 0
+                else:
+                    value += 1
+                return value
+
+            address = self.addressing_mode.fetch_address(cpu, memory)
+            value = self.addressing_mode.read_from(cpu, memory, address)
+            value = cpu.exec_in_cycle(_inc_m, value)
+            cpu.negative = (value & 0b10000000) > 0
+            cpu.zero = (value == 0)
+
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
+            self.addressing_mode.write_to(cpu, memory, address, value)
+            cpu.addr = address
+            cpu.data = value
+
+            subtrahend = value
+            minuend = cpu.a
+            if self.addressing_mode != Immediate:
+                cpu.addr = address
+                cpu.data = subtrahend
+
+            n = np.int16(minuend) - np.int16(subtrahend) - np.int16(0 if cpu.carry else 1)
+            a = np.uint8(n)
+            cpu.zero = a == 0
+            cpu.negative = (a & NEGATIVE_BIT) > 0
+            cpu.carry = n >= 0
+            cpu.overflow = ((minuend ^ subtrahend) & 0x80 > 0) and ((minuend ^ a) & 0x80 > 0)
+            cpu.a = int(a)
+
+        if self.addressing_mode == AbsoluteX:
+            # FIXME: this is ugly, but it works
+            cycle_start = cpu.cycle
+            _cycle()
+            cycle_end = cpu.cycle
+            if (cycle_end - cycle_start) < (self.cycles - 1):
+                cpu.exec_in_cycle(_stall)
+        else:
+            _cycle()
+        
+    def __str__(self):
+        return unofficial_opcode_str(self, "ISB")
 
 class UnofficialOpcodes:
     opcodes = [
@@ -293,7 +356,8 @@ class UnofficialOpcodes:
         LAX,
         SAX,
         SBC,
-        DCP
+        DCP,
+        ISC
     ]
 
     @staticmethod
