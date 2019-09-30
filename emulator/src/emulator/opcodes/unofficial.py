@@ -411,6 +411,68 @@ class SLO(OpCode):
     def __str__(self):
         return unofficial_opcode_str(self)
 
+class RLA(OpCode):
+    @classmethod
+    def create_variations(cls):
+        variations = [
+            (0x23, IndirectX, 8),
+            (0x27, ZeroPage, 5),
+            (0x2F, Absolute, 6),
+            (0x33, IndirectY, 8),
+            (0x37, ZeroPageX, 6),
+            (0x3B, AbsoluteY, 7),
+            (0x3F, AbsoluteX, 7),
+        ]
+        return map(cls.create_dict_entry, variations)
+
+    def exec(self, cpu, memory):
+        def _stall():
+            pass
+
+        def _exec_rol(value):
+            new_value = (value << 1) & LOW_BITS_MASK
+            if cpu.carry:
+                new_value |= 0b00000001
+            else:
+                new_value &= 0b111111110
+            cpu.carry = (value & 0b10000000) > 0
+            cpu.zero = (new_value == 0)
+            cpu.negative = (new_value & NEGATIVE_BIT) > 0
+            return new_value
+
+        def _cycle():
+            address = self.addressing_mode.fetch_address(cpu, memory)
+            value = self.addressing_mode.read_from(cpu, memory, address)
+            self.addressing_mode.write_to(cpu, memory, address, value)
+            new_value = _exec_rol(value)
+            if self.addressing_mode != Accumulator:
+                self.addressing_mode.data = "= %02X" % memory.fetch(address)
+            self.addressing_mode.write_to(cpu, memory, address, new_value)
+            if self.addressing_mode != Accumulator:
+                cpu.data = new_value
+                cpu.addr = address
+
+            value = new_value
+            cpu.a &= value
+            cpu.zero = (cpu.a == 0)
+            cpu.negative = (cpu.a & NEGATIVE_BIT) > 0
+            if self.addressing_mode != Immediate:
+                cpu.data = value
+                cpu.addr = address
+
+        if self.addressing_mode == AbsoluteX:
+            # FIXME: this is ugly, but it works
+            cycle_start = cpu.cycle
+            _cycle()
+            cycle_end = cpu.cycle
+            if (cycle_end - cycle_start) < (self.cycles - 1):
+                cpu.exec_in_cycle(_stall)
+        else:
+            _cycle()
+        
+    def __str__(self):
+        return unofficial_opcode_str(self)
+
 
 class UnofficialOpcodes:
     opcodes = [
@@ -422,7 +484,8 @@ class UnofficialOpcodes:
         SBC,
         DCP,
         ISC,
-        SLO
+        SLO,
+        RLA
     ]
 
     @staticmethod
