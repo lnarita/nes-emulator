@@ -300,9 +300,9 @@ class ISC(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
+        def _stall():
+            pass
         def _cycle():
-            def _stall():
-                pass
             def _inc_m(value):
                 if (value == 0b11111111):
                     value = 0

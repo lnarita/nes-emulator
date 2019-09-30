@@ -41,6 +41,9 @@ def emulate(file_path):
         try:
             previous_state = CPUState(pc=cpu.pc, sp=cpu.sp, a=cpu.a, x=cpu.x, y=cpu.y, p=StatusRegisterFlags(int_value=cpu.flags), addr=cpu.addr, data=cpu.data,
                                       cycle=cpu.cycle, log_compatible_mode=nestest_log_format)
+            if previous_state.pc == 0xC66E:
+                # TODO: remove, this is a breakpoint for debugging
+                aaaa = ""
             decoded = cpu.exec_in_cycle(fetch_and_decode_instruction, cpu, memory)  # fetching and decoding a instruction always take 1 cycle
             if decoded:
                 decoded.exec(cpu, memory)

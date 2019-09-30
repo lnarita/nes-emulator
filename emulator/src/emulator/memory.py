@@ -58,13 +58,13 @@ class Memory:
             return self.ram[addr - MemoryPositions.RAM_MIRROR_3.start]
         elif MemoryPositions.PPU_REGISTERS.contains(addr):
             # TODO
-            return
+            return 0xFF
         elif MemoryPositions.APU_IO_REGISTERS.contains(addr):
             # TODO
-            return
+            return 0xFF
         elif MemoryPositions.APU_IO_EXTRAS.contains(addr):
             # TODO
-            return
+            return 0xFF
         elif MemoryPositions.CARTRIDGE.contains(addr):
             return self.rom[addr - MemoryPositions.PRG_ROM_START.start]
         else:
