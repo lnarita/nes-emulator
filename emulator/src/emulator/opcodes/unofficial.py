@@ -1,6 +1,6 @@
 from more_itertools import flatten
 
-from emulator.adressing import Immediate, ZeroPage, Absolute, ZeroPageY, AbsoluteY, IndirectY, ZeroPageX, AbsoluteX, IndirectX
+from emulator.adressing import Immediate, ZeroPage, Absolute, ZeroPageY, AbsoluteY, IndirectY, ZeroPageX, AbsoluteX, IndirectX, Accumulator
 from emulator.constants import NEGATIVE_BIT, LOW_BITS_MASK
 from emulator.cpu import StatusRegisterFlags
 from emulator.opcodes.base import OpCode
@@ -348,6 +348,70 @@ class ISC(OpCode):
     def __str__(self):
         return unofficial_opcode_str(self, "ISB")
 
+
+class SLO(OpCode):
+    @classmethod
+    def create_variations(cls):
+        variations = [
+            (0x03, IndirectX, 8),
+            (0x07, ZeroPage, 5),
+            (0x0F, Absolute, 6),
+            (0x13, IndirectY, 8),
+            (0x17, ZeroPageX, 6),
+            (0x1B, AbsoluteY, 7),
+            (0x1F, AbsoluteX, 7),
+        ]
+        return map(cls.create_dict_entry, variations)
+
+    def exec(self, cpu, memory):
+
+        def _stall():
+            pass
+
+        def _exec_asl(value):
+            new_value = (value << 1)
+
+            cpu.carry = (new_value & 0b100000000) > 0
+            cpu.negative = (new_value & 0b10000000) > 0
+            new_value = (new_value & 0b11111111)  # truncates
+            cpu.zero = (new_value == 0)
+            return new_value
+
+        def _cycle():
+            address = self.addressing_mode.fetch_address(cpu, memory)
+            value = self.addressing_mode.read_from(cpu, memory, address)
+            self.addressing_mode.write_to(cpu, memory, address, value)
+            new_value = _exec_asl(value)
+            if self.addressing_mode != Accumulator:
+                self.addressing_mode.data = "= %02X" % memory.fetch(address)
+            self.addressing_mode.write_to(cpu, memory, address, new_value)
+
+            if self.addressing_mode != Accumulator:
+                cpu.addr = address
+                cpu.data = new_value
+
+            value = new_value
+            cpu.a |= value
+            cpu.zero = (cpu.a == 0)
+            cpu.negative = (cpu.a & NEGATIVE_BIT) > 0
+            if self.addressing_mode != Immediate:
+                cpu.data = value
+                cpu.addr = address
+
+        if self.addressing_mode == AbsoluteX:
+            # FIXME: this is ugly, but it works
+            cycle_start = cpu.cycle
+            _cycle()
+            cycle_end = cpu.cycle
+            if (cycle_end - cycle_start) < (self.cycles - 1):
+                cpu.exec_in_cycle(_stall)
+        else:
+            _cycle()
+        
+    def __str__(self):
+        return unofficial_opcode_str(self)
+
+
 class UnofficialOpcodes:
     opcodes = [
         IGN,
@@ -357,7 +421,8 @@ class UnofficialOpcodes:
         SAX,
         SBC,
         DCP,
-        ISC
+        ISC,
+        SLO
     ]
 
     @staticmethod
