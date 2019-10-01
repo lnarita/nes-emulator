@@ -58,13 +58,13 @@ class Memory:
             return self.ram[addr - MemoryPositions.RAM_MIRROR_3.start]
         elif MemoryPositions.PPU_REGISTERS.contains(addr):
             # TODO
-            return
+            return 0xFF
         elif MemoryPositions.APU_IO_REGISTERS.contains(addr):
             # TODO
-            return
+            return 0xFF
         elif MemoryPositions.APU_IO_EXTRAS.contains(addr):
             # TODO
-            return
+            return 0xFF
         elif MemoryPositions.CARTRIDGE.contains(addr):
             return self.rom[addr - MemoryPositions.PRG_ROM_START.start]
         else:
@@ -106,6 +106,16 @@ class Memory:
         cpu.sp += 1
         cpu.sp = cpu.sp & 0xff ^ 0x0100
         return value
+
+    def get_effective_address(self, addr):
+        if MemoryPositions.RAM_MIRROR_1.contains(addr):
+            return addr - MemoryPositions.RAM_MIRROR_1.start
+        elif MemoryPositions.RAM_MIRROR_2.contains(addr):
+            return addr - MemoryPositions.RAM_MIRROR_2.start
+        elif MemoryPositions.RAM_MIRROR_3.contains(addr):
+            return addr - MemoryPositions.RAM_MIRROR_3.start
+        else:
+            return addr
 
     @staticmethod
     def ram_size():
