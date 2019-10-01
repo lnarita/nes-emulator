@@ -458,7 +458,7 @@ class RLA(OpCode):
             cpu.negative = (cpu.a & NEGATIVE_BIT) > 0
             if self.addressing_mode != Immediate:
                 cpu.data = value
-                cpu.addr = address
+                cpu.addr = memory.get_effective_address(address)
 
         if self.addressing_mode == AbsoluteX:
             # FIXME: this is ugly, but it works
@@ -509,7 +509,7 @@ class SRE(OpCode):
             self.addressing_mode.write_to(cpu, memory, address, new_value)
             if self.addressing_mode != Accumulator:
                 cpu.data = new_value
-                cpu.addr = address
+                cpu.addr = memory.get_effective_address(address)
 
             value = new_value
             cpu.a ^= value
@@ -517,7 +517,7 @@ class SRE(OpCode):
             cpu.negative = (cpu.a & NEGATIVE_BIT) > 0
             if self.addressing_mode != Immediate:
                 cpu.data = value
-                cpu.addr = address
+                cpu.addr = memory.get_effective_address(address)
 
         if self.addressing_mode == AbsoluteX:
             # FIXME: this is ugly, but it works
@@ -573,7 +573,7 @@ class RRA(OpCode):
             self.addressing_mode.write_to(cpu, memory, address, new_value)
             if self.addressing_mode != Accumulator:
                 cpu.data = new_value
-                cpu.addr = address
+                cpu.addr = memory.get_effective_address(address)
 
             addend2 = new_value
             addend1 = cpu.a
@@ -585,7 +585,7 @@ class RRA(OpCode):
             cpu.zero = cpu.a == 0
 
             if self.addressing_mode != Immediate:
-                cpu.addr = address
+                cpu.addr = memory.get_effective_address(address)
                 cpu.data = addend2
 
 
