@@ -53,7 +53,7 @@ class StatusRegisterFlags:
 
 
 class CPUState:
-    def __init__(self, pc=MemoryPositions.PRG_ROM_START.start, sp=MemoryPositions.STACK.end - 2, a=0, x=0, y=0, p=StatusRegisterFlags(int_value=0x34), addr=None, data=None,
+    def __init__(self, pc=MemoryPositions.PRG_ROM_START.start, sp=MemoryPositions.STACK.end - 2, a=0, x=0, y=0, p=None, addr=None, data=None,
                  cycle=0, log_compatible_mode=False):
         super().__init__()
         self.pc = pc
@@ -61,7 +61,10 @@ class CPUState:
         self.x = x
         self.a = a
         self.y = y
-        self.p = p
+        if not p:
+            self.p = StatusRegisterFlags(int_value=0x34)
+        else:
+            self.p = p
         self.addr = addr
         self.data = data
         self.cycle = cycle
@@ -80,8 +83,11 @@ class CPUState:
 
 
 class CPU:
-    def __init__(self, state=CPUState(), log_compatible_mode=False):
-        self._state = state
+    def __init__(self, state=None, log_compatible_mode=False):
+        if not state:
+            self._state = CPUState()
+        else:
+            self._state = state
         self._state.log_compatible_mode = log_compatible_mode
 
     @property
@@ -230,6 +236,7 @@ class CPU:
         result = block(*args)
         done = time.monotonic()
         elapsed = done - start
+        print("Δt = %.9f. Cycle period: %.9f" % (elapsed, CYCLE_PERIOD))
         if elapsed < CYCLE_PERIOD:
             time.sleep(CYCLE_PERIOD - elapsed)
         self.inc_cycle()
