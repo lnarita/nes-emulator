@@ -520,7 +520,6 @@ class SRE(OpCode):
                 cpu.addr = memory.get_effective_address(address)
 
         if self.addressing_mode == AbsoluteX:
-            # FIXME: this is ugly, but it works
             cycle_start = cpu.cycle
             _cycle()
             cycle_end = cpu.cycle
