@@ -254,23 +254,20 @@ class DEC(OpCode):
                       (0xD6, ZeroPageX, 6,),
                       (0xDE, AbsoluteX, 7,)]
         return map(cls.create_dict_entry, variations)
+    
+    def _dec_m(self, value):
+        if (value == 0):
+            value = 0b11111111
+        else:
+            value -= 1
+        return value
 
     def exec(self, cpu, memory):
-
-        def _stall():
-            pass
-
-        def _dec_m(value):
-            if (value == 0):
-                value = 0b11111111
-            else:
-                value -= 1
-            return value
-
         def _cycle():
             address = self.addressing_mode.fetch_address(cpu, memory)
             value = self.addressing_mode.read_from(cpu, memory, address)
-            value = cpu.exec_in_cycle(_dec_m, value)
+            value = self._dec_m(value)
+            cpu.exec_in_cycle()
             cpu.negative = (value & 0b10000000) > 0
             cpu.zero = (value == 0)
 
@@ -285,7 +282,7 @@ class DEC(OpCode):
             _cycle()
             cycle_end = cpu.cycle
             if (cycle_end - cycle_start) < (self.cycles - 1):
-                cpu.exec_in_cycle(_stall)
+                cpu.exec_in_cycle()
         else:
             _cycle()
 
@@ -297,13 +294,12 @@ class DEX(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _dec_x():
-            cpu.x -= 1
-            cpu.x &= LOW_BITS_MASK
-            cpu.zero = (cpu.x == 0)
-            cpu.negative = (cpu.x & NEGATIVE_BIT) > 0
+        cpu.x -= 1
+        cpu.x &= LOW_BITS_MASK
+        cpu.zero = (cpu.x == 0)
+        cpu.negative = (cpu.x & NEGATIVE_BIT) > 0
 
-        cpu.exec_in_cycle(_dec_x)
+        cpu.exec_in_cycle()
 
 
 class DEY(OpCode):
@@ -313,13 +309,12 @@ class DEY(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _dec_y():
-            cpu.y -= 1
-            cpu.y &= LOW_BITS_MASK
-            cpu.zero = (cpu.y == 0)
-            cpu.negative = (cpu.y & NEGATIVE_BIT) > 0
+        cpu.y -= 1
+        cpu.y &= LOW_BITS_MASK
+        cpu.zero = (cpu.y == 0)
+        cpu.negative = (cpu.y & NEGATIVE_BIT) > 0
 
-        cpu.exec_in_cycle(_dec_y)
+        cpu.exec_in_cycle()
 
 
 class INC(OpCode):
@@ -332,9 +327,6 @@ class INC(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _stall():
-            pass
-
         def _cycle():
             def _inc_m(value):
                 if (value == 0b11111111):
@@ -345,7 +337,8 @@ class INC(OpCode):
 
             address = self.addressing_mode.fetch_address(cpu, memory)
             value = self.addressing_mode.read_from(cpu, memory, address)
-            value = cpu.exec_in_cycle(_inc_m, value)
+            value = _inc_m(value)
+            cpu.exec_in_cycle()
             cpu.negative = (value & 0b10000000) > 0
             cpu.zero = (value == 0)
 
@@ -360,7 +353,7 @@ class INC(OpCode):
             _cycle()
             cycle_end = cpu.cycle
             if (cycle_end - cycle_start) < (self.cycles - 1):
-                cpu.exec_in_cycle(_stall)
+                cpu.exec_in_cycle()
         else:
             _cycle()
 
@@ -372,13 +365,12 @@ class INX(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _inc_x():
-            cpu.x += 1
-            cpu.x &= LOW_BITS_MASK
-            cpu.zero = (cpu.x == 0)
-            cpu.negative = (cpu.x & NEGATIVE_BIT) > 0
+        cpu.x += 1
+        cpu.x &= LOW_BITS_MASK
+        cpu.zero = (cpu.x == 0)
+        cpu.negative = (cpu.x & NEGATIVE_BIT) > 0
 
-        cpu.exec_in_cycle(_inc_x)
+        cpu.exec_in_cycle()
 
 
 class INY(OpCode):
@@ -388,13 +380,12 @@ class INY(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _inc_y():
-            cpu.y += 1
-            cpu.y &= LOW_BITS_MASK
-            cpu.zero = (cpu.y == 0)
-            cpu.negative = (cpu.y & NEGATIVE_BIT) > 0
+        cpu.y += 1
+        cpu.y &= LOW_BITS_MASK
+        cpu.zero = (cpu.y == 0)
+        cpu.negative = (cpu.y & NEGATIVE_BIT) > 0
 
-        cpu.exec_in_cycle(_inc_y)
+        cpu.exec_in_cycle()
 
 
 class ASL(OpCode):
@@ -408,10 +399,6 @@ class ASL(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-
-        def _stall():
-            pass
-
         def _exec_asl(value):
             new_value = (value << 1)
 
@@ -439,7 +426,7 @@ class ASL(OpCode):
             _cycle()
             cycle_end = cpu.cycle
             if (cycle_end - cycle_start) < (self.cycles - 1):
-                cpu.exec_in_cycle(_stall)
+                cpu.exec_in_cycle()
         else:
             _cycle()
 
@@ -455,10 +442,6 @@ class ROL(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-
-        def _stall():
-            pass
-
         def _exec_rol(value):
             new_value = (value << 1) & LOW_BITS_MASK
             if cpu.carry:
@@ -488,7 +471,7 @@ class ROL(OpCode):
             _cycle()
             cycle_end = cpu.cycle
             if (cycle_end - cycle_start) < (self.cycles - 1):
-                cpu.exec_in_cycle(_stall)
+                cpu.exec_in_cycle()
         else:
             _cycle()
 
@@ -504,10 +487,6 @@ class LSR(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-
-        def _stall():
-            pass
-
         def _exec_lsr(value):
             new_value = (value >> 1) & LOW_BITS_MASK
             cpu.carry = (value & 0b00000001) > 0
@@ -533,7 +512,7 @@ class LSR(OpCode):
             _cycle()
             cycle_end = cpu.cycle
             if (cycle_end - cycle_start) < (self.cycles - 1):
-                cpu.exec_in_cycle(_stall)
+                cpu.exec_in_cycle()
         else:
             _cycle()
 
@@ -549,10 +528,6 @@ class ROR(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-
-        def _stall():
-            pass
-
         def _exec_ror(value):
             new_value = (value >> 1) & LOW_BITS_MASK
             if cpu.carry:
@@ -582,7 +557,7 @@ class ROR(OpCode):
             _cycle()
             cycle_end = cpu.cycle
             if (cycle_end - cycle_start) < (self.cycles - 1):
-                cpu.exec_in_cycle(_stall)
+                cpu.exec_in_cycle()
         else:
             _cycle()
 

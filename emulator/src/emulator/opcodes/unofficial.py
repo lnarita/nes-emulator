@@ -103,10 +103,7 @@ class NOP(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _stall():
-            pass
-
-        cpu.exec_in_cycle(_stall)
+        cpu.exec_in_cycle()
 
     def __str__(self):
         return unofficial_opcode_str(self)
@@ -125,27 +122,22 @@ class LAX(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _lda():
-            if self.addressing_mode:
-                address = self.addressing_mode.fetch_address(cpu, memory)
-                value = self.addressing_mode.read_from(cpu, memory, address)
-                if self.addressing_mode != Immediate:
-                    self.addressing_mode.data = "= %02X" % memory.fetch(
-                        address)
-                    cpu.addr = memory.get_effective_address(address)
-                    cpu.data = value
+        if self.addressing_mode:
+            address = self.addressing_mode.fetch_address(cpu, memory)
+            value = self.addressing_mode.read_from(cpu, memory, address)
+            if self.addressing_mode != Immediate:
+                self.addressing_mode.data = "= %02X" % memory.fetch(
+                    address)
+                cpu.addr = memory.get_effective_address(address)
+                cpu.data = value
 
-                cpu.a = value
-                cpu.zero = cpu.a == 0
-                cpu.negative = (cpu.a & 0b10000000) > 0
+            cpu.a = value
+            cpu.zero = cpu.a == 0
+            cpu.negative = (cpu.a & 0b10000000) > 0
 
-        def _tax():
-            cpu.x = cpu.a
-            cpu.zero = cpu.x == 0
-            cpu.negative = (cpu.x & 0b10000000) > 0
-
-        _lda()
-        _tax()
+        cpu.x = cpu.a
+        cpu.zero = cpu.x == 0
+        cpu.negative = (cpu.x & 0b10000000) > 0
 
     def __str__(self):
         return unofficial_opcode_str(self)
@@ -164,18 +156,13 @@ class SAX(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _stall():
-            pass
+        if self.addressing_mode:
+            address = self.addressing_mode.fetch_address(cpu, memory)
+            cpu.addr = memory.get_effective_address(address)
+            cpu.data = cpu.a & cpu.x
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
+            self.addressing_mode.write_to(cpu, memory, address, cpu.a & cpu.x)
 
-        def cycle_sta():
-            if self.addressing_mode:
-                address = self.addressing_mode.fetch_address(cpu, memory)
-                cpu.addr = memory.get_effective_address(address)
-                cpu.data = cpu.a & cpu.x
-                self.addressing_mode.data = "= %02X" % memory.fetch(address)
-                self.addressing_mode.write_to(cpu, memory, address, cpu.a & cpu.x)
-
-        cycle_sta()
 
     def __str__(self):
         return unofficial_opcode_str(self)
@@ -186,28 +173,26 @@ class SBC(OpCode):
         variations = [(0xEB, Immediate, 2,)]
         return map(cls.create_dict_entry, variations)
 
+    def _wrap_sub(self, a, b):
+            return (a - b) % 0x100
+
     def exec(self, cpu, memory):
-        def _cycle():
-            def wrap_sub(a, b):
-                return (a - b) % 0x100
+        address = self.addressing_mode.fetch_address(cpu, memory)
+        subtrahend = self.addressing_mode.read_from(cpu, memory, address)
+        minuend = cpu.a
+        if self.addressing_mode != Immediate:
+            cpu.addr = memory.get_effective_address(address)
+            cpu.data = subtrahend
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
 
-            address = self.addressing_mode.fetch_address(cpu, memory)
-            subtrahend = self.addressing_mode.read_from(cpu, memory, address)
-            minuend = cpu.a
-            if self.addressing_mode != Immediate:
-                cpu.addr = memory.get_effective_address(address)
-                cpu.data = subtrahend
-                self.addressing_mode.data = "= %02X" % memory.fetch(address)
+        new_a = (self._wrap_sub(self._wrap_sub(minuend, subtrahend), (0 if cpu.carry else 1)))
+        cpu.carry = (new_a & 0b01111111) == new_a
+        cpu.overflow = ((cpu.a ^ subtrahend) & NEGATIVE_BIT > 0) and (((cpu.a ^ new_a) & LOW_BITS_MASK) & NEGATIVE_BIT > 0)
+        cpu.a = new_a
+        cpu.a &= 0xFF
+        cpu.zero = cpu.a == 0
+        cpu.negative = cpu.a >> 7 == 1
 
-            new_a = (wrap_sub(wrap_sub(minuend, subtrahend), (0 if cpu.carry else 1)))
-            cpu.carry = (new_a & 0b01111111) == new_a
-            cpu.overflow = ((cpu.a ^ subtrahend) & NEGATIVE_BIT > 0) and (((cpu.a ^ new_a) & LOW_BITS_MASK) & NEGATIVE_BIT > 0)
-            cpu.a = new_a
-            cpu.a &= 0xFF
-            cpu.zero = cpu.a == 0
-            cpu.negative = cpu.a >> 7 == 1
-
-        _cycle()
         
     def __str__(self):
         return unofficial_opcode_str(self)
@@ -234,53 +219,49 @@ class DCP(OpCode):
         ]
         return map(cls.create_dict_entry, variations)
 
-    def exec(self, cpu, memory):
-        def _stall():
-            pass
-        def _exec():
-            def _dec_m(value):
-                if (value == 0):
-                    value = 0b11111111
-                else:
-                    value -= 1
-                return value
-
-            def _cycle():
-                address = self.addressing_mode.fetch_address(cpu, memory)
-                value = self.addressing_mode.read_from(cpu, memory, address)
-                value = cpu.exec_in_cycle(_dec_m, value)
-                cpu.negative = (value & 0b10000000) > 0
-                cpu.zero = (value == 0)
-
-                self.addressing_mode.data = "= %02X" % memory.fetch(address)
-                self.addressing_mode.write_to(cpu, memory, address, value)
-                cpu.addr = memory.get_effective_address(address)
-                cpu.data = value
-
-                minuend = cpu.a
-                if self.addressing_mode != Immediate:
-                    cpu.addr = memory.get_effective_address(address)
-                    cpu.data = value
-                # Two's complement
-                subatrend = value
-                subatrend = abs(~subatrend ^ 0xFF) & 0xFF
-                tmp = minuend + subatrend
-                tmp &= 0xFF
-                cpu.carry = (minuend >= tmp)
-                cpu.zero = tmp == 0
-                cpu.negative = tmp >> 7 == 1
-
-            if self.addressing_mode == AbsoluteX:
-                # FIXME: this is ugly, but it works
-                cycle_start = cpu.cycle
-                _cycle()
-                cycle_end = cpu.cycle
-                if (cycle_end - cycle_start) < (self.cycles - 1):
-                    cpu.exec_in_cycle(_stall)
+    def _dec_m(self, value):
+            if (value == 0):
+                value = 0b11111111
             else:
-                _cycle()
+                value -= 1
+            return value
 
-        _exec()
+    def _cycle(self, cpu, memory):
+        address = self.addressing_mode.fetch_address(cpu, memory)
+        value = self.addressing_mode.read_from(cpu, memory, address)
+        value = self._dec_m(value) 
+        cpu.exec_in_cycle()
+        cpu.negative = (value & 0b10000000) > 0
+        cpu.zero = (value == 0)
+
+        self.addressing_mode.data = "= %02X" % memory.fetch(address)
+        self.addressing_mode.write_to(cpu, memory, address, value)
+        cpu.addr = memory.get_effective_address(address)
+        cpu.data = value
+
+        minuend = cpu.a
+        if self.addressing_mode != Immediate:
+            cpu.addr = memory.get_effective_address(address)
+            cpu.data = value
+        # Two's complement
+        subatrend = value
+        subatrend = abs(~subatrend ^ 0xFF) & 0xFF
+        tmp = minuend + subatrend
+        tmp &= 0xFF
+        cpu.carry = (minuend >= tmp)
+        cpu.zero = tmp == 0
+        cpu.negative = tmp >> 7 == 1
+
+    def exec(self, cpu, memory):
+        if self.addressing_mode == AbsoluteX:
+            # FIXME: this is ugly, but it works
+            cycle_start = cpu.cycle
+            self._cycle(cpu, memory)
+            cycle_end = cpu.cycle
+            if (cycle_end - cycle_start) < (self.cycles - 1):
+                cpu.exec_in_cycle()
+        else:
+            self._cycle(cpu, memory)
         
     def __str__(self):
         return unofficial_opcode_str(self)
@@ -298,21 +279,20 @@ class ISC(OpCode):
             (0xFF, AbsoluteX, 7),
         ]
         return map(cls.create_dict_entry, variations)
-
+    
+    def _inc_m(self, value):
+        if (value == 0b11111111):
+            value = 0
+        else:
+            value += 1
+        return value
+    
     def exec(self, cpu, memory):
-        def _stall():
-            pass
         def _cycle():
-            def _inc_m(value):
-                if (value == 0b11111111):
-                    value = 0
-                else:
-                    value += 1
-                return value
-
             address = self.addressing_mode.fetch_address(cpu, memory)
             value = self.addressing_mode.read_from(cpu, memory, address)
-            value = cpu.exec_in_cycle(_inc_m, value)
+            value = self._inc_m(value)
+            cpu.exec_in_cycle()
             cpu.negative = (value & 0b10000000) > 0
             cpu.zero = (value == 0)
 
@@ -341,7 +321,7 @@ class ISC(OpCode):
             _cycle()
             cycle_end = cpu.cycle
             if (cycle_end - cycle_start) < (self.cycles - 1):
-                cpu.exec_in_cycle(_stall)
+                cpu.exec_in_cycle()
         else:
             _cycle()
         
@@ -364,10 +344,6 @@ class SLO(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-
-        def _stall():
-            pass
-
         def _exec_asl(value):
             new_value = (value << 1)
 
@@ -404,7 +380,7 @@ class SLO(OpCode):
             _cycle()
             cycle_end = cpu.cycle
             if (cycle_end - cycle_start) < (self.cycles - 1):
-                cpu.exec_in_cycle(_stall)
+                cpu.exec_in_cycle()
         else:
             _cycle()
         
@@ -426,9 +402,6 @@ class RLA(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _stall():
-            pass
-
         def _exec_rol(value):
             new_value = (value << 1) & LOW_BITS_MASK
             if cpu.carry:
@@ -466,7 +439,7 @@ class RLA(OpCode):
             _cycle()
             cycle_end = cpu.cycle
             if (cycle_end - cycle_start) < (self.cycles - 1):
-                cpu.exec_in_cycle(_stall)
+                cpu.exec_in_cycle()
         else:
             _cycle()
         
@@ -488,10 +461,6 @@ class SRE(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-
-        def _stall():
-            pass
-
         def _exec_lsr(value):
             new_value = (value >> 1) & LOW_BITS_MASK
             cpu.carry = (value & 0b00000001) > 0
@@ -524,7 +493,7 @@ class SRE(OpCode):
             _cycle()
             cycle_end = cpu.cycle
             if (cycle_end - cycle_start) < (self.cycles - 1):
-                cpu.exec_in_cycle(_stall)
+                cpu.exec_in_cycle()
         else:
             _cycle()
         
@@ -548,9 +517,6 @@ class RRA(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _stall():
-            pass
-
         def _exec_ror(value):
             new_value = (value >> 1) & LOW_BITS_MASK
             if cpu.carry:
@@ -594,7 +560,7 @@ class RRA(OpCode):
             _cycle()
             cycle_end = cpu.cycle
             if (cycle_end - cycle_start) < (self.cycles - 1):
-                cpu.exec_in_cycle(_stall)
+                cpu.exec_in_cycle()
         else:
             _cycle()
         

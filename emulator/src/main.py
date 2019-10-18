@@ -44,9 +44,11 @@ def emulate(file_path):
             if previous_state.pc == 0xC66E:
                 # TODO: remove, this is a breakpoint for debugging
                 aaaa = ""
-            decoded = cpu.exec_in_cycle(fetch_and_decode_instruction, cpu, memory)  # fetching and decoding a instruction always take 1 cycle
+            decoded = fetch_and_decode_instruction(cpu, memory)  # fetching and decoding a instruction always take 1 cycle
+            cpu.exec_in_cycle()
             if decoded:
                 decoded.exec(cpu, memory)
+                print(previous_state.pc)    
                 if isinstance(decoded, BRK):
                     # abort program on BRK
                     running = False

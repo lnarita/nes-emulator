@@ -48,26 +48,23 @@ class BPL(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _stall():
-            pass
+        operand = self.addressing_mode.fetch_address(cpu, memory)
+        next_instruction = memory.fetch(cpu.pc)
+        should_take_branch = not cpu.negative
+        overflow = False
+        if should_take_branch:
+            new_pc, overflow = _calculate_new_pc(cpu, operand)
+            cpu.exec_in_cycle()
+        else:
+            new_pc = cpu.pc + 1
+        self.addressing_mode.addr = "$%04X" % (_calculate_new_pc(cpu, operand)[0])
+        new_next_instruction = memory.fetch(new_pc)
+        if should_take_branch:
+            cpu.pc = new_pc
+            if overflow:
+                cpu.exec_in_cycle()
 
-        def _add_cycle():
-            operand = self.addressing_mode.fetch_address(cpu, memory)
-            next_instruction = memory.fetch(cpu.pc)
-            should_take_branch = not cpu.negative
-            overflow = False
-            if should_take_branch:
-                new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, cpu, operand)
-            else:
-                new_pc = cpu.pc + 1
-            self.addressing_mode.addr = "$%04X" % (_calculate_new_pc(cpu, operand)[0])
-            new_next_instruction = memory.fetch(new_pc)
-            if should_take_branch:
-                cpu.pc = new_pc
-                if overflow:
-                    cpu.exec_in_cycle(_stall)
-
-        cpu.exec_in_cycle(_add_cycle)
+        cpu.exec_in_cycle()
 
 
 class BMI(OpCode):
@@ -77,26 +74,23 @@ class BMI(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _stall():
-            pass
+        operand = self.addressing_mode.fetch_address(cpu, memory)
+        next_instruction = memory.fetch(cpu.pc)
+        should_take_branch = cpu.negative
+        overflow = False
+        if should_take_branch:
+            new_pc, overflow = _calculate_new_pc(cpu, operand)
+            cpu.exec_in_cycle()
+        else:
+            new_pc = cpu.pc + 1
+        self.addressing_mode.addr = "$%04X" % (_calculate_new_pc(cpu, operand)[0])
+        new_next_instruction = memory.fetch(new_pc)
+        if should_take_branch:
+            cpu.pc = new_pc
+            if overflow:
+                cpu.exec_in_cycle()
 
-        def _add_cycle():
-            operand = self.addressing_mode.fetch_address(cpu, memory)
-            next_instruction = memory.fetch(cpu.pc)
-            should_take_branch = cpu.negative
-            overflow = False
-            if should_take_branch:
-                new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, cpu, operand)
-            else:
-                new_pc = cpu.pc + 1
-            self.addressing_mode.addr = "$%04X" % (_calculate_new_pc(cpu, operand)[0])
-            new_next_instruction = memory.fetch(new_pc)
-            if should_take_branch:
-                cpu.pc = new_pc
-                if overflow:
-                    cpu.exec_in_cycle(_stall)
-
-        cpu.exec_in_cycle(_add_cycle)
+        cpu.exec_in_cycle()
 
 
 class BVC(OpCode):
@@ -106,26 +100,23 @@ class BVC(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _stall():
-            pass
+        operand = self.addressing_mode.fetch_address(cpu, memory)
+        next_instruction = memory.fetch(cpu.pc)
+        should_take_branch = not cpu.overflow
+        overflow = False
+        if should_take_branch:
+            new_pc, overflow = _calculate_new_pc(cpu, operand)
+            cpu.exec_in_cycle()
+        else:
+            new_pc = cpu.pc + 1
+        self.addressing_mode.addr = "$%04X" % (_calculate_new_pc(cpu, operand)[0])
+        new_next_instruction = memory.fetch(new_pc)
+        if should_take_branch:
+            cpu.pc = new_pc
+            if overflow:
+                cpu.exec_in_cycle()
 
-        def _add_cycle():
-            operand = self.addressing_mode.fetch_address(cpu, memory)
-            next_instruction = memory.fetch(cpu.pc)
-            should_take_branch = not cpu.overflow
-            overflow = False
-            if should_take_branch:
-                new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, cpu, operand)
-            else:
-                new_pc = cpu.pc + 1
-            self.addressing_mode.addr = "$%04X" % (_calculate_new_pc(cpu, operand)[0])
-            new_next_instruction = memory.fetch(new_pc)
-            if should_take_branch:
-                cpu.pc = new_pc
-                if overflow:
-                    cpu.exec_in_cycle(_stall)
-
-        cpu.exec_in_cycle(_add_cycle)
+        cpu.exec_in_cycle()
 
 
 class BVS(OpCode):
@@ -135,26 +126,23 @@ class BVS(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _stall():
-            pass
+        operand = self.addressing_mode.fetch_address(cpu, memory)
+        next_instruction = memory.fetch(cpu.pc)
+        should_take_branch = cpu.overflow
+        overflow = False
+        if should_take_branch:
+            new_pc, overflow = _calculate_new_pc(cpu, operand)
+            cpu.exec_in_cycle()
+        else:
+            new_pc = cpu.pc + 1
+        self.addressing_mode.addr = "$%04X" % (_calculate_new_pc(cpu, operand)[0])
+        new_next_instruction = memory.fetch(new_pc)
+        if should_take_branch:
+            cpu.pc = new_pc
+            if overflow:
+                cpu.exec_in_cycle()
 
-        def _add_cycle():
-            operand = self.addressing_mode.fetch_address(cpu, memory)
-            next_instruction = memory.fetch(cpu.pc)
-            should_take_branch = cpu.overflow
-            overflow = False
-            if should_take_branch:
-                new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, cpu, operand)
-            else:
-                new_pc = cpu.pc + 1
-            self.addressing_mode.addr = "$%04X" % (_calculate_new_pc(cpu, operand)[0])
-            new_next_instruction = memory.fetch(new_pc)
-            if should_take_branch:
-                cpu.pc = new_pc
-                if overflow:
-                    cpu.exec_in_cycle(_stall)
-
-        cpu.exec_in_cycle(_add_cycle)
+        cpu.exec_in_cycle()
 
 
 class BCC(OpCode):
@@ -164,26 +152,23 @@ class BCC(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _stall():
-            pass
+        operand = self.addressing_mode.fetch_address(cpu, memory)
+        next_instruction = memory.fetch(cpu.pc)
+        should_take_branch = not cpu.carry
+        overflow = False
+        if should_take_branch:
+            new_pc, overflow = _calculate_new_pc(cpu, operand)
+            cpu.exec_in_cycle()
+        else:
+            new_pc = cpu.pc + 1
+        self.addressing_mode.addr = "$%04X" % (_calculate_new_pc(cpu, operand)[0])
+        new_next_instruction = memory.fetch(new_pc)
+        if should_take_branch:
+            cpu.pc = new_pc
+            if overflow:
+                cpu.exec_in_cycle()
 
-        def _add_cycle():
-            operand = self.addressing_mode.fetch_address(cpu, memory)
-            next_instruction = memory.fetch(cpu.pc)
-            should_take_branch = not cpu.carry
-            overflow = False
-            if should_take_branch:
-                new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, cpu, operand)
-            else:
-                new_pc = cpu.pc + 1
-            self.addressing_mode.addr = "$%04X" % (_calculate_new_pc(cpu, operand)[0])
-            new_next_instruction = memory.fetch(new_pc)
-            if should_take_branch:
-                cpu.pc = new_pc
-                if overflow:
-                    cpu.exec_in_cycle(_stall)
-
-        cpu.exec_in_cycle(_add_cycle)
+        cpu.exec_in_cycle()
 
 
 class BCS(OpCode):
@@ -193,26 +178,23 @@ class BCS(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _stall():
-            pass
+        operand = self.addressing_mode.fetch_address(cpu, memory)
+        next_instruction = memory.fetch(cpu.pc)
+        should_take_branch = cpu.carry
+        overflow = False
+        if should_take_branch:
+            new_pc, overflow = _calculate_new_pc(cpu, operand)
+            cpu.exec_in_cycle()
+        else:
+            new_pc = cpu.pc + 1
+        self.addressing_mode.addr = "$%04X" % (_calculate_new_pc(cpu, operand)[0])
+        new_next_instruction = memory.fetch(new_pc)
+        if should_take_branch:
+            cpu.pc = new_pc
+            if overflow:
+                cpu.exec_in_cycle()
 
-        def _add_cycle():
-            operand = self.addressing_mode.fetch_address(cpu, memory)
-            next_instruction = memory.fetch(cpu.pc)
-            should_take_branch = cpu.carry
-            overflow = False
-            if should_take_branch:
-                new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, cpu, operand)
-            else:
-                new_pc = cpu.pc + 1
-            self.addressing_mode.addr = "$%04X" % (_calculate_new_pc(cpu, operand)[0])
-            new_next_instruction = memory.fetch(new_pc)
-            if should_take_branch:
-                cpu.pc = new_pc
-                if overflow:
-                    cpu.exec_in_cycle(_stall)
-
-        cpu.exec_in_cycle(_add_cycle)
+        cpu.exec_in_cycle()
 
 
 class BNE(OpCode):
@@ -222,26 +204,23 @@ class BNE(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _stall():
-            pass
+        operand = self.addressing_mode.fetch_address(cpu, memory)
+        next_instruction = memory.fetch(cpu.pc)
+        should_take_branch = not cpu.zero
+        overflow = False
+        if should_take_branch:
+            new_pc, overflow = _calculate_new_pc(cpu, operand)
+            cpu.exec_in_cycle()
+        else:
+            new_pc = cpu.pc + 1
+        self.addressing_mode.addr = "$%04X" % (_calculate_new_pc(cpu, operand)[0])
+        new_next_instruction = memory.fetch(new_pc)
+        if should_take_branch:
+            cpu.pc = new_pc
+            if overflow:
+                cpu.exec_in_cycle()
 
-        def _add_cycle():
-            operand = self.addressing_mode.fetch_address(cpu, memory)
-            next_instruction = memory.fetch(cpu.pc)
-            should_take_branch = not cpu.zero
-            overflow = False
-            if should_take_branch:
-                new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, cpu, operand)
-            else:
-                new_pc = cpu.pc + 1
-            self.addressing_mode.addr = "$%04X" % (_calculate_new_pc(cpu, operand)[0])
-            new_next_instruction = memory.fetch(new_pc)
-            if should_take_branch:
-                cpu.pc = new_pc
-                if overflow:
-                    cpu.exec_in_cycle(_stall)
-
-        cpu.exec_in_cycle(_add_cycle)
+        cpu.exec_in_cycle()
 
 
 class BEQ(OpCode):
@@ -251,26 +230,23 @@ class BEQ(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _stall():
-            pass
+        operand = self.addressing_mode.fetch_address(cpu, memory)
+        next_instruction = memory.fetch(cpu.pc)
+        should_take_branch = cpu.zero
+        overflow = False
+        if should_take_branch:
+            new_pc, overflow = _calculate_new_pc(cpu, operand)
+            cpu.exec_in_cycle()
+        else:
+            new_pc = cpu.pc + 1
+        self.addressing_mode.addr = "$%04X" % (_calculate_new_pc(cpu, operand)[0])
+        new_next_instruction = memory.fetch(new_pc)
+        if should_take_branch:
+            cpu.pc = new_pc
+            if overflow:
+                cpu.exec_in_cycle()
 
-        def _add_cycle():
-            operand = self.addressing_mode.fetch_address(cpu, memory)
-            next_instruction = memory.fetch(cpu.pc)
-            should_take_branch = cpu.zero
-            overflow = False
-            if should_take_branch:
-                new_pc, overflow = cpu.exec_in_cycle(_calculate_new_pc, cpu, operand)
-            else:
-                new_pc = cpu.pc + 1
-            self.addressing_mode.addr = "$%04X" % (_calculate_new_pc(cpu, operand)[0])
-            new_next_instruction = memory.fetch(new_pc)
-            if should_take_branch:
-                cpu.pc = new_pc
-                if overflow:
-                    cpu.exec_in_cycle(_stall)
-
-        cpu.exec_in_cycle(_add_cycle)
+        cpu.exec_in_cycle()
 
 
 class BRK(OpCode):
@@ -285,11 +261,14 @@ class BRK(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        cpu.exec_in_cycle(memory.stack_push, cpu, (cpu.pc & HIGH_BITS_MASK) >> 8)
-        cpu.exec_in_cycle(memory.stack_push, cpu, (cpu.pc & LOW_BITS_MASK))
+        memory.stack_push(cpu, (cpu.pc & HIGH_BITS_MASK) >> 8)
+        cpu.exec_in_cycle()
+        memory.stack_push(cpu, (cpu.pc & LOW_BITS_MASK))
+        cpu.exec_in_cycle()
 
         status = cpu.flags
-        cpu.exec_in_cycle(memory.stack_push, cpu, (status | 0b00010000))
+        memory.stack_push(cpu, (status | 0b00010000))
+        cpu.exec_in_cycle()
 
         pcl = Absolute.read_from(cpu, memory, 0xFFFE)
         pch = Absolute.read_from(cpu, memory, 0xFFFF)
@@ -306,9 +285,6 @@ class RTI(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _stall():
-            pass
-
         """
         #  address R/W description
        --- ------- --- -----------------------------------------------
@@ -319,13 +295,17 @@ class RTI(OpCode):
         5  $0100,S  R  pull PCL from stack, increment S
         6  $0100,S  R  pull PCH from stack
         """
-        from_stack = cpu.exec_in_cycle(memory.stack_pop, cpu)
-        cpu.exec_in_cycle(_stall)
+        from_stack = memory.stack_pop(cpu)
+        cpu.exec_in_cycle()
+        cpu.exec_in_cycle()
         status = (from_stack & 0b11101111) | 0b00100000
         cpu.flags = status
-        cpu.exec_in_cycle(_stall)
-        pcl = cpu.exec_in_cycle(memory.stack_pop, cpu)
-        pch = cpu.exec_in_cycle(memory.stack_pop, cpu)
+        cpu.exec_in_cycle()
+        
+        pcl = memory.stack_pop(cpu)
+        cpu.exec_in_cycle()
+        pch =memory.stack_pop(cpu)
+        cpu.exec_in_cycle()
         cpu.pc = AddressMode.get_16_bits_addr_from_high_low((pch << 8), pcl)
 
 
@@ -347,14 +327,14 @@ class JSR(OpCode):
         6    PC     R  copy low address byte to PCL, fetch high address
                        byte to PCH
         """
+        addr = self.addressing_mode.fetch_address(cpu, memory)
+        memory.stack_push(cpu, ((cpu.pc - 1) & HIGH_BITS_MASK) >> 8)
+        cpu.exec_in_cycle()
+        memory.stack_push(cpu, ((cpu.pc - 1) & LOW_BITS_MASK))
+        cpu.exec_in_cycle()
+        cpu.pc = addr
 
-        def _cycle():
-            addr = self.addressing_mode.fetch_address(cpu, memory)
-            cpu.exec_in_cycle(memory.stack_push, cpu, ((cpu.pc - 1) & HIGH_BITS_MASK) >> 8)
-            cpu.exec_in_cycle(memory.stack_push, cpu, ((cpu.pc - 1) & LOW_BITS_MASK))
-            cpu.pc = addr
-
-        cpu.exec_in_cycle(_cycle)
+        cpu.exec_in_cycle()
 
 
 class RTS(OpCode):
@@ -374,18 +354,16 @@ class RTS(OpCode):
         5  $0100,S  R  pull PCH from stack
         6    PC     R  increment PC
         """
-
-        def _stall():
-            pass
-
-        addr_low = cpu.exec_in_cycle(memory.stack_pop, cpu)
-        addr_high = cpu.exec_in_cycle(memory.stack_pop, cpu)
+        addr_low = memory.stack_pop(cpu)
+        cpu.exec_in_cycle()
+        addr_high = memory.stack_pop(cpu)
+        cpu.exec_in_cycle()
         addr_high = addr_high << 8
         addr = AddressMode.get_16_bits_addr_from_high_low(addr_high, addr_low)
         cpu.pc = addr + 1
-        cpu.exec_in_cycle(_stall)
-        cpu.exec_in_cycle(_stall)
-        cpu.exec_in_cycle(_stall)
+        cpu.exec_in_cycle()
+        cpu.exec_in_cycle()
+        cpu.exec_in_cycle()
 
 
 class JMP(OpCode):
@@ -396,13 +374,9 @@ class JMP(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def cycle_jmp():
-            if self.addressing_mode:
-                jmp_address = self.addressing_mode.fetch_address(cpu, memory)
-                cpu.pc = jmp_address
-
-        cycle_jmp()
-
+        if self.addressing_mode:
+            jmp_address = self.addressing_mode.fetch_address(cpu, memory)
+            cpu.pc = jmp_address
 
 class JumpOpCodes:
     opcodes = [

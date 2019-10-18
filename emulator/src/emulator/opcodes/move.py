@@ -47,27 +47,24 @@ class STA(OpCode):
                       (0x9D, AbsoluteX, 5,)]
         return map(cls.create_dict_entry, variations)
 
+    def _cycle_sta(self, cpu, memory):
+                if self.addressing_mode:
+                    address = self.addressing_mode.fetch_address(cpu, memory)
+                    cpu.addr = memory.get_effective_address(address)
+                    cpu.data = cpu.a
+                    self.addressing_mode.data = "= %02X" % memory.fetch(address)
+                    self.addressing_mode.write_to(cpu, memory, address, cpu.a)
+
     def exec(self, cpu, memory):
-        def _stall():
-            pass
-
-        def cycle_sta():
-            if self.addressing_mode:
-                address = self.addressing_mode.fetch_address(cpu, memory)
-                cpu.addr = memory.get_effective_address(address)
-                cpu.data = cpu.a
-                self.addressing_mode.data = "= %02X" % memory.fetch(address)
-                self.addressing_mode.write_to(cpu, memory, address, cpu.a)
-
         if self.addressing_mode in [IndirectY, AbsoluteY, AbsoluteX]:
             # FIXME: this is ugly, but it works
             cycle_start = cpu.cycle
-            cycle_sta()
+            self._cycle_sta(cpu, memory)
             cycle_end = cpu.cycle
             if (cycle_end - cycle_start) < (self.cycles - 1):
-                cpu.exec_in_cycle(_stall)
+                cpu.exec_in_cycle()
         else:
-            cycle_sta()
+            self._cycle_sta(cpu, memory)
 
 
 class LDX(OpCode):
@@ -81,20 +78,17 @@ class LDX(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def cycle_ldx():
-            if self.addressing_mode:
-                address = self.addressing_mode.fetch_address(cpu, memory)
-                value = self.addressing_mode.read_from(cpu, memory, address)
-                if self.addressing_mode != Immediate:
-                    self.addressing_mode.data = "= %02X" % memory.fetch(address)
-                    cpu.addr = memory.get_effective_address(address)
-                    cpu.data = value
+        if self.addressing_mode:
+            address = self.addressing_mode.fetch_address(cpu, memory)
+            value = self.addressing_mode.read_from(cpu, memory, address)
+            if self.addressing_mode != Immediate:
+                self.addressing_mode.data = "= %02X" % memory.fetch(address)
+                cpu.addr = memory.get_effective_address(address)
+                cpu.data = value
 
-                cpu.x = value
-                cpu.zero = cpu.x == 0
-                cpu.negative = (cpu.x & 0b10000000) > 0
-
-        cycle_ldx()
+            cpu.x = value
+            cpu.zero = cpu.x == 0
+            cpu.negative = (cpu.x & 0b10000000) > 0
 
 
 class STX(OpCode):
@@ -106,23 +100,20 @@ class STX(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def cycle_stx():
-            """
-            #  address R/W description
-           --- ------- --- ------------------------------------------
-            1    PC     R  fetch opcode, increment PC
-            2    PC     R  fetch low byte of address, increment PC
-            3    PC     R  fetch high byte of address, increment PC
-            4  address  W  write register to effective address
-            """
-            if self.addressing_mode:
-                address = self.addressing_mode.fetch_address(cpu, memory)
-                cpu.addr = memory.get_effective_address(address)
-                cpu.data = cpu.x
-                self.addressing_mode.data = "= %02X" % memory.fetch(address)
-                self.addressing_mode.write_to(cpu, memory, address, cpu.x)
-
-        cycle_stx()
+        """
+        #  address R/W description
+        --- ------- --- ------------------------------------------
+        1    PC     R  fetch opcode, increment PC
+        2    PC     R  fetch low byte of address, increment PC
+        3    PC     R  fetch high byte of address, increment PC
+        4  address  W  write register to effective address
+        """
+        if self.addressing_mode:
+            address = self.addressing_mode.fetch_address(cpu, memory)
+            cpu.addr = memory.get_effective_address(address)
+            cpu.data = cpu.x
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
+            self.addressing_mode.write_to(cpu, memory, address, cpu.x)
 
 
 class LDY(OpCode):
@@ -136,21 +127,17 @@ class LDY(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def cycle_ldy():
-            if self.addressing_mode:
-                address = self.addressing_mode.fetch_address(cpu, memory)
-                value = self.addressing_mode.read_from(cpu, memory, address)
-                if self.addressing_mode != Immediate:
-                    self.addressing_mode.data = "= %02X" % memory.fetch(address)
-                    cpu.addr = memory.get_effective_address(address)
-                    cpu.data = value
+        if self.addressing_mode:
+            address = self.addressing_mode.fetch_address(cpu, memory)
+            value = self.addressing_mode.read_from(cpu, memory, address)
+            if self.addressing_mode != Immediate:
+                self.addressing_mode.data = "= %02X" % memory.fetch(address)
+                cpu.addr = memory.get_effective_address(address)
+                cpu.data = value
 
-                cpu.y = value
-                cpu.zero = cpu.y == 0
-                cpu.negative = (cpu.y & 0b10000000) > 0
-
-        cycle_ldy()
-
+            cpu.y = value
+            cpu.zero = cpu.y == 0
+            cpu.negative = (cpu.y & 0b10000000) > 0
 
 class STY(OpCode):
     @classmethod
@@ -161,16 +148,12 @@ class STY(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def cycle_sty():
-            if self.addressing_mode:
-                address = self.addressing_mode.fetch_address(cpu, memory)
-                cpu.addr = memory.get_effective_address(address)
-                cpu.data = cpu.y
-                self.addressing_mode.data = "= %02X" % memory.fetch(address)
-                self.addressing_mode.write_to(cpu, memory, address, cpu.y)
-
-        cycle_sty()
-
+        if self.addressing_mode:
+            address = self.addressing_mode.fetch_address(cpu, memory)
+            cpu.addr = memory.get_effective_address(address)
+            cpu.data = cpu.y
+            self.addressing_mode.data = "= %02X" % memory.fetch(address)
+            self.addressing_mode.write_to(cpu, memory, address, cpu.y)
 
 class TAX(OpCode):
     @classmethod
@@ -179,12 +162,11 @@ class TAX(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def cycle_tax():
-            cpu.x = cpu.a
-            cpu.zero = cpu.x == 0
-            cpu.negative = (cpu.x & 0b10000000) > 0
+        cpu.x = cpu.a
+        cpu.zero = cpu.x == 0
+        cpu.negative = (cpu.x & 0b10000000) > 0
 
-        cpu.exec_in_cycle(cycle_tax)
+        cpu.exec_in_cycle()
 
 
 class TXA(OpCode):
@@ -194,12 +176,11 @@ class TXA(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def cycle_txa():
-            cpu.a = cpu.x
-            cpu.zero = cpu.a == 0
-            cpu.negative = (cpu.a & 0b10000000) > 0
+        cpu.a = cpu.x
+        cpu.zero = cpu.a == 0
+        cpu.negative = (cpu.a & 0b10000000) > 0
 
-        cpu.exec_in_cycle(cycle_txa)
+        cpu.exec_in_cycle()
 
 
 class TAY(OpCode):
@@ -209,12 +190,11 @@ class TAY(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def cycle_tay():
-            cpu.y = cpu.a
-            cpu.zero = cpu.y == 0
-            cpu.negative = (cpu.y & 0b10000000) > 0
+        cpu.y = cpu.a
+        cpu.zero = cpu.y == 0
+        cpu.negative = (cpu.y & 0b10000000) > 0
 
-        cpu.exec_in_cycle(cycle_tay)
+        cpu.exec_in_cycle()
 
 
 class TYA(OpCode):
@@ -224,12 +204,11 @@ class TYA(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def cycle_tya():
-            cpu.a = cpu.y
-            cpu.zero = cpu.a == 0
-            cpu.negative = (cpu.a & 0b10000000) > 0
+        cpu.a = cpu.y
+        cpu.zero = cpu.a == 0
+        cpu.negative = (cpu.a & 0b10000000) > 0
 
-        cpu.exec_in_cycle(cycle_tya)
+        cpu.exec_in_cycle()
 
 
 class TSX(OpCode):
@@ -242,7 +221,7 @@ class TSX(OpCode):
         cpu.x = (cpu.sp & LOW_BITS_MASK)
         cpu.zero = cpu.x == 0
         cpu.negative = (cpu.x & 0b10000000) > 0
-        cpu.inc_cycle()
+        cpu.exec_in_cycle()
 
 
 class TXS(OpCode):
@@ -253,7 +232,7 @@ class TXS(OpCode):
 
     def exec(self, cpu, memory):
         cpu.sp = 0x0100 | (cpu.x & LOW_BITS_MASK)
-        cpu.inc_cycle()
+        cpu.exec_in_cycle()
 
 
 class PLA(OpCode):
@@ -269,9 +248,9 @@ class PLA(OpCode):
         cpu.a = from_stack
         cpu.zero = (cpu.a == 0)
         cpu.negative = (cpu.a & NEGATIVE_BIT) > 0
-        cpu.inc_cycle()
-        cpu.inc_cycle()
-        cpu.inc_cycle()
+        cpu.exec_in_cycle()
+        cpu.exec_in_cycle()
+        cpu.exec_in_cycle()
 
 
 class PHA(OpCode):
@@ -284,8 +263,8 @@ class PHA(OpCode):
         memory.store(cpu.sp, cpu.a)
         cpu.sp -= 1
         cpu.sp = cpu.sp & 0xff ^ 0x0100
-        cpu.inc_cycle()
-        cpu.inc_cycle()
+        cpu.exec_in_cycle()
+        cpu.exec_in_cycle()
 
 
 class PLP(OpCode):
@@ -300,9 +279,9 @@ class PLP(OpCode):
         from_stack = memory.fetch(cpu.sp)
         status = (from_stack & 0b11101111) | 0b00100000
         cpu.flags = status
-        cpu.inc_cycle()
-        cpu.inc_cycle()
-        cpu.inc_cycle()
+        cpu.exec_in_cycle()
+        cpu.exec_in_cycle()
+        cpu.exec_in_cycle()
 
 
 class PHP(OpCode):
@@ -319,8 +298,8 @@ class PHP(OpCode):
         memory.store(cpu.sp, status)
         cpu.sp -= 1
         cpu.sp = cpu.sp & 0xff ^ 0x0100
-        cpu.inc_cycle()
-        cpu.inc_cycle()
+        cpu.exec_in_cycle()
+        cpu.exec_in_cycle()
 
 
 class MoveOpCodes:

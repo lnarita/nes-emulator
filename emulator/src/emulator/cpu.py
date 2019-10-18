@@ -231,7 +231,7 @@ class CPU:
     def inc_pc_by(self, value=1):
         self._state.pc += value
 
-    def exec_in_cycle(self, block, *args):
+    def exec_in_cycle(self):
         # FIXME: delay code
         if self.cycle % CYCLE_PERIOD_SIZE == 0 and self.cycle != 0:
             current = time.monotonic()
@@ -242,8 +242,6 @@ class CPU:
                 time.sleep(CYCLE_PERIOD * CYCLE_PERIOD_SIZE - elapsed)
         
         self.inc_cycle()
-        result = block(*args)
-        return result
 
     # FIXME: think of a better name
     def clear_state_mem(self):

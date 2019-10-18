@@ -45,10 +45,8 @@ class CLC(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _set_flag():
-            cpu.carry = False
-
-        cpu.exec_in_cycle(_set_flag)
+        cpu.carry = False
+        cpu.exec_in_cycle()
 
 
 class SEC(OpCode):
@@ -63,10 +61,8 @@ class SEC(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _set_flag():
-            cpu.carry = True
-
-        cpu.exec_in_cycle(_set_flag)
+        cpu.carry = True
+        cpu.exec_in_cycle()
 
 
 class CLD(OpCode):
@@ -81,10 +77,8 @@ class CLD(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _set_flag():
-            cpu.decimal = False
-
-        cpu.exec_in_cycle(_set_flag)
+        cpu.decimal = False
+        cpu.exec_in_cycle()
 
 
 class SED(OpCode):
@@ -99,10 +93,8 @@ class SED(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _set_flag():
-            cpu.decimal = True
-
-        cpu.exec_in_cycle(_set_flag)
+        cpu.decimal = True
+        cpu.exec_in_cycle()
 
 
 class CLI(OpCode):
@@ -117,10 +109,8 @@ class CLI(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _set_flag():
-            cpu.interrupts_disabled = False
-
-        cpu.exec_in_cycle(_set_flag)
+        cpu.interrupts_disabled = False
+        cpu.exec_in_cycle()
 
 
 class SEI(OpCode):
@@ -135,10 +125,8 @@ class SEI(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _set_flag():
-            cpu.interrupts_disabled = True
-
-        cpu.exec_in_cycle(_set_flag)
+        cpu.interrupts_disabled = True
+        cpu.exec_in_cycle()
 
 
 class CLV(OpCode):
@@ -153,10 +141,8 @@ class CLV(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _set_flag():
-            cpu.overflow = False
-
-        cpu.exec_in_cycle(_set_flag)
+        cpu.overflow = False
+        cpu.exec_in_cycle()
 
 
 class NOP(OpCode):
@@ -166,10 +152,7 @@ class NOP(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _stall():
-            pass
-
-        cpu.exec_in_cycle(_stall)
+        cpu.exec_in_cycle()
 
 class FlagOpCodes:
     opcodes = [
