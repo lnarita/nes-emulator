@@ -15,7 +15,6 @@ def test_read_AbsoluteX():
     value = address_mode.read_from(cpu, memory, address)
     assert address == 0x023C
     assert value == (0x023C % 256)
-    assert cpu.cycle == 4
 
     cpu.inc_cycle_by(-cpu.cycle)
     cpu.x = 0xA1
@@ -24,7 +23,6 @@ def test_read_AbsoluteX():
 
     assert address == 0x0220
     assert value == (0x0220 % 256)
-    assert cpu.cycle == 5
 
     cpu.inc_cycle_by(-cpu.cycle)
     cpu.x = 0x07
@@ -32,9 +30,8 @@ def test_read_AbsoluteX():
     value = address_mode.read_from(cpu, memory, address)
 
     assert address == 0x2007
-    # PPU do not asser value for now
+    # PPU do not assert value for now
     # assert value is None
-    assert cpu.cycle == 4
 
 
 def test_write_AbsoluteX():
@@ -49,7 +46,6 @@ def test_write_AbsoluteX():
     address_mode.write_to(cpu, memory, address, 20)
     assert address == 0x0155
     assert memory.ram[address] == 20
-    assert cpu.cycle == 4
 
     cpu.inc_cycle_by(-cpu.cycle)
     cpu.x = 0x30
@@ -57,7 +53,6 @@ def test_write_AbsoluteX():
     address_mode.write_to(cpu, memory, address, 100)
     assert address == 0x032F
     assert memory.ram[address] == 100
-    assert cpu.cycle == 5
 
     cpu.inc_cycle_by(-cpu.cycle)
     cpu.x = 0x20
@@ -65,4 +60,3 @@ def test_write_AbsoluteX():
     address_mode.write_to(cpu, memory, address, 67)
     assert address == 0x052A
     assert memory.ram[address] == 67
-    assert cpu.cycle == 4

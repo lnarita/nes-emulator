@@ -9,12 +9,13 @@ def test_Immediate():
      memory = Memory(rom=[0x00])
 
      cpu.inc_cycle_by(-cpu.cycle)
+     cpu.inc_pc_by(-cpu.pc)
+     cpu.inc_pc_by(MemoryPositions.PRG_ROM_START.start)
      address = address_mode.fetch_address(cpu, memory)
      value = address_mode.read_from(cpu, memory, address)
 
      assert address == 0x00
      assert value == 0x00
-     assert cpu.cycle == 0
 
      cpu.inc_cycle_by(-cpu.cycle)
      cpu.inc_pc_by(-cpu.pc)
@@ -25,7 +26,6 @@ def test_Immediate():
 
      assert address == 0x10
      assert value == 0x10
-     assert cpu.cycle == 0
 
      cpu.inc_cycle_by(-cpu.cycle)
      cpu.inc_pc_by(-cpu.pc)
@@ -36,4 +36,3 @@ def test_Immediate():
 
      assert address == 0xFF
      assert value == 0xFF
-     assert cpu.cycle == 0

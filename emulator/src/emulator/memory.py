@@ -30,7 +30,7 @@ class MemoryPositions(Enum):
         return self.start <= addr <= self.end
 
     def wrap(self, addr):
-        return (addr % (self.end + 1)) + self.start
+        return (self.start + (addr - self.start) % ((self.end + 1) - self.start))
 
 
 class Memory:
@@ -43,6 +43,7 @@ class Memory:
         else:
             self.ram = __pad_or_truncate(ram, Memory.ram_size())
         self.rom = rom
+        self.debug_mem = []
 
     def fetch(self, addr):
         if MemoryPositions.ZERO_PAGE.contains(addr) or \
@@ -57,13 +58,13 @@ class Memory:
             return self.ram[addr - MemoryPositions.RAM_MIRROR_3.start]
         elif MemoryPositions.PPU_REGISTERS.contains(addr):
             # TODO
-            return
+            return 0xFF
         elif MemoryPositions.APU_IO_REGISTERS.contains(addr):
             # TODO
-            return
+            return 0xFF
         elif MemoryPositions.APU_IO_EXTRAS.contains(addr):
             # TODO
-            return
+            return 0xFF
         elif MemoryPositions.CARTRIDGE.contains(addr):
             return self.rom[addr - MemoryPositions.PRG_ROM_START.start]
         else:
@@ -80,6 +81,9 @@ class Memory:
             self.ram[addr - MemoryPositions.RAM_MIRROR_2.start] = value
         elif MemoryPositions.RAM_MIRROR_3.contains(addr):
             self.ram[addr - MemoryPositions.RAM_MIRROR_3.start] = value
+        elif 0x2000 <= addr <= 0xFFFF:
+            # TODO: remove later
+            self.debug_mem.append(("%04X" % addr, "%02X" % value))
         elif MemoryPositions.PPU_REGISTERS.contains(addr):
             # TODO
             return
@@ -102,6 +106,16 @@ class Memory:
         cpu.sp += 1
         cpu.sp = cpu.sp & 0xff ^ 0x0100
         return value
+
+    def get_effective_address(self, addr):
+        if MemoryPositions.RAM_MIRROR_1.contains(addr):
+            return addr - MemoryPositions.RAM_MIRROR_1.start
+        elif MemoryPositions.RAM_MIRROR_2.contains(addr):
+            return addr - MemoryPositions.RAM_MIRROR_2.start
+        elif MemoryPositions.RAM_MIRROR_3.contains(addr):
+            return addr - MemoryPositions.RAM_MIRROR_3.start
+        else:
+            return addr
 
     @staticmethod
     def ram_size():

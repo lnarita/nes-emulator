@@ -4,6 +4,7 @@ from emulator.opcodes.arithmetic import ArithmeticAndLogicalOpCodes
 from emulator.opcodes.flag import FlagOpCodes
 from emulator.opcodes.jump import JumpOpCodes
 from emulator.opcodes.move import MoveOpCodes
+from emulator.opcodes.unofficial import UnofficialOpcodes
 
 
 class OpCodes:
@@ -11,7 +12,8 @@ class OpCodes:
         ArithmeticAndLogicalOpCodes,
         MoveOpCodes,
         JumpOpCodes,
-        FlagOpCodes
+        FlagOpCodes,
+        UnofficialOpcodes
     ]
 
     all = dict(flatten(
