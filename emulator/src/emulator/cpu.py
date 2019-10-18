@@ -2,7 +2,7 @@ import time
 
 import numpy as np
 
-from emulator.constants import CYCLE_PERIOD
+from emulator.constants import CYCLE_PERIOD, CYCLE_PERIOD_SIZE
 from emulator.memory import MemoryPositions
 
 
@@ -89,6 +89,7 @@ class CPU:
         else:
             self._state = state
         self._state.log_compatible_mode = log_compatible_mode
+        self.cycle_period_start = time.monotonic()
 
     @property
     def pc(self):
@@ -232,14 +233,16 @@ class CPU:
 
     def exec_in_cycle(self, block, *args):
         # FIXME: delay code
-        start = time.monotonic()
-        result = block(*args)
-        done = time.monotonic()
-        elapsed = done - start
-        print("Δt = %.9f. Cycle period: %.9f" % (elapsed, CYCLE_PERIOD))
-        if elapsed < CYCLE_PERIOD:
-            time.sleep(CYCLE_PERIOD - elapsed)
+        if self.cycle % CYCLE_PERIOD_SIZE == 0 and self.cycle != 0:
+            current = time.monotonic()
+            elapsed = current - self.cycle_period_start
+            self.cycle_period_start = current
+            print("Δt = %.9f. Cycle period: %.9f" % (elapsed, CYCLE_PERIOD * CYCLE_PERIOD_SIZE))
+            if elapsed < CYCLE_PERIOD * CYCLE_PERIOD_SIZE:
+                time.sleep(CYCLE_PERIOD * CYCLE_PERIOD_SIZE - elapsed)
+        
         self.inc_cycle()
+        result = block(*args)
         return result
 
     # FIXME: think of a better name

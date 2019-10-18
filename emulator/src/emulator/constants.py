@@ -2,6 +2,7 @@ from enum import auto, Enum
 
 CPU_FREQUENCY = 1.79e6
 CYCLE_PERIOD = 1. / CPU_FREQUENCY  # seconds
+CYCLE_PERIOD_SIZE = 10
 
 KB = 1024
 
