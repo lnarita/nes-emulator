@@ -490,16 +490,13 @@ class Accumulator(AddressMode):
 
     @classmethod
     def fetch_address(cls, cpu, memory):
-        def _stall():
-            pass
-
         cls.low = None
         cls.high = None
         cls.addr = None
         cls.data = None
         cls.addr = 'A'
 
-        cpu.exec_in_cycle(_stall)
+        cpu.exec_in_cycle()
 
 
 class Relative(AddressMode):

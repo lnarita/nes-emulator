@@ -33,25 +33,28 @@ def emulate(file_path):
     if nestest_log_format:
         # hack for Nintendulator nestest log comparison
         cpu.flags = 0x24
-        cpu.inc_cycle_by(7)
+        cpu._state.cycle += 7
     if automation_mode:
         cpu.pc = MemoryPositions.PRG_ROM_START.start
 
     while running:
         try:
-            previous_state = CPUState(pc=cpu.pc, sp=cpu.sp, a=cpu.a, x=cpu.x, y=cpu.y, p=StatusRegisterFlags(int_value=cpu.flags), addr=cpu.addr, data=cpu.data,
-                                      cycle=cpu.cycle, log_compatible_mode=nestest_log_format)
-            if previous_state.pc == 0xC66E:
-                # TODO: remove, this is a breakpoint for debugging
-                aaaa = ""
-            decoded = cpu.exec_in_cycle(fetch_and_decode_instruction, cpu, memory)  # fetching and decoding a instruction always take 1 cycle
+            # previous_state = CPUState(pc=cpu.pc, sp=cpu.sp, a=cpu.a, x=cpu.x, y=cpu.y, p=StatusRegisterFlags(int_value=cpu.flags), addr=cpu.addr, data=cpu.data,
+            #                           cycle=cpu.cycle, log_compatible_mode=nestest_log_format)
+            # if previous_state.pc == 0xC66E:
+            #     # TODO: remove, this is a breakpoint for debugging
+            #     aaaa = ""
+            instruction = memory.fetch(cpu.pc)
+            decoded = OpCodes.all[instruction]
+            cpu._state.pc += 1
+            cpu.exec_in_cycle()  # fetching and decoding a instruction always take 1 cycle
             if decoded:
                 decoded.exec(cpu, memory)
                 if isinstance(decoded, BRK):
                     # abort program on BRK
                     running = False
                     break
-                print_debug_line(cpu, previous_state, decoded, nestest_log_format)
+                # print_debug_line(cpu, previous_state, decoded, nestest_log_format)
                 cpu.clear_state_mem()
         except IndexError as e:
             # we've reached a program counter that is not within memory bounds
@@ -59,30 +62,22 @@ def emulate(file_path):
             running = False
         except KeyError as e:
             # print("Can't find instruction by code {}".format(e))
-            cpu.inc_pc_by(1)
+            cpu._state.pc += 1
         except Exception as e:
             print(e)
-            cpu.inc_pc_by(1)
+            cpu._state.pc += 1
 
 
 def fetch_and_decode_instruction(cpu, memory):
     instruction = memory.fetch(cpu.pc)
-    decoded = decode_instruction(instruction)
-    cpu.inc_pc_by(1)
+    decoded = OpCodes.all[instruction]
+    cpu._state.pc += 1
     return decoded
 
 
 def read_file(file_path):
     with open(file_path, mode='rb') as file:
         return file.read()
-
-
-def decode_instruction(instruction):
-    decoded = OpCodes.all[instruction]
-    if not decoded:
-        print("Can't find instruction 0x{:02X}".format(instruction))
-    return decoded
-
 
 def print_debug_line(cpu, previous, instruction, nestest):
     if nestest:

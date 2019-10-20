@@ -1,8 +1,8 @@
-import time
+from time import monotonic, sleep
 
 import numpy as np
 
-from emulator.constants import CYCLE_PERIOD, CYCLE_PERIOD_SIZE
+from emulator.constants import CYCLE_PERIOD, CYCLE_PERIOD_SIZE, TOTAL_TIME
 from emulator.memory import MemoryPositions
 
 
@@ -89,7 +89,7 @@ class CPU:
         else:
             self._state = state
         self._state.log_compatible_mode = log_compatible_mode
-        self.cycle_period_start = time.monotonic()
+        self.cycle_period_start = monotonic()
 
     @property
     def pc(self):
@@ -223,27 +223,24 @@ class CPU:
         self._state.data = value
 
     def inc_cycle(self):
-        self.inc_cycle_by(1)
+        self._state.cycle += 1
 
-    def inc_cycle_by(self, value):
-        self._state.cycle += value
 
     def inc_pc_by(self, value=1):
         self._state.pc += value
 
-    def exec_in_cycle(self, block, *args):
+    def exec_in_cycle(self, block=None, *args):
         # FIXME: delay code
         if self.cycle % CYCLE_PERIOD_SIZE == 0 and self.cycle != 0:
-            current = time.monotonic()
+            current = monotonic()
             elapsed = current - self.cycle_period_start
             self.cycle_period_start = current
-            print("Δt = %.9f. Cycle period: %.9f" % (elapsed, CYCLE_PERIOD * CYCLE_PERIOD_SIZE))
-            if elapsed < CYCLE_PERIOD * CYCLE_PERIOD_SIZE:
-                time.sleep(CYCLE_PERIOD * CYCLE_PERIOD_SIZE - elapsed)
+            print("Δt = %.9f. Cycle period: %.9f" % (elapsed, TOTAL_TIME))
+            if elapsed < TOTAL_TIME:
+                sleep(TOTAL_TIME - elapsed)
         
-        self.inc_cycle()
-        result = block(*args)
-        return result
+        self._state.cycle += 1
+        return block(*args) if block != None else None
 
     # FIXME: think of a better name
     def clear_state_mem(self):

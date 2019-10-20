@@ -23,7 +23,6 @@ class BIT(OpCode):
             def _cycle():
                 address = self.addressing_mode.fetch_address(cpu, memory)
                 value = self.addressing_mode.read_from(cpu, memory, address)
-                self.addressing_mode.data = "= %02X" % memory.fetch(address)
                 cpu.addr = memory.get_effective_address(address)
                 cpu.data = value
                 cpu.negative = (value & 0b10000000) > 0
@@ -166,10 +165,7 @@ class NOP(OpCode):
         return map(cls.create_dict_entry, variations)
 
     def exec(self, cpu, memory):
-        def _stall():
-            pass
-
-        cpu.exec_in_cycle(_stall)
+        cpu.exec_in_cycle()
 
 class FlagOpCodes:
     opcodes = [

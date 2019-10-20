@@ -46,51 +46,51 @@ class Memory:
         self.debug_mem = []
 
     def fetch(self, addr):
-        if MemoryPositions.ZERO_PAGE.contains(addr) or \
-                MemoryPositions.STACK.contains(addr) or \
-                MemoryPositions.RAM.contains(addr):
-            return self.ram[addr]
-        elif MemoryPositions.RAM_MIRROR_1.contains(addr):
-            return self.ram[addr - MemoryPositions.RAM_MIRROR_1.start]
-        elif MemoryPositions.RAM_MIRROR_2.contains(addr):
-            return self.ram[addr - MemoryPositions.RAM_MIRROR_2.start]
-        elif MemoryPositions.RAM_MIRROR_3.contains(addr):
-            return self.ram[addr - MemoryPositions.RAM_MIRROR_3.start]
-        elif MemoryPositions.PPU_REGISTERS.contains(addr):
-            # TODO
-            return 0xFF
-        elif MemoryPositions.APU_IO_REGISTERS.contains(addr):
-            # TODO
-            return 0xFF
-        elif MemoryPositions.APU_IO_EXTRAS.contains(addr):
-            # TODO
-            return 0xFF
-        elif MemoryPositions.CARTRIDGE.contains(addr):
+        if MemoryPositions.CARTRIDGE.start <= addr <= MemoryPositions.CARTRIDGE.end:
             return self.rom[addr - MemoryPositions.PRG_ROM_START.start]
+        elif MemoryPositions.ZERO_PAGE.start <= addr <= MemoryPositions.ZERO_PAGE.end or \
+                MemoryPositions.STACK.start <= addr <= MemoryPositions.STACK.end or \
+                MemoryPositions.RAM.start <= addr <= MemoryPositions.RAM.end:
+            return self.ram[addr]
+        elif MemoryPositions.RAM_MIRROR_1.start <= addr <= MemoryPositions.RAM_MIRROR_1.end:
+            return self.ram[addr - MemoryPositions.RAM_MIRROR_1.start]
+        elif MemoryPositions.RAM_MIRROR_2.start <= addr <= MemoryPositions.RAM_MIRROR_2.end:
+            return self.ram[addr - MemoryPositions.RAM_MIRROR_2.start]
+        elif MemoryPositions.RAM_MIRROR_3.start <= addr <= MemoryPositions.RAM_MIRROR_3.end:
+            return self.ram[addr - MemoryPositions.RAM_MIRROR_3.start]
+        elif MemoryPositions.PPU_REGISTERS.start <= addr <= MemoryPositions.PPU_REGISTERS.end:
+            # TODO
+            return 0xFF
+        elif MemoryPositions.APU_IO_REGISTERS.start <= addr <= MemoryPositions.APU_IO_REGISTERS.end:
+            # TODO
+            return 0xFF
+        elif MemoryPositions.APU_IO_EXTRAS.start <= addr <= MemoryPositions.APU_IO_EXTRAS.end:
+            # TODO
+            return 0xFF
         else:
             raise IndexError("Invalid Address 0x{:04x}".format(addr))
 
     def store(self, addr, value):
-        if MemoryPositions.ZERO_PAGE.contains(addr) or \
-                MemoryPositions.STACK.contains(addr) or \
+        if MemoryPositions.ZERO_PAGE.start <= addr <= MemoryPositions.ZERO_PAGE.end or \
+                MemoryPositions.STACK.start <= addr <= MemoryPositions.STACK.end or \
                 MemoryPositions.RAM.contains(addr):
             self.ram[addr] = value
-        elif MemoryPositions.RAM_MIRROR_1.contains(addr):
+        elif MemoryPositions.RAM_MIRROR_1.start <= addr <= MemoryPositions.RAM_MIRROR_1.end:
             self.ram[addr - MemoryPositions.RAM_MIRROR_1.start] = value
-        elif MemoryPositions.RAM_MIRROR_2.contains(addr):
+        elif MemoryPositions.RAM_MIRROR_2.start <= addr <= MemoryPositions.RAM_MIRROR_2.end:
             self.ram[addr - MemoryPositions.RAM_MIRROR_2.start] = value
-        elif MemoryPositions.RAM_MIRROR_3.contains(addr):
+        elif MemoryPositions.RAM_MIRROR_3.start <= addr <= MemoryPositions.RAM_MIRROR_3.end:
             self.ram[addr - MemoryPositions.RAM_MIRROR_3.start] = value
         elif 0x2000 <= addr <= 0xFFFF:
             # TODO: remove later
             self.debug_mem.append(("%04X" % addr, "%02X" % value))
-        elif MemoryPositions.PPU_REGISTERS.contains(addr):
+        elif MemoryPositions.PPU_REGISTERS.start <= addr <= MemoryPositions.PPU_REGISTERS.end:
             # TODO
             return
-        elif MemoryPositions.APU_IO_REGISTERS.contains(addr):
+        elif MemoryPositions.APU_IO_REGISTERS.start <= addr <= MemoryPositions.APU_IO_REGISTERS.end:
             # TODO
             return
-        elif MemoryPositions.APU_IO_EXTRAS.contains(addr):
+        elif MemoryPositions.APU_IO_EXTRAS.start <= addr <= MemoryPositions.APU_IO_EXTRAS.end:
             # TODO
             return
         else:
