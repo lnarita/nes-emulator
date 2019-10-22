@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"students.ic.unicamp.br/goten/cpu"
 )
 
 func main() {
@@ -23,8 +24,8 @@ func emulate(filePath string) {
 	data, err := ioutil.ReadFile(filePath)
 	check(err)
 
-	car, err := cartridge.cartridgeFromBytes(data)
+	car, err := cpu.CartridgeFromBytes(data)
 	check(err)
-	fmt.Println(cartridge)
+	fmt.Println(car)
 
 }

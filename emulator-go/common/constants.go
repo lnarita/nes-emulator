@@ -1,4 +1,4 @@
-package main
+package common
 
 // CPUFrequency frequency of the nes cpu
 const CPUFrequency = 1.79e6
