@@ -32,5 +32,7 @@ func (cpu CPU) Tick() {
 	cpu.Cycle += 1
 }
 
-func (cpu CPU) Load(cartridge Cartridge) {
+func Setup(memory *Memory) (*CPU, error) {
+	cpu := CPU{Flags: 0x34}
+	return &cpu, nil
 }
