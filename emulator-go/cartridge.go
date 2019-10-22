@@ -49,5 +49,5 @@ func cartridgeFromBytes(content []byte) (*Cartridge, error) {
 		}
 	}
 
-	return nil, errors.New("can't work with 42")
+	return nil, errors.New("invalid iNES header")
 }

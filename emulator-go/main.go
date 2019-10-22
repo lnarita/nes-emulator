@@ -23,8 +23,7 @@ func emulate(filePath string) {
 	data, err := ioutil.ReadFile(filePath)
 	check(err)
 
-	fmt.Println(data)
-	cartridge, err := cartridgeFromBytes(data)
+	car, err := cartridge.cartridgeFromBytes(data)
 	check(err)
 	fmt.Println(cartridge)
 
