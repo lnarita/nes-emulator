@@ -1,12 +1,5 @@
 package main
 
-<<<<<<< HEAD
-import "fmt"
-
-func main() {
-	fmt.Println("Hello, world")
-}
-=======
 import (
 	"fmt"
 	"io/ioutil"
@@ -40,4 +33,3 @@ func emulate(filePath string) {
 	mem := processor.Load(car)
 	fmt.Println(mem)
 }
->>>>>>> 1f00b9fa8e2668339a7922e7c8aaf3e5e54c7460
