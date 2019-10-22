@@ -24,5 +24,8 @@ func emulate(filePath string) {
 	check(err)
 
 	fmt.Println(data)
+	cartridge, err := cartridgeFromBytes(data)
+	check(err)
+	fmt.Println(cartridge)
 
 }
