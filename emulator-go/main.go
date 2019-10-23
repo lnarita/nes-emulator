@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+
 	"students.ic.unicamp.br/goten/processor"
 )
 
 func main() {
 	args := os.Args
-
 	fmt.Println(args)
 	fileName := args[1]
 
