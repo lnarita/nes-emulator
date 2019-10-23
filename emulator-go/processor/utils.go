@@ -1,6 +1,6 @@
 package processor
 
-func Tick(cpu CPU, ppu PPU) {
+func Tick(cpu *CPU, ppu *PPU) {
 	ppu.Tick()
 	ppu.Tick()
 	ppu.Tick()

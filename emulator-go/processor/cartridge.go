@@ -3,7 +3,6 @@ package processor
 import (
 	"errors"
 	"fmt"
-	"students.ic.unicamp.br/goten/common"
 )
 
 // INESHeader the nes cartridge Header contents
@@ -18,7 +17,7 @@ type INESHeader struct {
 }
 
 func (header INESHeader) String() string {
-	return fmt.Sprintf("INES { \"prg-size\": %d, \"CHR-size\": %d, \"RAM-size\": %d, \"flag6\": %08b, \"flag7\": %08b, \"flag9\": %08b, \"flag10\": %08b }",
+	return fmt.Sprintf("INES { \"PRG-size\": %d, \"CHR-size\": %d, \"RAM-size\": %d, \"flag6\": %08b, \"flag7\": %08b, \"flag9\": %08b, \"flag10\": %08b }",
 		header.PrgRomSize, header.ChrRomSize, header.PrgRAMSize, header.Flags6, header.Flags7, header.Flags9, header.Flags10)
 }
 
@@ -44,7 +43,7 @@ func (cartridge Cartridge) String() string {
 	default:
 		mirroring = "4-screen VRAM"
 	}
-	return fmt.Sprintf("Cartridge { \"Header\": %s, \"Trainer-data\": [% X], \"prg\": [% X], \"CHR\": [% X], \"RAM\": [% X], \"Mapper\": %d, \"mirroring\": %s, \"Battery\": %t}",
+	return fmt.Sprintf("Cartridge { \"Header\": %s, \"Trainer\": [% X], \"PRG\": [% X], \"CHR\": [% X], \"RAM\": [% X], \"Mapper\": %d, \"Mirroring\": %s, \"Battery\": %t}",
 		cartridge.Header, cartridge.Trainer, cartridge.ROM, cartridge.CHR, cartridge.RAM, cartridge.Mapper, mirroring, cartridge.Battery)
 }
 
@@ -97,7 +96,7 @@ func CartridgeFromBytes(content []byte) (*Cartridge, error) {
 			// 10: Flags 10 (unofficial)
 			flags10 := content[10]
 			// 11-15: Zero filled
-			header := INESHeader{PrgRomSize: int(prgRomSize) * 16 * common.KB, ChrRomSize: int(chrRomSize) * 8 * common.KB, PrgRAMSize: int(prgRAMSize) * 8 * common.KB, Flags6: flags6, Flags7: flags7, Flags9: flags9, Flags10: flags10}
+			header := INESHeader{PrgRomSize: int(prgRomSize) * 16 * KB, ChrRomSize: int(chrRomSize) * 8 * KB, PrgRAMSize: int(prgRAMSize) * 8 * KB, Flags6: flags6, Flags7: flags7, Flags9: flags9, Flags10: flags10}
 
 			//    Header (16 bytes)
 			//    Trainer, if present (0 or 512 bytes)
