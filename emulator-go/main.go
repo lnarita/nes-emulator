@@ -32,4 +32,7 @@ func emulate(filePath string) {
 
 	mem := processor.Load(car)
 	fmt.Println(mem)
+
+	cpu := processor.Setup(mem)
+	fmt.Println(cpu)
 }
