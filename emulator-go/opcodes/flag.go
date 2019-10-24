@@ -147,6 +147,15 @@ func (o nop) getName() string {
 	return "NOP"
 }
 
+// FlagOpcodes flag manipulating opcodes
 var FlagOpcodes = []OpCode{
-	bit{}, clc{}, sec{}, cld{}, sed{}, cli{}, sei{}, clv{}, nop{},
+	bit{},
+	clc{},
+	sec{},
+	cld{},
+	sed{},
+	cli{},
+	sei{},
+	clv{},
+	nop{},
 }
