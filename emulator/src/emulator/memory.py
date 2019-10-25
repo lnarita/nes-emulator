@@ -84,7 +84,7 @@ class Memory:
             self.ram[addr - MemoryPositions.RAM_MIRROR_2.start] = value
         elif MemoryPositions.RAM_MIRROR_3.contains(addr):
             self.ram[addr - MemoryPositions.RAM_MIRROR_3.start] = value
-        elif MemoryPositions.PPU_REGISTERS.contains(addr):
+        elif MemoryPositions.PPU_REGISTERS.contains(addr) or addr == 0x4014:
             self.store_ppu(addr, value)
         elif MemoryPositions.PPU_REGISTERS_MIRROR.contains(addr):
             self.store_ppu(addr%8 + 0x2000, value)
@@ -105,7 +105,7 @@ class Memory:
             self.ppu.hi_lo_latch = False
             return self.ppu.ppustatus
         elif addr == 0x2004:
-            return self.ppu.oamdata
+            return self.ppu.oam[oamaddr]
         elif addr == 0x2007:
             if self.ppu.ppuctrl & 0b0000100:
                 self.ppu.ppuaddr += 32
@@ -124,7 +124,7 @@ class Memory:
         elif addr == 0x2003:
             self.ppu.oamaddr = value
         elif addr == 0x2004:
-            self.ram[oamaddr] = value
+            self.ppu.oam[oamaddr] = value
             self.ppu.oamaddr += 1
         elif addr == 0x2005:
             # Write low byte
@@ -150,7 +150,13 @@ class Memory:
                 self.ppu.ppuaddr += 1
         elif addr == 0x4014:
             self.ppu.oamdma = value
-            # TODO: Start DMA transfer
+            # DMA Transfer
+            # TODO: Cycle count
+            #     513 or 514 cycles after the $4014 write tick. (1 dummy read cycle
+            #     while waiting for writes to complete, +1 if on an odd CPU cycle,
+            #     then 256 alternating read/write cycles.)
+            for dma_addr in range(0x0,0x100):
+                self.ppu.oam[dma_addr] = self.ram[value << 8 | dma_addr]
 
     def stack_push(self, cpu, value):
         self.store(cpu.sp, value)
