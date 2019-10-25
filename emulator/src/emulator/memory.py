@@ -1,6 +1,7 @@
 from enum import unique, Enum, auto
 
 from emulator.constants import KB
+from emulator.ppu import PPU
 
 
 @unique
@@ -44,6 +45,7 @@ class Memory:
             self.ram = __pad_or_truncate(ram, Memory.ram_size())
         self.rom = rom
         self.debug_mem = []
+        self.ppu = PPU()
 
     def fetch(self, addr):
         if MemoryPositions.ZERO_PAGE.contains(addr) or \
@@ -56,9 +58,10 @@ class Memory:
             return self.ram[addr - MemoryPositions.RAM_MIRROR_2.start]
         elif MemoryPositions.RAM_MIRROR_3.contains(addr):
             return self.ram[addr - MemoryPositions.RAM_MIRROR_3.start]
-        elif MemoryPositions.PPU_REGISTERS.contains(addr):
-            # TODO
-            return 0xFF
+        elif MemoryPositions.PPU_REGISTERS.contains(addr) or addr == 0x4014:
+            return self.fetch_ppu(addr)
+        elif MemoryPositions.PPU_REGISTERS_MIRROR.contains(addr):
+            return self.fetch_ppu(addr%8 + 0x2000)
         elif MemoryPositions.APU_IO_REGISTERS.contains(addr):
             # TODO
             return 0xFF
@@ -81,12 +84,13 @@ class Memory:
             self.ram[addr - MemoryPositions.RAM_MIRROR_2.start] = value
         elif MemoryPositions.RAM_MIRROR_3.contains(addr):
             self.ram[addr - MemoryPositions.RAM_MIRROR_3.start] = value
-        elif 0x2000 <= addr <= 0xFFFF:
+        elif MemoryPositions.PPU_REGISTERS.contains(addr) or addr == 0x4014:
+            self.store_ppu(addr, value)
+        elif MemoryPositions.PPU_REGISTERS_MIRROR.contains(addr):
+            self.store_ppu(addr%8 + 0x2000, value)
+        elif 0x4000 <= addr <= 0xFFFF:
             # TODO: remove later
             self.debug_mem.append(("%04X" % addr, "%02X" % value))
-        elif MemoryPositions.PPU_REGISTERS.contains(addr):
-            # TODO
-            return
         elif MemoryPositions.APU_IO_REGISTERS.contains(addr):
             # TODO
             return
@@ -95,6 +99,63 @@ class Memory:
             return
         else:
             raise IndexError("Invalid Address 0x{:04x}".format(addr))
+
+    def fetch_ppu(self, addr):
+        if addr == 0x2002:
+            self.ppu.hi_lo_latch = False
+            return self.ppu.ppustatus
+        elif addr == 0x2004:
+            return self.ppu.oam[oamaddr]
+        elif addr == 0x2007:
+            if self.ppu.ppuctrl & 0b0000100:
+                self.ppu.ppuaddr += 32
+            else:
+                self.ppu.ppuaddr += 1
+            return self.ram[ppuaddr]
+        else:
+            return 0x00
+
+    def store_ppu(self, addr, value):
+        if addr == 0x2000:
+            self.ppu.ppuctrl = value
+        elif addr == 0x2001:
+            self.ppu.ppumask = value
+        elif addr == 0x2003:
+            self.ppu.oamaddr = value
+        elif addr == 0x2004:
+            self.ppu.oam[oamaddr] = value
+            self.ppu.oamaddr += 1
+        elif addr == 0x2005:
+            # Write low byte
+            if self.ppu.high_latch:
+                self.ppu.ppuscroll |= value
+            # Write high byte
+            else:
+                self.ppu.ppuscroll = value << 8
+                self.ppu.hi_lo_latch = True
+        elif addr == 0x2006:
+            # Write low byte
+            if self.ppu.hi_lo_latch:
+                self.ppu.ppuaddr |= value
+            # Write high byte
+            else:
+                self.ppu.ppuaddr = value << 8
+                self.ppu.hi_lo_latch = True
+        elif addr == 0x2007:
+            self.ram[self.ppuaddr] = value
+            if self.ppu.ppuctrl & 0b0000100:
+                self.ppu.ppuaddr += 32
+            else:
+                self.ppu.ppuaddr += 1
+        elif addr == 0x4014:
+            self.ppu.oamdma = value
+            # DMA Transfer
+            # TODO: Cycle count
+            #     513 or 514 cycles after the $4014 write tick. (1 dummy read cycle
+            #     while waiting for writes to complete, +1 if on an odd CPU cycle,
+            #     then 256 alternating read/write cycles.)
+            for dma_addr in range(0x0,0x100):
+                self.ppu.oam[dma_addr] = self.ram[value << 8 | dma_addr]
 
     def stack_push(self, cpu, value):
         self.store(cpu.sp, value)
