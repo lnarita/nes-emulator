@@ -95,7 +95,10 @@ func (a zeroPage) readFrom(console *Console, address int) int {
 }
 
 func (a zeroPage) fetchAddress(console *Console) int {
-	return 0x00
+	address := int(console.Memory.FetchData(console.CPU.PC))
+	console.CPU.PC++
+	console.Tick()
+	return address
 }
 
 type zeroPageX struct{}
@@ -112,7 +115,12 @@ func (a zeroPageX) readFrom(console *Console, address int) int {
 }
 
 func (a zeroPageX) fetchAddress(console *Console) int {
-	return 0x00
+	baseAddress := int(console.Memory.FetchData(console.CPU.PC))
+	console.CPU.PC++
+	console.Tick()
+	address := Wrap(0x00, 0xFF, baseAddress+int(console.CPU.X))
+	console.Tick()
+	return address
 }
 
 type zeroPageY struct{}
@@ -129,7 +137,12 @@ func (a zeroPageY) readFrom(console *Console, address int) int {
 }
 
 func (a zeroPageY) fetchAddress(console *Console) int {
-	return 0x00
+	baseAddress := int(console.Memory.FetchData(console.CPU.PC))
+	console.CPU.PC++
+	console.Tick()
+	address := Wrap(0x00, 0xFF, baseAddress+int(console.CPU.Y))
+	console.Tick()
+	return address
 }
 
 type absolute struct{}
@@ -146,7 +159,17 @@ func (a absolute) readFrom(console *Console, address int) int {
 }
 
 func (a absolute) fetchAddress(console *Console) int {
-	return 0x00
+	startAddressLow := int(console.Memory.FetchData(console.CPU.PC))
+	console.CPU.PC++
+	console.Tick()
+	startAddressHigh := int(console.Memory.FetchData(console.CPU.PC)) << 8
+	console.CPU.PC++
+	console.Tick()
+	address := startAddressLow + startAddressHigh
+	if (address & 0xFF00) != (startAddressHigh & 0xFF00) {
+		console.Tick() // Overflow: oops cycle
+	}
+	return address
 }
 
 type absoluteY struct{}
@@ -163,7 +186,17 @@ func (a absoluteY) readFrom(console *Console, address int) int {
 }
 
 func (a absoluteY) fetchAddress(console *Console) int {
-	return 0x00
+	startAddressLow := int(console.Memory.FetchData(console.CPU.PC))
+	console.CPU.PC++
+	console.Tick()
+	startAddressHigh := int(console.Memory.FetchData(console.CPU.PC)) << 8
+	console.CPU.PC++
+	console.Tick()
+	address := startAddressLow + startAddressHigh + int(console.CPU.Y)
+	if (address & 0xFF00) != (startAddressHigh & 0xFF00) {
+		console.Tick() // Overflow: oops cycle
+	}
+	return address
 }
 
 type absoluteX struct{}
@@ -180,7 +213,17 @@ func (a absoluteX) readFrom(console *Console, address int) int {
 }
 
 func (a absoluteX) fetchAddress(console *Console) int {
-	return 0x00
+	startAddressLow := int(console.Memory.FetchData(console.CPU.PC))
+	console.CPU.PC++
+	console.Tick()
+	startAddressHigh := int(console.Memory.FetchData(console.CPU.PC)) << 8
+	console.CPU.PC++
+	console.Tick()
+	address := startAddressLow + startAddressHigh + int(console.CPU.X)
+	if (address & 0xFF00) != (startAddressHigh & 0xFF00) {
+		console.Tick() // Overflow: oops cycle
+	}
+	return address
 }
 
 type immediate struct{}
@@ -194,7 +237,9 @@ func (a immediate) readFrom(console *Console, address int) int {
 }
 
 func (a immediate) fetchAddress(console *Console) int {
-	return 0x00
+	address := int(console.Memory.FetchData(console.CPU.PC))
+	console.CPU.PC++
+	return address
 }
 
 type accumulator struct{}
@@ -208,7 +253,8 @@ func (a accumulator) readFrom(console *Console, address int) int {
 }
 
 func (a accumulator) fetchAddress(console *Console) int {
-	return 0x00
+	console.Tick()
+	return 0x00 // FIXME??: this should do nothing
 }
 
 type relative struct{}

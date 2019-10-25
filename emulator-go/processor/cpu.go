@@ -45,7 +45,18 @@ func (cpu CPU) Tick() {
 func Setup(memory *Memory) *CPU {
 	resetAddress := memory.FetchAddress(Reset)
 	cpu := CPU{Flags: 0x34, PC: resetAddress}
+	cpu.ClearMemAccess()
 	return &cpu
+}
+
+func (cpu CPU) LogMemAccess(address int, value byte) {
+	cpu.hasData = true
+	cpu.Data = value
+	cpu.Address = address
+}
+
+func (cpu CPU) ClearMemAccess() {
+	cpu.hasData = false
 }
 
 func (cpu CPU) updateFlagBit(value bool, bit byte, inv byte) {
