@@ -211,8 +211,8 @@ func (o jmp) getName() string {
 	return "JMP"
 }
 
-var JumpOpCodes []OpCode {
-	bpl{},
+var JumpOpCodes = []OpCode{
+	blp{},
 	bmi{},
 	bvc{},
 	bvs{},

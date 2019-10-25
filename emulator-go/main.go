@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"students.ic.unicamp.br/goten/opcodes"
 	"students.ic.unicamp.br/goten/processor"
 )
 
@@ -35,4 +36,6 @@ func emulate(filePath string) {
 
 	cpu := processor.Setup(mem)
 	fmt.Println(cpu)
+
+	fmt.Println(opcodes.AllOpCodes)
 }
