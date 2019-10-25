@@ -5,5 +5,5 @@ type PPU struct {
 }
 
 func (ppu PPU) Tick() {
-	ppu.Cycle += 1
+	ppu.Cycle++
 }

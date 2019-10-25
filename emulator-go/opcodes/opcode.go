@@ -12,7 +12,7 @@ type Variation struct {
 
 type OpCode interface {
 	getVariations() []Variation
-	exec(*processor.CPU, *processor.Memory, *Variation)
+	exec(*processor.Console, *Variation)
 	getName() string
 }
 

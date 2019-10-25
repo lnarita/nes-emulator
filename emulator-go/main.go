@@ -29,13 +29,14 @@ func emulate(filePath string) {
 
 	car, err := processor.CartridgeFromBytes(data)
 	check(err)
-	fmt.Println(car)
 
 	mem := processor.Load(car)
-	fmt.Println(mem)
 
 	cpu := processor.Setup(mem)
-	fmt.Println(cpu)
+
+	ppu := &processor.PPU{}
+	console := processor.Console{CPU: cpu, PPU: ppu, Memory: mem}
+	fmt.Println(console)
 
 	fmt.Println(opcodes.AllOpCodes)
 }

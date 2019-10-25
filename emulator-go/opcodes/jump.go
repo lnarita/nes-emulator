@@ -4,7 +4,7 @@ import "students.ic.unicamp.br/goten/processor"
 
 type blp struct{}
 
-func (o blp) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
+func (o blp) exec(console *processor.Console, variation *Variation) {
 
 }
 
@@ -20,7 +20,7 @@ func (o blp) getName() string {
 
 type bmi struct{}
 
-func (o bmi) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
+func (o bmi) exec(console *processor.Console, variation *Variation) {
 
 }
 
@@ -36,7 +36,7 @@ func (o bmi) getName() string {
 
 type bvc struct{}
 
-func (o bvc) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
+func (o bvc) exec(console *processor.Console, variation *Variation) {
 
 }
 
@@ -52,7 +52,7 @@ func (o bvc) getName() string {
 
 type bvs struct{}
 
-func (o bvs) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
+func (o bvs) exec(console *processor.Console, variation *Variation) {
 
 }
 
@@ -68,7 +68,7 @@ func (o bvs) getName() string {
 
 type bcc struct{}
 
-func (o bcc) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
+func (o bcc) exec(console *processor.Console, variation *Variation) {
 
 }
 
@@ -84,7 +84,7 @@ func (o bcc) getName() string {
 
 type bcs struct{}
 
-func (o bcs) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
+func (o bcs) exec(console *processor.Console, variation *Variation) {
 
 }
 
@@ -100,7 +100,7 @@ func (o bcs) getName() string {
 
 type bne struct{}
 
-func (o bne) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
+func (o bne) exec(console *processor.Console, variation *Variation) {
 
 }
 
@@ -116,7 +116,7 @@ func (o bne) getName() string {
 
 type beq struct{}
 
-func (o beq) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
+func (o beq) exec(console *processor.Console, variation *Variation) {
 
 }
 
@@ -132,7 +132,7 @@ func (o beq) getName() string {
 
 type brk struct{}
 
-func (o brk) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
+func (o brk) exec(console *processor.Console, variation *Variation) {
 
 }
 
@@ -148,7 +148,7 @@ func (o brk) getName() string {
 
 type rti struct{}
 
-func (o rti) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
+func (o rti) exec(console *processor.Console, variation *Variation) {
 
 }
 
@@ -164,7 +164,7 @@ func (o rti) getName() string {
 
 type jsr struct{}
 
-func (o jsr) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
+func (o jsr) exec(console *processor.Console, variation *Variation) {
 
 }
 
@@ -180,7 +180,7 @@ func (o jsr) getName() string {
 
 type rts struct{}
 
-func (o rts) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
+func (o rts) exec(console *processor.Console, variation *Variation) {
 
 }
 
@@ -196,7 +196,7 @@ func (o rts) getName() string {
 
 type jmp struct{}
 
-func (o jmp) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
+func (o jmp) exec(console *processor.Console, variation *Variation) {
 
 }
 
