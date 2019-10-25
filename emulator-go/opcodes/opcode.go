@@ -5,9 +5,9 @@ import (
 )
 
 type Variation struct {
-	opcode        byte
-	addresingMode processor.AddressMode
-	cycles        int
+	opcode         byte
+	addressingMode processor.AddressMode
+	cycles         int
 }
 
 type OpCode interface {
@@ -27,6 +27,7 @@ func getAllOpCodes() map[byte]mapValue {
 		FlagOpcodes,
 		JumpOpCodes,
 		MoveOpCodes,
+		UnofficialOpcodes,
 	}
 	opcodeMap := map[byte]mapValue{}
 

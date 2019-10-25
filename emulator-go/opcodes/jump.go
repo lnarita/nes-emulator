@@ -10,7 +10,7 @@ func (o blp) exec(console *processor.Console, variation *Variation) {
 
 func (o blp) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x10, addresingMode: processor.Relative, cycles: 2},
+		Variation{opcode: 0x10, addressingMode: processor.Relative, cycles: 2},
 	}
 }
 
@@ -26,7 +26,7 @@ func (o bmi) exec(console *processor.Console, variation *Variation) {
 
 func (o bmi) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x30, addresingMode: processor.Relative, cycles: 2},
+		Variation{opcode: 0x30, addressingMode: processor.Relative, cycles: 2},
 	}
 }
 
@@ -42,7 +42,7 @@ func (o bvc) exec(console *processor.Console, variation *Variation) {
 
 func (o bvc) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x50, addresingMode: processor.Relative, cycles: 2},
+		Variation{opcode: 0x50, addressingMode: processor.Relative, cycles: 2},
 	}
 }
 
@@ -58,7 +58,7 @@ func (o bvs) exec(console *processor.Console, variation *Variation) {
 
 func (o bvs) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x70, addresingMode: processor.Relative, cycles: 2},
+		Variation{opcode: 0x70, addressingMode: processor.Relative, cycles: 2},
 	}
 }
 
@@ -74,7 +74,7 @@ func (o bcc) exec(console *processor.Console, variation *Variation) {
 
 func (o bcc) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x90, addresingMode: processor.Relative, cycles: 2},
+		Variation{opcode: 0x90, addressingMode: processor.Relative, cycles: 2},
 	}
 }
 
@@ -90,7 +90,7 @@ func (o bcs) exec(console *processor.Console, variation *Variation) {
 
 func (o bcs) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xB0, addresingMode: processor.Relative, cycles: 2},
+		Variation{opcode: 0xB0, addressingMode: processor.Relative, cycles: 2},
 	}
 }
 
@@ -106,7 +106,7 @@ func (o bne) exec(console *processor.Console, variation *Variation) {
 
 func (o bne) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xD0, addresingMode: processor.Relative, cycles: 2},
+		Variation{opcode: 0xD0, addressingMode: processor.Relative, cycles: 2},
 	}
 }
 
@@ -122,7 +122,7 @@ func (o beq) exec(console *processor.Console, variation *Variation) {
 
 func (o beq) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xF0, addresingMode: processor.Relative, cycles: 2},
+		Variation{opcode: 0xF0, addressingMode: processor.Relative, cycles: 2},
 	}
 }
 
@@ -138,7 +138,7 @@ func (o brk) exec(console *processor.Console, variation *Variation) {
 
 func (o brk) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x00, addresingMode: nil, cycles: 7},
+		Variation{opcode: 0x00, addressingMode: nil, cycles: 7},
 	}
 }
 
@@ -154,7 +154,7 @@ func (o rti) exec(console *processor.Console, variation *Variation) {
 
 func (o rti) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x00, addresingMode: nil, cycles: 6},
+		Variation{opcode: 0x00, addressingMode: nil, cycles: 6},
 	}
 }
 
@@ -170,7 +170,7 @@ func (o jsr) exec(console *processor.Console, variation *Variation) {
 
 func (o jsr) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x20, addresingMode: processor.Absolute, cycles: 6},
+		Variation{opcode: 0x20, addressingMode: processor.Absolute, cycles: 6},
 	}
 }
 
@@ -186,7 +186,7 @@ func (o rts) exec(console *processor.Console, variation *Variation) {
 
 func (o rts) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x60, addresingMode: nil, cycles: 6},
+		Variation{opcode: 0x60, addressingMode: nil, cycles: 6},
 	}
 }
 
@@ -202,8 +202,8 @@ func (o jmp) exec(console *processor.Console, variation *Variation) {
 
 func (o jmp) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x4C, addresingMode: processor.Absolute, cycles: 3},
-		Variation{opcode: 0x6C, addresingMode: processor.Indirect, cycles: 5},
+		Variation{opcode: 0x4C, addressingMode: processor.Absolute, cycles: 3},
+		Variation{opcode: 0x6C, addressingMode: processor.Indirect, cycles: 5},
 	}
 }
 

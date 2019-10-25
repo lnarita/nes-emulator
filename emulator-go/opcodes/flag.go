@@ -10,8 +10,8 @@ func (o bit) exec(console *processor.Console, variation *Variation) {
 
 func (o bit) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x24, addresingMode: processor.ZeroPage, cycles: 3},
-		Variation{opcode: 0x2C, addresingMode: processor.Absolute, cycles: 4},
+		Variation{opcode: 0x24, addressingMode: processor.ZeroPage, cycles: 3},
+		Variation{opcode: 0x2C, addressingMode: processor.Absolute, cycles: 4},
 	}
 }
 
@@ -27,7 +27,7 @@ func (o clc) exec(console *processor.Console, variation *Variation) {
 
 func (o clc) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x18, addresingMode: nil, cycles: 2},
+		Variation{opcode: 0x18, addressingMode: nil, cycles: 2},
 	}
 }
 
@@ -43,7 +43,7 @@ func (o sec) exec(console *processor.Console, variation *Variation) {
 
 func (o sec) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x38, addresingMode: nil, cycles: 2},
+		Variation{opcode: 0x38, addressingMode: nil, cycles: 2},
 	}
 }
 
@@ -59,7 +59,7 @@ func (o cld) exec(console *processor.Console, variation *Variation) {
 
 func (o cld) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xD8, addresingMode: nil, cycles: 2},
+		Variation{opcode: 0xD8, addressingMode: nil, cycles: 2},
 	}
 }
 
@@ -75,7 +75,7 @@ func (o sed) exec(console *processor.Console, variation *Variation) {
 
 func (o sed) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xF8, addresingMode: nil, cycles: 2},
+		Variation{opcode: 0xF8, addressingMode: nil, cycles: 2},
 	}
 }
 
@@ -91,7 +91,7 @@ func (o cli) exec(console *processor.Console, variation *Variation) {
 
 func (o cli) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x58, addresingMode: nil, cycles: 2},
+		Variation{opcode: 0x58, addressingMode: nil, cycles: 2},
 	}
 }
 
@@ -107,7 +107,7 @@ func (o sei) exec(console *processor.Console, variation *Variation) {
 
 func (o sei) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x78, addresingMode: nil, cycles: 2},
+		Variation{opcode: 0x78, addressingMode: nil, cycles: 2},
 	}
 }
 
@@ -123,7 +123,7 @@ func (o clv) exec(console *processor.Console, variation *Variation) {
 
 func (o clv) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xB8, addresingMode: nil, cycles: 2},
+		Variation{opcode: 0xB8, addressingMode: nil, cycles: 2},
 	}
 }
 
@@ -139,7 +139,7 @@ func (o nop) exec(console *processor.Console, variation *Variation) {
 
 func (o nop) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xEA, addresingMode: nil, cycles: 2},
+		Variation{opcode: 0xEA, addressingMode: nil, cycles: 2},
 	}
 }
 

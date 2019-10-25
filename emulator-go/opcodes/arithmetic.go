@@ -10,14 +10,14 @@ func (o ora) exec(console *processor.Console, variation *Variation) {
 
 func (o ora) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x01, addresingMode: processor.IndirectX, cycles: 6},
-		Variation{opcode: 0x05, addresingMode: processor.ZeroPage, cycles: 3},
-		Variation{opcode: 0x09, addresingMode: processor.Immediate, cycles: 2},
-		Variation{opcode: 0x0D, addresingMode: processor.Absolute, cycles: 4},
-		Variation{opcode: 0x11, addresingMode: processor.IndirectY, cycles: 5},
-		Variation{opcode: 0x15, addresingMode: processor.ZeroPageX, cycles: 4},
-		Variation{opcode: 0x19, addresingMode: processor.AbsoluteY, cycles: 4},
-		Variation{opcode: 0x1D, addresingMode: processor.AbsoluteX, cycles: 4},
+		Variation{opcode: 0x01, addressingMode: processor.IndirectX, cycles: 6},
+		Variation{opcode: 0x05, addressingMode: processor.ZeroPage, cycles: 3},
+		Variation{opcode: 0x09, addressingMode: processor.Immediate, cycles: 2},
+		Variation{opcode: 0x0D, addressingMode: processor.Absolute, cycles: 4},
+		Variation{opcode: 0x11, addressingMode: processor.IndirectY, cycles: 5},
+		Variation{opcode: 0x15, addressingMode: processor.ZeroPageX, cycles: 4},
+		Variation{opcode: 0x19, addressingMode: processor.AbsoluteY, cycles: 4},
+		Variation{opcode: 0x1D, addressingMode: processor.AbsoluteX, cycles: 4},
 	}
 }
 
@@ -33,14 +33,14 @@ func (o and) exec(console *processor.Console, variation *Variation) {
 
 func (o and) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x21, addresingMode: processor.IndirectX, cycles: 6},
-		Variation{opcode: 0x25, addresingMode: processor.ZeroPage, cycles: 3},
-		Variation{opcode: 0x29, addresingMode: processor.Immediate, cycles: 2},
-		Variation{opcode: 0x2D, addresingMode: processor.Absolute, cycles: 4},
-		Variation{opcode: 0x31, addresingMode: processor.IndirectY, cycles: 5},
-		Variation{opcode: 0x35, addresingMode: processor.ZeroPageX, cycles: 4},
-		Variation{opcode: 0x39, addresingMode: processor.AbsoluteY, cycles: 4},
-		Variation{opcode: 0x3D, addresingMode: processor.AbsoluteX, cycles: 4},
+		Variation{opcode: 0x21, addressingMode: processor.IndirectX, cycles: 6},
+		Variation{opcode: 0x25, addressingMode: processor.ZeroPage, cycles: 3},
+		Variation{opcode: 0x29, addressingMode: processor.Immediate, cycles: 2},
+		Variation{opcode: 0x2D, addressingMode: processor.Absolute, cycles: 4},
+		Variation{opcode: 0x31, addressingMode: processor.IndirectY, cycles: 5},
+		Variation{opcode: 0x35, addressingMode: processor.ZeroPageX, cycles: 4},
+		Variation{opcode: 0x39, addressingMode: processor.AbsoluteY, cycles: 4},
+		Variation{opcode: 0x3D, addressingMode: processor.AbsoluteX, cycles: 4},
 	}
 }
 
@@ -56,14 +56,14 @@ func (o eor) exec(console *processor.Console, variation *Variation) {
 
 func (o eor) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x41, addresingMode: processor.IndirectX, cycles: 6},
-		Variation{opcode: 0x45, addresingMode: processor.ZeroPage, cycles: 3},
-		Variation{opcode: 0x49, addresingMode: processor.Immediate, cycles: 2},
-		Variation{opcode: 0x4D, addresingMode: processor.Absolute, cycles: 4},
-		Variation{opcode: 0x51, addresingMode: processor.IndirectY, cycles: 5},
-		Variation{opcode: 0x55, addresingMode: processor.ZeroPageX, cycles: 4},
-		Variation{opcode: 0x59, addresingMode: processor.AbsoluteY, cycles: 4},
-		Variation{opcode: 0x5D, addresingMode: processor.AbsoluteX, cycles: 4},
+		Variation{opcode: 0x41, addressingMode: processor.IndirectX, cycles: 6},
+		Variation{opcode: 0x45, addressingMode: processor.ZeroPage, cycles: 3},
+		Variation{opcode: 0x49, addressingMode: processor.Immediate, cycles: 2},
+		Variation{opcode: 0x4D, addressingMode: processor.Absolute, cycles: 4},
+		Variation{opcode: 0x51, addressingMode: processor.IndirectY, cycles: 5},
+		Variation{opcode: 0x55, addressingMode: processor.ZeroPageX, cycles: 4},
+		Variation{opcode: 0x59, addressingMode: processor.AbsoluteY, cycles: 4},
+		Variation{opcode: 0x5D, addressingMode: processor.AbsoluteX, cycles: 4},
 	}
 }
 
@@ -79,14 +79,14 @@ func (o adc) exec(console *processor.Console, variation *Variation) {
 
 func (o adc) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x61, addresingMode: processor.IndirectX, cycles: 6},
-		Variation{opcode: 0x65, addresingMode: processor.ZeroPage, cycles: 3},
-		Variation{opcode: 0x69, addresingMode: processor.Immediate, cycles: 2},
-		Variation{opcode: 0x6D, addresingMode: processor.Absolute, cycles: 4},
-		Variation{opcode: 0x71, addresingMode: processor.IndirectY, cycles: 5},
-		Variation{opcode: 0x75, addresingMode: processor.ZeroPageX, cycles: 4},
-		Variation{opcode: 0x79, addresingMode: processor.AbsoluteY, cycles: 4},
-		Variation{opcode: 0x7D, addresingMode: processor.AbsoluteX, cycles: 4},
+		Variation{opcode: 0x61, addressingMode: processor.IndirectX, cycles: 6},
+		Variation{opcode: 0x65, addressingMode: processor.ZeroPage, cycles: 3},
+		Variation{opcode: 0x69, addressingMode: processor.Immediate, cycles: 2},
+		Variation{opcode: 0x6D, addressingMode: processor.Absolute, cycles: 4},
+		Variation{opcode: 0x71, addressingMode: processor.IndirectY, cycles: 5},
+		Variation{opcode: 0x75, addressingMode: processor.ZeroPageX, cycles: 4},
+		Variation{opcode: 0x79, addressingMode: processor.AbsoluteY, cycles: 4},
+		Variation{opcode: 0x7D, addressingMode: processor.AbsoluteX, cycles: 4},
 	}
 }
 
@@ -102,14 +102,14 @@ func (o sbc) exec(console *processor.Console, variation *Variation) {
 
 func (o sbc) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xE1, addresingMode: processor.IndirectX, cycles: 6},
-		Variation{opcode: 0xE5, addresingMode: processor.ZeroPage, cycles: 3},
-		Variation{opcode: 0xE9, addresingMode: processor.Immediate, cycles: 2},
-		Variation{opcode: 0xED, addresingMode: processor.Absolute, cycles: 4},
-		Variation{opcode: 0xF1, addresingMode: processor.IndirectY, cycles: 5},
-		Variation{opcode: 0xF5, addresingMode: processor.ZeroPageX, cycles: 4},
-		Variation{opcode: 0xF9, addresingMode: processor.AbsoluteY, cycles: 4},
-		Variation{opcode: 0xFD, addresingMode: processor.AbsoluteX, cycles: 4},
+		Variation{opcode: 0xE1, addressingMode: processor.IndirectX, cycles: 6},
+		Variation{opcode: 0xE5, addressingMode: processor.ZeroPage, cycles: 3},
+		Variation{opcode: 0xE9, addressingMode: processor.Immediate, cycles: 2},
+		Variation{opcode: 0xED, addressingMode: processor.Absolute, cycles: 4},
+		Variation{opcode: 0xF1, addressingMode: processor.IndirectY, cycles: 5},
+		Variation{opcode: 0xF5, addressingMode: processor.ZeroPageX, cycles: 4},
+		Variation{opcode: 0xF9, addressingMode: processor.AbsoluteY, cycles: 4},
+		Variation{opcode: 0xFD, addressingMode: processor.AbsoluteX, cycles: 4},
 	}
 }
 
@@ -125,14 +125,14 @@ func (o cmp) exec(console *processor.Console, variation *Variation) {
 
 func (o cmp) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xC1, addresingMode: processor.IndirectX, cycles: 6},
-		Variation{opcode: 0xC5, addresingMode: processor.ZeroPage, cycles: 3},
-		Variation{opcode: 0xC9, addresingMode: processor.Immediate, cycles: 2},
-		Variation{opcode: 0xCD, addresingMode: processor.Absolute, cycles: 4},
-		Variation{opcode: 0xD1, addresingMode: processor.IndirectY, cycles: 5},
-		Variation{opcode: 0xD5, addresingMode: processor.ZeroPageX, cycles: 4},
-		Variation{opcode: 0xD9, addresingMode: processor.AbsoluteY, cycles: 4},
-		Variation{opcode: 0xDD, addresingMode: processor.AbsoluteX, cycles: 4},
+		Variation{opcode: 0xC1, addressingMode: processor.IndirectX, cycles: 6},
+		Variation{opcode: 0xC5, addressingMode: processor.ZeroPage, cycles: 3},
+		Variation{opcode: 0xC9, addressingMode: processor.Immediate, cycles: 2},
+		Variation{opcode: 0xCD, addressingMode: processor.Absolute, cycles: 4},
+		Variation{opcode: 0xD1, addressingMode: processor.IndirectY, cycles: 5},
+		Variation{opcode: 0xD5, addressingMode: processor.ZeroPageX, cycles: 4},
+		Variation{opcode: 0xD9, addressingMode: processor.AbsoluteY, cycles: 4},
+		Variation{opcode: 0xDD, addressingMode: processor.AbsoluteX, cycles: 4},
 	}
 }
 
@@ -148,9 +148,9 @@ func (o cpx) exec(console *processor.Console, variation *Variation) {
 
 func (o cpx) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xE0, addresingMode: processor.Immediate, cycles: 2},
-		Variation{opcode: 0xE4, addresingMode: processor.ZeroPage, cycles: 3},
-		Variation{opcode: 0xEC, addresingMode: processor.Absolute, cycles: 4},
+		Variation{opcode: 0xE0, addressingMode: processor.Immediate, cycles: 2},
+		Variation{opcode: 0xE4, addressingMode: processor.ZeroPage, cycles: 3},
+		Variation{opcode: 0xEC, addressingMode: processor.Absolute, cycles: 4},
 	}
 }
 
@@ -166,9 +166,9 @@ func (o cpy) exec(console *processor.Console, variation *Variation) {
 
 func (o cpy) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xC0, addresingMode: processor.Immediate, cycles: 2},
-		Variation{opcode: 0xC4, addresingMode: processor.ZeroPage, cycles: 3},
-		Variation{opcode: 0xCC, addresingMode: processor.Absolute, cycles: 4},
+		Variation{opcode: 0xC0, addressingMode: processor.Immediate, cycles: 2},
+		Variation{opcode: 0xC4, addressingMode: processor.ZeroPage, cycles: 3},
+		Variation{opcode: 0xCC, addressingMode: processor.Absolute, cycles: 4},
 	}
 }
 
@@ -184,10 +184,10 @@ func (o dec) exec(console *processor.Console, variation *Variation) {
 
 func (o dec) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xC6, addresingMode: processor.ZeroPage, cycles: 5},
-		Variation{opcode: 0xCE, addresingMode: processor.Absolute, cycles: 6},
-		Variation{opcode: 0xD6, addresingMode: processor.ZeroPageX, cycles: 6},
-		Variation{opcode: 0xDE, addresingMode: processor.AbsoluteX, cycles: 7},
+		Variation{opcode: 0xC6, addressingMode: processor.ZeroPage, cycles: 5},
+		Variation{opcode: 0xCE, addressingMode: processor.Absolute, cycles: 6},
+		Variation{opcode: 0xD6, addressingMode: processor.ZeroPageX, cycles: 6},
+		Variation{opcode: 0xDE, addressingMode: processor.AbsoluteX, cycles: 7},
 	}
 }
 
@@ -203,7 +203,7 @@ func (o dex) exec(console *processor.Console, variation *Variation) {
 
 func (o dex) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xCA, addresingMode: nil, cycles: 2},
+		Variation{opcode: 0xCA, addressingMode: nil, cycles: 2},
 	}
 }
 
@@ -219,7 +219,7 @@ func (o dey) exec(console *processor.Console, variation *Variation) {
 
 func (o dey) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x88, addresingMode: nil, cycles: 2},
+		Variation{opcode: 0x88, addressingMode: nil, cycles: 2},
 	}
 }
 
@@ -235,10 +235,10 @@ func (o inc) exec(console *processor.Console, variation *Variation) {
 
 func (o inc) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xE6, addresingMode: processor.ZeroPage, cycles: 5},
-		Variation{opcode: 0xEE, addresingMode: processor.Absolute, cycles: 6},
-		Variation{opcode: 0xF6, addresingMode: processor.ZeroPageX, cycles: 6},
-		Variation{opcode: 0xFE, addresingMode: processor.AbsoluteX, cycles: 7},
+		Variation{opcode: 0xE6, addressingMode: processor.ZeroPage, cycles: 5},
+		Variation{opcode: 0xEE, addressingMode: processor.Absolute, cycles: 6},
+		Variation{opcode: 0xF6, addressingMode: processor.ZeroPageX, cycles: 6},
+		Variation{opcode: 0xFE, addressingMode: processor.AbsoluteX, cycles: 7},
 	}
 }
 
@@ -254,7 +254,7 @@ func (o inx) exec(console *processor.Console, variation *Variation) {
 
 func (o inx) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xE8, addresingMode: nil, cycles: 2},
+		Variation{opcode: 0xE8, addressingMode: nil, cycles: 2},
 	}
 }
 
@@ -270,7 +270,7 @@ func (o iny) exec(console *processor.Console, variation *Variation) {
 
 func (o iny) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xC8, addresingMode: nil, cycles: 2},
+		Variation{opcode: 0xC8, addressingMode: nil, cycles: 2},
 	}
 }
 
@@ -286,11 +286,11 @@ func (o asl) exec(console *processor.Console, variation *Variation) {
 
 func (o asl) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x06, addresingMode: processor.ZeroPage, cycles: 5},
-		Variation{opcode: 0x0A, addresingMode: processor.ZeroPage, cycles: 2},
-		Variation{opcode: 0x0E, addresingMode: processor.ZeroPage, cycles: 6},
-		Variation{opcode: 0x16, addresingMode: processor.ZeroPage, cycles: 6},
-		Variation{opcode: 0x1E, addresingMode: processor.ZeroPage, cycles: 7},
+		Variation{opcode: 0x06, addressingMode: processor.ZeroPage, cycles: 5},
+		Variation{opcode: 0x0A, addressingMode: processor.ZeroPage, cycles: 2},
+		Variation{opcode: 0x0E, addressingMode: processor.ZeroPage, cycles: 6},
+		Variation{opcode: 0x16, addressingMode: processor.ZeroPage, cycles: 6},
+		Variation{opcode: 0x1E, addressingMode: processor.ZeroPage, cycles: 7},
 	}
 }
 
@@ -306,11 +306,11 @@ func (o rol) exec(console *processor.Console, variation *Variation) {
 
 func (o rol) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x26, addresingMode: processor.ZeroPage, cycles: 5},
-		Variation{opcode: 0x2A, addresingMode: processor.ZeroPage, cycles: 2},
-		Variation{opcode: 0x2E, addresingMode: processor.ZeroPage, cycles: 6},
-		Variation{opcode: 0x36, addresingMode: processor.ZeroPage, cycles: 6},
-		Variation{opcode: 0x3E, addresingMode: processor.ZeroPage, cycles: 7},
+		Variation{opcode: 0x26, addressingMode: processor.ZeroPage, cycles: 5},
+		Variation{opcode: 0x2A, addressingMode: processor.ZeroPage, cycles: 2},
+		Variation{opcode: 0x2E, addressingMode: processor.ZeroPage, cycles: 6},
+		Variation{opcode: 0x36, addressingMode: processor.ZeroPage, cycles: 6},
+		Variation{opcode: 0x3E, addressingMode: processor.ZeroPage, cycles: 7},
 	}
 }
 
@@ -326,11 +326,11 @@ func (o lsr) exec(console *processor.Console, variation *Variation) {
 
 func (o lsr) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x46, addresingMode: processor.ZeroPage, cycles: 5},
-		Variation{opcode: 0x4A, addresingMode: processor.ZeroPage, cycles: 2},
-		Variation{opcode: 0x4E, addresingMode: processor.ZeroPage, cycles: 6},
-		Variation{opcode: 0x56, addresingMode: processor.ZeroPage, cycles: 6},
-		Variation{opcode: 0x5E, addresingMode: processor.ZeroPage, cycles: 7},
+		Variation{opcode: 0x46, addressingMode: processor.ZeroPage, cycles: 5},
+		Variation{opcode: 0x4A, addressingMode: processor.ZeroPage, cycles: 2},
+		Variation{opcode: 0x4E, addressingMode: processor.ZeroPage, cycles: 6},
+		Variation{opcode: 0x56, addressingMode: processor.ZeroPage, cycles: 6},
+		Variation{opcode: 0x5E, addressingMode: processor.ZeroPage, cycles: 7},
 	}
 }
 
@@ -346,11 +346,11 @@ func (o ror) exec(console *processor.Console, variation *Variation) {
 
 func (o ror) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x66, addresingMode: processor.ZeroPage, cycles: 5},
-		Variation{opcode: 0x6A, addresingMode: processor.ZeroPage, cycles: 2},
-		Variation{opcode: 0x6E, addresingMode: processor.ZeroPage, cycles: 6},
-		Variation{opcode: 0x76, addresingMode: processor.ZeroPage, cycles: 6},
-		Variation{opcode: 0x7E, addresingMode: processor.ZeroPage, cycles: 7},
+		Variation{opcode: 0x66, addressingMode: processor.ZeroPage, cycles: 5},
+		Variation{opcode: 0x6A, addressingMode: processor.ZeroPage, cycles: 2},
+		Variation{opcode: 0x6E, addressingMode: processor.ZeroPage, cycles: 6},
+		Variation{opcode: 0x76, addressingMode: processor.ZeroPage, cycles: 6},
+		Variation{opcode: 0x7E, addressingMode: processor.ZeroPage, cycles: 7},
 	}
 }
 
