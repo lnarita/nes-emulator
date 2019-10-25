@@ -4,7 +4,7 @@ import "students.ic.unicamp.br/goten/processor"
 
 type bit struct{}
 
-func (o bit) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o bit) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 
@@ -21,7 +21,7 @@ func (o bit) getName() string {
 
 type clc struct{}
 
-func (o clc) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o clc) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 
@@ -37,7 +37,7 @@ func (o clc) getName() string {
 
 type sec struct{}
 
-func (o sec) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o sec) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 
@@ -53,7 +53,7 @@ func (o sec) getName() string {
 
 type cld struct{}
 
-func (o cld) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o cld) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 
@@ -69,7 +69,7 @@ func (o cld) getName() string {
 
 type sed struct{}
 
-func (o sed) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o sed) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 
@@ -85,7 +85,7 @@ func (o sed) getName() string {
 
 type cli struct{}
 
-func (o cli) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o cli) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 
@@ -101,7 +101,7 @@ func (o cli) getName() string {
 
 type sei struct{}
 
-func (o sei) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o sei) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 
@@ -117,7 +117,7 @@ func (o sei) getName() string {
 
 type clv struct{}
 
-func (o clv) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o clv) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 
@@ -133,7 +133,7 @@ func (o clv) getName() string {
 
 type nop struct{}
 
-func (o nop) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o nop) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 

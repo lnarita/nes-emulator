@@ -4,7 +4,7 @@ import "students.ic.unicamp.br/goten/processor"
 
 type lda struct{}
 
-func (o lda) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o lda) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 
@@ -27,7 +27,7 @@ func (o lda) getName() string {
 
 type sta struct{}
 
-func (o sta) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o sta) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 
@@ -49,7 +49,7 @@ func (o sta) getName() string {
 
 type ldx struct{}
 
-func (o ldx) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o ldx) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 
@@ -69,7 +69,7 @@ func (o ldx) getName() string {
 
 type stx struct{}
 
-func (o stx) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o stx) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 
@@ -87,7 +87,7 @@ func (o stx) getName() string {
 
 type ldy struct{}
 
-func (o ldy) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o ldy) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 
@@ -107,7 +107,7 @@ func (o ldy) getName() string {
 
 type sty struct{}
 
-func (o sty) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o sty) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 
@@ -125,7 +125,7 @@ func (o sty) getName() string {
 
 type tax struct{}
 
-func (o tax) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o tax) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 
@@ -141,7 +141,7 @@ func (o tax) getName() string {
 
 type txa struct{}
 
-func (o txa) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o txa) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 
@@ -157,7 +157,7 @@ func (o txa) getName() string {
 
 type tay struct{}
 
-func (o tay) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o tay) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 
@@ -173,7 +173,7 @@ func (o tay) getName() string {
 
 type tya struct{}
 
-func (o tya) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o tya) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 
@@ -189,7 +189,7 @@ func (o tya) getName() string {
 
 type tsx struct{}
 
-func (o tsx) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o tsx) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 
@@ -205,7 +205,7 @@ func (o tsx) getName() string {
 
 type txs struct{}
 
-func (o txs) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o txs) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 
@@ -221,7 +221,7 @@ func (o txs) getName() string {
 
 type pla struct{}
 
-func (o pla) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o pla) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 
@@ -237,7 +237,7 @@ func (o pla) getName() string {
 
 type pha struct{}
 
-func (o pha) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o pha) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 
@@ -253,7 +253,7 @@ func (o pha) getName() string {
 
 type plp struct{}
 
-func (o plp) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o plp) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 
@@ -269,7 +269,7 @@ func (o plp) getName() string {
 
 type php struct{}
 
-func (o php) exec(cpu *processor.CPU, memory *processor.Memory, addressMode *processor.AddressMode) {
+func (o php) exec(cpu *processor.CPU, memory *processor.Memory, variation *Variation) {
 
 }
 

@@ -12,24 +12,29 @@ type Variation struct {
 
 type OpCode interface {
 	getVariations() []Variation
-	exec(*processor.CPU, *processor.Memory, *processor.AddressMode)
+	exec(*processor.CPU, *processor.Memory, *Variation)
 	getName() string
 }
 
-func getAllOpCodes() map[byte]OpCode {
+type mapValue struct {
+	opcode    OpCode
+	variation Variation
+}
+
+func getAllOpCodes() map[byte]mapValue {
 	opcodeArrays := [][]OpCode{
 		ArithmeticAndLogicalOpCodes,
 		FlagOpcodes,
 		JumpOpCodes,
 		MoveOpCodes,
 	}
-	opcodeMap := map[byte]OpCode{}
+	opcodeMap := map[byte]mapValue{}
 
 	for _, opcodeList := range opcodeArrays {
 		for _, opcode := range opcodeList {
 			variations := opcode.getVariations()
 			for _, variation := range variations {
-				opcodeMap[variation.opcode] = opcode
+				opcodeMap[variation.opcode] = mapValue{opcode, variation}
 			}
 		}
 	}
