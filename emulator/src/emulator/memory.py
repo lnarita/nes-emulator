@@ -111,8 +111,7 @@ class Memory:
                 self.ppu.ppuaddr += 32
             else:
                 self.ppu.ppuaddr += 1
-            self.ppu.ppudata = self.ram[ppuaddr]
-            return self.ppu.ppudata
+            return self.ram[ppuaddr]
         else:
             return 0x00
 
