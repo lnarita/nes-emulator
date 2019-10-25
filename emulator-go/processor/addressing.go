@@ -3,7 +3,7 @@ package processor
 type AddressMode interface {
 	writeTo(console *Console, address int, value byte)
 	readFrom(console *Console, address int) int
-	fetchAddress(console *Console) int
+	fetchAddress(console *Console) (int, bool)
 }
 
 type indirect struct{}
@@ -16,214 +16,180 @@ func (a indirect) readFrom(console *Console, address int) int {
 	return 0x00 // FIXME??: this should do nothing
 }
 
-func (a indirect) fetchAddress(console *Console) int {
+func (a indirect) fetchAddress(console *Console) (int, bool) {
 	pointer := console.Memory.FetchAddress(console.CPU.PC)
 	console.CPU.PC += 2
-	console.Tick()
-	console.Tick()
 	address := console.Memory.FetchAddress(pointer)
-	console.Tick()
-	console.Tick()
-	return address
+	return address, false
 }
 
 type indirectX struct{}
 
 func (a indirectX) writeTo(console *Console, address int, value byte) {
 	console.Memory.StoreData(address, value)
-	console.Tick()
 }
 
 func (a indirectX) readFrom(console *Console, address int) int {
 	data := console.Memory.FetchData(address)
-	console.Tick()
 	return int(data)
 }
 
-func (a indirectX) fetchAddress(console *Console) int {
+func (a indirectX) fetchAddress(console *Console) (int, bool) {
 	acc := console.Memory.FetchData(console.CPU.PC)
 	console.CPU.PC++
-	console.Tick()
+
 	pointer := Wrap(0x00, 0xFF, int(console.CPU.X+acc))
-	console.Tick()
+
 	address := console.Memory.FetchAddress(pointer)
-	console.Tick()
-	console.Tick()
-	return address
+
+	return address, false
 }
 
 type indirectY struct{}
 
 func (a indirectY) writeTo(console *Console, address int, value byte) {
 	console.Memory.StoreData(address, value)
-	console.Tick()
 }
 
 func (a indirectY) readFrom(console *Console, address int) int {
 	data := console.Memory.FetchData(address)
-	console.Tick()
 	return int(data)
 }
 
-func (a indirectY) fetchAddress(console *Console) int {
+func (a indirectY) fetchAddress(console *Console) (int, bool) {
 	pointer := int(console.Memory.FetchData(console.CPU.PC))
 	console.CPU.PC++
-	console.Tick()
 
 	startAddressLow := int(console.Memory.FetchData(pointer))
-	console.Tick()
+
 	startAddressHigh := int(console.Memory.FetchData(Wrap(0x00, 0xFF, pointer+1))) << 8
-	console.Tick()
+
 	address := startAddressLow + int(console.CPU.Y) + startAddressHigh
-	if (address & 0xFF00) != (startAddressHigh & 0xFF00) {
-		console.Tick() // Overflow: oops cycle
-	}
-	return address
+
+	return address, (address & 0xFF00) != (startAddressHigh & 0xFF00)
 }
 
 type zeroPage struct{}
 
 func (a zeroPage) writeTo(console *Console, address int, value byte) {
 	console.Memory.StoreData(address, value)
-	console.Tick()
 }
 
 func (a zeroPage) readFrom(console *Console, address int) int {
 	data := console.Memory.FetchData(address)
-	console.Tick()
 	return int(data)
 }
 
-func (a zeroPage) fetchAddress(console *Console) int {
+func (a zeroPage) fetchAddress(console *Console) (int, bool) {
 	address := int(console.Memory.FetchData(console.CPU.PC))
 	console.CPU.PC++
-	console.Tick()
-	return address
+	return address, false
 }
 
 type zeroPageX struct{}
 
 func (a zeroPageX) writeTo(console *Console, address int, value byte) {
 	console.Memory.StoreData(address, value)
-	console.Tick()
 }
 
 func (a zeroPageX) readFrom(console *Console, address int) int {
 	data := console.Memory.FetchData(address)
-	console.Tick()
 	return int(data)
 }
 
-func (a zeroPageX) fetchAddress(console *Console) int {
+func (a zeroPageX) fetchAddress(console *Console) (int, bool) {
 	baseAddress := int(console.Memory.FetchData(console.CPU.PC))
 	console.CPU.PC++
-	console.Tick()
+
 	address := Wrap(0x00, 0xFF, baseAddress+int(console.CPU.X))
-	console.Tick()
-	return address
+
+	return address, false
 }
 
 type zeroPageY struct{}
 
 func (a zeroPageY) writeTo(console *Console, address int, value byte) {
 	console.Memory.StoreData(address, value)
-	console.Tick()
 }
 
 func (a zeroPageY) readFrom(console *Console, address int) int {
 	data := console.Memory.FetchData(address)
-	console.Tick()
 	return int(data)
 }
 
-func (a zeroPageY) fetchAddress(console *Console) int {
+func (a zeroPageY) fetchAddress(console *Console) (int, bool) {
 	baseAddress := int(console.Memory.FetchData(console.CPU.PC))
 	console.CPU.PC++
-	console.Tick()
+
 	address := Wrap(0x00, 0xFF, baseAddress+int(console.CPU.Y))
-	console.Tick()
-	return address
+
+	return address, false
 }
 
 type absolute struct{}
 
 func (a absolute) writeTo(console *Console, address int, value byte) {
 	console.Memory.StoreData(address, value)
-	console.Tick()
 }
 
 func (a absolute) readFrom(console *Console, address int) int {
 	data := console.Memory.FetchData(address)
-	console.Tick()
 	return int(data)
 }
 
-func (a absolute) fetchAddress(console *Console) int {
+func (a absolute) fetchAddress(console *Console) (int, bool) {
 	startAddressLow := int(console.Memory.FetchData(console.CPU.PC))
 	console.CPU.PC++
-	console.Tick()
+
 	startAddressHigh := int(console.Memory.FetchData(console.CPU.PC)) << 8
 	console.CPU.PC++
-	console.Tick()
+
 	address := startAddressLow + startAddressHigh
-	if (address & 0xFF00) != (startAddressHigh & 0xFF00) {
-		console.Tick() // Overflow: oops cycle
-	}
-	return address
+
+	return address, (address & 0xFF00) != (startAddressHigh & 0xFF00)
 }
 
 type absoluteY struct{}
 
 func (a absoluteY) writeTo(console *Console, address int, value byte) {
 	console.Memory.StoreData(address, value)
-	console.Tick()
 }
 
 func (a absoluteY) readFrom(console *Console, address int) int {
 	data := console.Memory.FetchData(address)
-	console.Tick()
 	return int(data)
 }
 
-func (a absoluteY) fetchAddress(console *Console) int {
+func (a absoluteY) fetchAddress(console *Console) (int, bool) {
 	startAddressLow := int(console.Memory.FetchData(console.CPU.PC))
 	console.CPU.PC++
-	console.Tick()
+
 	startAddressHigh := int(console.Memory.FetchData(console.CPU.PC)) << 8
 	console.CPU.PC++
-	console.Tick()
 	address := startAddressLow + startAddressHigh + int(console.CPU.Y)
-	if (address & 0xFF00) != (startAddressHigh & 0xFF00) {
-		console.Tick() // Overflow: oops cycle
-	}
-	return address
+	return address, (address & 0xFF00) != (startAddressHigh & 0xFF00)
 }
 
 type absoluteX struct{}
 
 func (a absoluteX) writeTo(console *Console, address int, value byte) {
 	console.Memory.StoreData(address, value)
-	console.Tick()
 }
 
 func (a absoluteX) readFrom(console *Console, address int) int {
 	data := console.Memory.FetchData(address)
-	console.Tick()
 	return int(data)
 }
 
-func (a absoluteX) fetchAddress(console *Console) int {
+func (a absoluteX) fetchAddress(console *Console) (int, bool) {
 	startAddressLow := int(console.Memory.FetchData(console.CPU.PC))
 	console.CPU.PC++
-	console.Tick()
+
 	startAddressHigh := int(console.Memory.FetchData(console.CPU.PC)) << 8
 	console.CPU.PC++
-	console.Tick()
+
 	address := startAddressLow + startAddressHigh + int(console.CPU.X)
-	if (address & 0xFF00) != (startAddressHigh & 0xFF00) {
-		console.Tick() // Overflow: oops cycle
-	}
-	return address
+	return address, (address & 0xFF00) != (startAddressHigh & 0xFF00)
 }
 
 type immediate struct{}
@@ -236,10 +202,10 @@ func (a immediate) readFrom(console *Console, address int) int {
 	return address
 }
 
-func (a immediate) fetchAddress(console *Console) int {
+func (a immediate) fetchAddress(console *Console) (int, bool) {
 	address := int(console.Memory.FetchData(console.CPU.PC))
 	console.CPU.PC++
-	return address
+	return address, false
 }
 
 type accumulator struct{}
@@ -252,9 +218,8 @@ func (a accumulator) readFrom(console *Console, address int) int {
 	return int(console.CPU.A)
 }
 
-func (a accumulator) fetchAddress(console *Console) int {
-	console.Tick()
-	return 0x00 // FIXME??: this should do nothing
+func (a accumulator) fetchAddress(console *Console) (int, bool) {
+	return 0x00, false // FIXME??: this should do nothing
 }
 
 type relative struct{}
@@ -269,8 +234,10 @@ func (a relative) readFrom(console *Console, address int) int {
 	return int(pointer)
 }
 
-func (a relative) fetchAddress(console *Console) int {
-	return 0x00
+func (a relative) fetchAddress(console *Console) (int, bool) {
+	address := int(console.Memory.FetchData(console.CPU.PC))
+	console.CPU.PC++
+	return address, false
 }
 
 var (
