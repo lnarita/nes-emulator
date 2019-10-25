@@ -4,7 +4,8 @@ import "students.ic.unicamp.br/goten/processor"
 
 type lda struct{}
 
-func (o lda) exec(console *processor.Console, variation *Variation) {
+func (o lda) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -27,7 +28,8 @@ func (o lda) getName() string {
 
 type sta struct{}
 
-func (o sta) exec(console *processor.Console, variation *Variation) {
+func (o sta) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -49,7 +51,8 @@ func (o sta) getName() string {
 
 type ldx struct{}
 
-func (o ldx) exec(console *processor.Console, variation *Variation) {
+func (o ldx) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -69,7 +72,8 @@ func (o ldx) getName() string {
 
 type stx struct{}
 
-func (o stx) exec(console *processor.Console, variation *Variation) {
+func (o stx) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -87,7 +91,8 @@ func (o stx) getName() string {
 
 type ldy struct{}
 
-func (o ldy) exec(console *processor.Console, variation *Variation) {
+func (o ldy) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -107,7 +112,8 @@ func (o ldy) getName() string {
 
 type sty struct{}
 
-func (o sty) exec(console *processor.Console, variation *Variation) {
+func (o sty) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -125,7 +131,8 @@ func (o sty) getName() string {
 
 type tax struct{}
 
-func (o tax) exec(console *processor.Console, variation *Variation) {
+func (o tax) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -141,7 +148,8 @@ func (o tax) getName() string {
 
 type txa struct{}
 
-func (o txa) exec(console *processor.Console, variation *Variation) {
+func (o txa) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -157,7 +165,8 @@ func (o txa) getName() string {
 
 type tay struct{}
 
-func (o tay) exec(console *processor.Console, variation *Variation) {
+func (o tay) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -173,7 +182,8 @@ func (o tay) getName() string {
 
 type tya struct{}
 
-func (o tya) exec(console *processor.Console, variation *Variation) {
+func (o tya) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -189,7 +199,8 @@ func (o tya) getName() string {
 
 type tsx struct{}
 
-func (o tsx) exec(console *processor.Console, variation *Variation) {
+func (o tsx) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -205,7 +216,8 @@ func (o tsx) getName() string {
 
 type txs struct{}
 
-func (o txs) exec(console *processor.Console, variation *Variation) {
+func (o txs) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -221,7 +233,8 @@ func (o txs) getName() string {
 
 type pla struct{}
 
-func (o pla) exec(console *processor.Console, variation *Variation) {
+func (o pla) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -237,7 +250,8 @@ func (o pla) getName() string {
 
 type pha struct{}
 
-func (o pha) exec(console *processor.Console, variation *Variation) {
+func (o pha) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -253,7 +267,8 @@ func (o pha) getName() string {
 
 type plp struct{}
 
-func (o plp) exec(console *processor.Console, variation *Variation) {
+func (o plp) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -269,7 +284,8 @@ func (o plp) getName() string {
 
 type php struct{}
 
-func (o php) exec(console *processor.Console, variation *Variation) {
+func (o php) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 

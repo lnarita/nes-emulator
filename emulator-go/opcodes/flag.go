@@ -4,7 +4,8 @@ import "students.ic.unicamp.br/goten/processor"
 
 type bit struct{}
 
-func (o bit) exec(console *processor.Console, variation *Variation) {
+func (o bit) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -21,7 +22,8 @@ func (o bit) getName() string {
 
 type clc struct{}
 
-func (o clc) exec(console *processor.Console, variation *Variation) {
+func (o clc) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -37,7 +39,8 @@ func (o clc) getName() string {
 
 type sec struct{}
 
-func (o sec) exec(console *processor.Console, variation *Variation) {
+func (o sec) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -53,7 +56,8 @@ func (o sec) getName() string {
 
 type cld struct{}
 
-func (o cld) exec(console *processor.Console, variation *Variation) {
+func (o cld) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -69,7 +73,8 @@ func (o cld) getName() string {
 
 type sed struct{}
 
-func (o sed) exec(console *processor.Console, variation *Variation) {
+func (o sed) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -85,7 +90,8 @@ func (o sed) getName() string {
 
 type cli struct{}
 
-func (o cli) exec(console *processor.Console, variation *Variation) {
+func (o cli) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -101,7 +107,8 @@ func (o cli) getName() string {
 
 type sei struct{}
 
-func (o sei) exec(console *processor.Console, variation *Variation) {
+func (o sei) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -117,7 +124,8 @@ func (o sei) getName() string {
 
 type clv struct{}
 
-func (o clv) exec(console *processor.Console, variation *Variation) {
+func (o clv) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -133,7 +141,8 @@ func (o clv) getName() string {
 
 type nop struct{}
 
-func (o nop) exec(console *processor.Console, variation *Variation) {
+func (o nop) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 

@@ -4,7 +4,8 @@ import "students.ic.unicamp.br/goten/processor"
 
 type ora struct{}
 
-func (o ora) exec(console *processor.Console, variation *Variation) {
+func (o ora) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -27,7 +28,8 @@ func (o ora) getName() string {
 
 type and struct{}
 
-func (o and) exec(console *processor.Console, variation *Variation) {
+func (o and) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -50,7 +52,8 @@ func (o and) getName() string {
 
 type eor struct{}
 
-func (o eor) exec(console *processor.Console, variation *Variation) {
+func (o eor) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -73,7 +76,8 @@ func (o eor) getName() string {
 
 type adc struct{}
 
-func (o adc) exec(console *processor.Console, variation *Variation) {
+func (o adc) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -96,7 +100,8 @@ func (o adc) getName() string {
 
 type sbc struct{}
 
-func (o sbc) exec(console *processor.Console, variation *Variation) {
+func (o sbc) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -119,7 +124,8 @@ func (o sbc) getName() string {
 
 type cmp struct{}
 
-func (o cmp) exec(console *processor.Console, variation *Variation) {
+func (o cmp) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -142,7 +148,8 @@ func (o cmp) getName() string {
 
 type cpx struct{}
 
-func (o cpx) exec(console *processor.Console, variation *Variation) {
+func (o cpx) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -160,7 +167,8 @@ func (o cpx) getName() string {
 
 type cpy struct{}
 
-func (o cpy) exec(console *processor.Console, variation *Variation) {
+func (o cpy) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -178,7 +186,8 @@ func (o cpy) getName() string {
 
 type dec struct{}
 
-func (o dec) exec(console *processor.Console, variation *Variation) {
+func (o dec) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -197,7 +206,8 @@ func (o dec) getName() string {
 
 type dex struct{}
 
-func (o dex) exec(console *processor.Console, variation *Variation) {
+func (o dex) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -213,7 +223,8 @@ func (o dex) getName() string {
 
 type dey struct{}
 
-func (o dey) exec(console *processor.Console, variation *Variation) {
+func (o dey) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -229,7 +240,8 @@ func (o dey) getName() string {
 
 type inc struct{}
 
-func (o inc) exec(console *processor.Console, variation *Variation) {
+func (o inc) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -248,7 +260,8 @@ func (o inc) getName() string {
 
 type inx struct{}
 
-func (o inx) exec(console *processor.Console, variation *Variation) {
+func (o inx) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -264,7 +277,8 @@ func (o inx) getName() string {
 
 type iny struct{}
 
-func (o iny) exec(console *processor.Console, variation *Variation) {
+func (o iny) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -280,7 +294,8 @@ func (o iny) getName() string {
 
 type asl struct{}
 
-func (o asl) exec(console *processor.Console, variation *Variation) {
+func (o asl) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -300,7 +315,8 @@ func (o asl) getName() string {
 
 type rol struct{}
 
-func (o rol) exec(console *processor.Console, variation *Variation) {
+func (o rol) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -320,7 +336,8 @@ func (o rol) getName() string {
 
 type lsr struct{}
 
-func (o lsr) exec(console *processor.Console, variation *Variation) {
+func (o lsr) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
@@ -340,7 +357,8 @@ func (o lsr) getName() string {
 
 type ror struct{}
 
-func (o ror) exec(console *processor.Console, variation *Variation) {
+func (o ror) exec(console *processor.Console, variation *Variation) int {
+	return 0
 
 }
 
