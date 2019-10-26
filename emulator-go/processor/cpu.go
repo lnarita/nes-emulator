@@ -79,7 +79,7 @@ func (cpu CPU) SetBreak(value bool) {
 func (cpu CPU) SetDecimalMode(value bool) {
 	cpu.updateFlagBit(value, DecimalBit, NotDecimalBit)
 }
-func (cpu CPU) SetInterruptsDisabled(value bool) {
+func (cpu CPU) DisableInterrupts(value bool) {
 	cpu.updateFlagBit(value, InterruptsBit, NotInterruptsBit)
 }
 func (cpu CPU) SetZero(value bool) {
@@ -104,20 +104,20 @@ func (cpu CPU) IsBreak() bool {
 func (cpu CPU) IsDecimalMode() bool {
 	return cpu.Flags&DecimalBit != 0
 }
-func (cpu CPU) IsInterruptsDisabled() bool {
+func (cpu CPU) AreInterruptsDisabled() bool {
 	return cpu.Flags&InterruptsBit != 0
 }
 func (cpu CPU) IsZero() bool {
 	return cpu.Flags&ZeroBit != 0
 }
-func (cpu CPU) IsCarry() bool {
+func (cpu CPU) HasCarry() bool {
 	return cpu.Flags&CarryBit != 0
 }
 func (cpu CPU) TriggerNMI() {
 	cpu.interrupt = interruptNMI
 }
 func (cpu CPU) TriggerIRQ() {
-	if !cpu.IsInterruptsDisabled() {
+	if !cpu.AreInterruptsDisabled() {
 		cpu.interrupt = interruptIRQ
 	}
 }

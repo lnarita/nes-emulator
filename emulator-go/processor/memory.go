@@ -53,8 +53,8 @@ func (mem Memory) FetchData(address int) byte {
 func (mem Memory) FetchAddress(address int) int {
 	var ptrLow, ptrHigh int
 	ptrLow = address
-	if (ptrLow & 0x00FF) == 0xFF {
-		ptrHigh = address & 0xFF00 // NES hardware bug: wrap address within page
+	if (ptrLow & LowBitsMask) == LowBitsMask {
+		ptrHigh = address & HighBitsMask // NES hardware bug: wrap address within page
 	} else {
 		ptrHigh = address + 1
 	}
@@ -87,12 +87,23 @@ func (mem Memory) StoreData(address int, data byte) {
 	}
 }
 
-func (mem Memory) StackPush(cpu *CPU, data byte) {
+func (mem Memory) StackPushData(cpu *CPU, data byte) {
 	mem.StoreData(cpu.SP, data)
 	cpu.SP = Wrap(0x0100, 0x01FF, cpu.SP-1)
 }
 
-func (mem Memory) StackPop(cpu *CPU, data byte) byte {
+func (mem Memory) StackPopData(cpu *CPU) byte {
 	cpu.SP = Wrap(0x0100, 0x01FF, cpu.SP+1)
 	return mem.FetchData(cpu.SP)
+}
+
+func (mem Memory) StackPushAddress(cpu *CPU, data int) {
+	mem.StackPushData(cpu, byte(data>>8))
+	mem.StackPushData(cpu, byte(data&LowBitsMask))
+}
+
+func (mem Memory) StackPopAddress(cpu *CPU) int {
+	low := mem.StackPopData(cpu)
+	high := mem.StackPopData(cpu)
+	return int(high)<<8 | int(low)
 }

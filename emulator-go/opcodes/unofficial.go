@@ -5,8 +5,12 @@ import "students.ic.unicamp.br/goten/processor"
 type ign struct{}
 
 func (o ign) exec(console *processor.Console, variation *Variation) int {
-	return 0
-
+	var cycleAcc int = 0
+	_, stall := variation.addressingMode.FetchAddress(console)
+	if stall {
+		cycleAcc++
+	}
+	return variation.cycles + cycleAcc
 }
 
 func (o ign) getVariations() []Variation {
@@ -37,8 +41,12 @@ func (o ign) getName() string {
 type skb struct{}
 
 func (o skb) exec(console *processor.Console, variation *Variation) int {
-	return 0
-
+	var cycleAcc int = 0
+	_, stall := variation.addressingMode.FetchAddress(console)
+	if stall {
+		cycleAcc++
+	}
+	return variation.cycles + cycleAcc
 }
 
 func (o skb) getVariations() []Variation {
@@ -58,8 +66,7 @@ func (o skb) getName() string {
 type unofficialNop struct{}
 
 func (o unofficialNop) exec(console *processor.Console, variation *Variation) int {
-	return 0
-
+	return variation.cycles
 }
 
 func (o unofficialNop) getVariations() []Variation {
@@ -80,8 +87,28 @@ func (o unofficialNop) getName() string {
 type lax struct{}
 
 func (o lax) exec(console *processor.Console, variation *Variation) int {
-	return 0
+	// LDA
+	var stall bool = false
+	var cycleAcc int = 0
+	if variation.addressingMode != nil {
+		var address int
+		address, stall = variation.addressingMode.FetchAddress(console)
+		value := byte(variation.addressingMode.ReadFrom(console, address))
 
+		console.CPU.A = value
+		console.CPU.SetZN(value)
+	}
+
+	if stall {
+		cycleAcc++
+	}
+
+	// TAX
+	value := console.CPU.A
+	console.CPU.X = value
+	console.CPU.SetZN(value)
+
+	return variation.cycles + cycleAcc
 }
 
 func (o lax) getVariations() []Variation {
@@ -102,8 +129,21 @@ func (o lax) getName() string {
 type sax struct{}
 
 func (o sax) exec(console *processor.Console, variation *Variation) int {
-	return 0
+	var stall bool = false
+	var cycleAcc int = 0
 
+	value := console.CPU.A & console.CPU.X
+	if variation.addressingMode != nil {
+		var address int
+		address, stall = variation.addressingMode.FetchAddress(console)
+		variation.addressingMode.WriteTo(console, address, value)
+	}
+
+	if stall {
+		cycleAcc++
+	}
+
+	return variation.cycles + cycleAcc
 }
 
 func (o sax) getVariations() []Variation {
@@ -122,8 +162,27 @@ func (o sax) getName() string {
 type unofficialSbc struct{}
 
 func (o unofficialSbc) exec(console *processor.Console, variation *Variation) int {
-	return 0
+	var cycleAcc int = 0
+	address, stall := variation.addressingMode.FetchAddress(console)
+	value := byte(variation.addressingMode.ReadFrom(console, address))
+	sub := console.CPU.A
 
+	result := int(sub) - int(value) - int(console.CPU.Flags+processor.CarryBit)
+	a := byte(uint8(result))
+
+	overflow := (sub^value&processor.NegativeBit > 0) && (sub^a&processor.NegativeBit > 0)
+	carry := a >= 0
+
+	console.CPU.A = a
+	console.CPU.SetCarry(carry)
+	console.CPU.SetOverflow(overflow)
+	console.CPU.SetZN(console.CPU.A)
+
+	if stall {
+		cycleAcc++
+	}
+
+	return variation.cycles + cycleAcc
 }
 
 func (o unofficialSbc) getVariations() []Variation {
@@ -139,8 +198,25 @@ func (o unofficialSbc) getName() string {
 type dcp struct{}
 
 func (o dcp) exec(console *processor.Console, variation *Variation) int {
-	return 0
+	var cycleAcc int = 0
+	address, stall := variation.addressingMode.FetchAddress(console)
+	old_value := variation.addressingMode.ReadFrom(console, address)
+	value := processor.Wrap(0x00, 0xFF, old_value-1)
+	variation.addressingMode.WriteTo(console, address, byte(value))
 
+	sub := int(console.CPU.A)
+	result := sub - value
+	a := byte(uint8(result))
+	carry := sub >= int(a)
+
+	console.CPU.SetCarry(carry)
+	console.CPU.SetZN(a)
+
+	if stall {
+		cycleAcc++
+	}
+
+	return variation.cycles + cycleAcc
 }
 
 func (o dcp) getVariations() []Variation {
@@ -162,8 +238,28 @@ func (o dcp) getName() string {
 type isc struct{}
 
 func (o isc) exec(console *processor.Console, variation *Variation) int {
-	return 0
+	var cycleAcc int = 0
+	address, stall := variation.addressingMode.FetchAddress(console)
+	old_value := variation.addressingMode.ReadFrom(console, address)
+	value := byte(processor.Wrap(0x00, 0xFF, old_value+1))
+	sub := console.CPU.A
 
+	result := int(sub) - int(value) - int(console.CPU.Flags+processor.CarryBit)
+	a := byte(uint8(result))
+
+	overflow := (sub^value&processor.NegativeBit > 0) && (sub^a&processor.NegativeBit > 0)
+	carry := a >= 0
+
+	console.CPU.A = a
+	console.CPU.SetCarry(carry)
+	console.CPU.SetOverflow(overflow)
+	console.CPU.SetZN(console.CPU.A)
+
+	if stall {
+		cycleAcc++
+	}
+
+	return variation.cycles + cycleAcc
 }
 
 func (o isc) getVariations() []Variation {
@@ -185,8 +281,23 @@ func (o isc) getName() string {
 type slo struct{}
 
 func (o slo) exec(console *processor.Console, variation *Variation) int {
-	return 0
+	var cycleAcc int = 0
+	address, stall := variation.addressingMode.FetchAddress(console)
+	old_value := variation.addressingMode.ReadFrom(console, address)
+	variation.addressingMode.WriteTo(console, address, byte(old_value))
+	value := old_value << 1
+	variation.addressingMode.WriteTo(console, address, byte(value))
+	carry := (value & processor.HighBitsMask) > 0
 
+	console.CPU.A |= byte(value)
+	console.CPU.SetCarry(carry)
+	console.CPU.SetZN(console.CPU.A)
+
+	if stall {
+		cycleAcc++
+	}
+
+	return variation.cycles + cycleAcc
 }
 
 func (o slo) getVariations() []Variation {
@@ -208,8 +319,28 @@ func (o slo) getName() string {
 type rla struct{}
 
 func (o rla) exec(console *processor.Console, variation *Variation) int {
-	return 0
+	var cycleAcc int = 0
+	address, stall := variation.addressingMode.FetchAddress(console)
+	old_value := variation.addressingMode.ReadFrom(console, address)
+	variation.addressingMode.WriteTo(console, address, byte(old_value))
+	value := old_value << 1 & int(processor.LowBitsMask)
+	if console.CPU.HasCarry() {
+		value |= 0b0000_0001
+	} else {
+		value &= 0b1111_1110
+	}
+	variation.addressingMode.WriteTo(console, address, byte(value))
+	carry := (old_value & 0b1000_0000) > 0
 
+	console.CPU.A &= byte(value)
+	console.CPU.SetCarry(carry)
+	console.CPU.SetZN(console.CPU.A)
+
+	if stall {
+		cycleAcc++
+	}
+
+	return variation.cycles + cycleAcc
 }
 
 func (o rla) getVariations() []Variation {
@@ -231,8 +362,23 @@ func (o rla) getName() string {
 type sre struct{}
 
 func (o sre) exec(console *processor.Console, variation *Variation) int {
-	return 0
+	var cycleAcc int = 0
+	address, stall := variation.addressingMode.FetchAddress(console)
+	old_value := variation.addressingMode.ReadFrom(console, address)
+	variation.addressingMode.WriteTo(console, address, byte(old_value))
+	value := old_value >> 1 & int(processor.LowBitsMask)
+	variation.addressingMode.WriteTo(console, address, byte(value))
+	carry := (old_value & 0b0000_0001) > 0
 
+	console.CPU.A ^= byte(value)
+	console.CPU.SetCarry(carry)
+	console.CPU.SetZN(console.CPU.A)
+
+	if stall {
+		cycleAcc++
+	}
+
+	return variation.cycles + cycleAcc
 }
 
 func (o sre) getVariations() []Variation {
@@ -254,8 +400,37 @@ func (o sre) getName() string {
 type rra struct{}
 
 func (o rra) exec(console *processor.Console, variation *Variation) int {
-	return 0
+	var cycleAcc int = 0
+	address, stall := variation.addressingMode.FetchAddress(console)
+	old_value := variation.addressingMode.ReadFrom(console, address)
+	variation.addressingMode.WriteTo(console, address, byte(old_value))
+	value := old_value >> 1 & int(processor.LowBitsMask)
+	if console.CPU.HasCarry() {
+		value |= 0b1000_0000
+	} else {
+		value &= 0b0111_1111
+	}
+	variation.addressingMode.WriteTo(console, address, byte(value))
+	carry := (old_value & 0b0000_0001) > 0
 
+	add := int(console.CPU.A)
+
+	console.CPU.A += byte(value)
+	if carry {
+		console.CPU.A++
+	}
+	carry = int(console.CPU.A)>>8 != 0
+
+	overflow := (add>>7 == value>>7) && (add>>7) != int(console.CPU.A)>>7
+	console.CPU.SetOverflow(overflow)
+	console.CPU.SetCarry(carry)
+	console.CPU.SetZN(console.CPU.A)
+
+	if stall {
+		cycleAcc++
+	}
+
+	return variation.cycles + cycleAcc
 }
 
 func (o rra) getVariations() []Variation {

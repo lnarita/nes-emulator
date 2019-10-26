@@ -5,8 +5,22 @@ import "students.ic.unicamp.br/goten/processor"
 type lda struct{}
 
 func (o lda) exec(console *processor.Console, variation *Variation) int {
-	return 0
+	var stall bool = false
+	var cycleAcc int = 0
+	if variation.addressingMode != nil {
+		var address int
+		address, stall = variation.addressingMode.FetchAddress(console)
+		value := byte(variation.addressingMode.ReadFrom(console, address))
 
+		console.CPU.A = value
+		console.CPU.SetZN(value)
+	}
+
+	if stall {
+		cycleAcc++
+	}
+
+	return variation.cycles + cycleAcc
 }
 
 func (o lda) getVariations() []Variation {
@@ -29,8 +43,19 @@ func (o lda) getName() string {
 type sta struct{}
 
 func (o sta) exec(console *processor.Console, variation *Variation) int {
-	return 0
+	var stall bool = false
+	var cycleAcc int = 0
+	if variation.addressingMode != nil {
+		var address int
+		address, stall = variation.addressingMode.FetchAddress(console)
+		variation.addressingMode.WriteTo(console, address, console.CPU.A)
+	}
 
+	if stall {
+		cycleAcc++
+	}
+
+	return variation.cycles + cycleAcc
 }
 
 func (o sta) getVariations() []Variation {
@@ -52,8 +77,22 @@ func (o sta) getName() string {
 type ldx struct{}
 
 func (o ldx) exec(console *processor.Console, variation *Variation) int {
-	return 0
+	var stall bool = false
+	var cycleAcc int = 0
+	if variation.addressingMode != nil {
+		var address int
+		address, stall = variation.addressingMode.FetchAddress(console)
+		value := byte(variation.addressingMode.ReadFrom(console, address))
 
+		console.CPU.X = value
+		console.CPU.SetZN(value)
+	}
+
+	if stall {
+		cycleAcc++
+	}
+
+	return variation.cycles + cycleAcc
 }
 
 func (o ldx) getVariations() []Variation {
@@ -73,8 +112,19 @@ func (o ldx) getName() string {
 type stx struct{}
 
 func (o stx) exec(console *processor.Console, variation *Variation) int {
-	return 0
+	var stall bool = false
+	var cycleAcc int = 0
+	if variation.addressingMode != nil {
+		var address int
+		address, stall = variation.addressingMode.FetchAddress(console)
+		variation.addressingMode.WriteTo(console, address, console.CPU.X)
+	}
 
+	if stall {
+		cycleAcc++
+	}
+
+	return variation.cycles + cycleAcc
 }
 
 func (o stx) getVariations() []Variation {
@@ -92,8 +142,22 @@ func (o stx) getName() string {
 type ldy struct{}
 
 func (o ldy) exec(console *processor.Console, variation *Variation) int {
-	return 0
+	var stall bool = false
+	var cycleAcc int = 0
+	if variation.addressingMode != nil {
+		var address int
+		address, stall = variation.addressingMode.FetchAddress(console)
+		value := byte(variation.addressingMode.ReadFrom(console, address))
 
+		console.CPU.Y = value
+		console.CPU.SetZN(value)
+	}
+
+	if stall {
+		cycleAcc++
+	}
+
+	return variation.cycles + cycleAcc
 }
 
 func (o ldy) getVariations() []Variation {
@@ -113,8 +177,19 @@ func (o ldy) getName() string {
 type sty struct{}
 
 func (o sty) exec(console *processor.Console, variation *Variation) int {
-	return 0
+	var stall bool = false
+	var cycleAcc int = 0
+	if variation.addressingMode != nil {
+		var address int
+		address, stall = variation.addressingMode.FetchAddress(console)
+		variation.addressingMode.WriteTo(console, address, console.CPU.Y)
+	}
 
+	if stall {
+		cycleAcc++
+	}
+
+	return variation.cycles + cycleAcc
 }
 
 func (o sty) getVariations() []Variation {
@@ -132,8 +207,10 @@ func (o sty) getName() string {
 type tax struct{}
 
 func (o tax) exec(console *processor.Console, variation *Variation) int {
-	return 0
-
+	value := console.CPU.A
+	console.CPU.X = value
+	console.CPU.SetZN(value)
+	return variation.cycles
 }
 
 func (o tax) getVariations() []Variation {
@@ -149,8 +226,10 @@ func (o tax) getName() string {
 type txa struct{}
 
 func (o txa) exec(console *processor.Console, variation *Variation) int {
-	return 0
-
+	value := console.CPU.X
+	console.CPU.A = value
+	console.CPU.SetZN(value)
+	return variation.cycles
 }
 
 func (o txa) getVariations() []Variation {
@@ -166,8 +245,10 @@ func (o txa) getName() string {
 type tay struct{}
 
 func (o tay) exec(console *processor.Console, variation *Variation) int {
-	return 0
-
+	value := console.CPU.A
+	console.CPU.Y = value
+	console.CPU.SetZN(value)
+	return variation.cycles
 }
 
 func (o tay) getVariations() []Variation {
@@ -183,8 +264,10 @@ func (o tay) getName() string {
 type tya struct{}
 
 func (o tya) exec(console *processor.Console, variation *Variation) int {
-	return 0
-
+	value := console.CPU.Y
+	console.CPU.A = value
+	console.CPU.SetZN(value)
+	return variation.cycles
 }
 
 func (o tya) getVariations() []Variation {
@@ -200,8 +283,10 @@ func (o tya) getName() string {
 type tsx struct{}
 
 func (o tsx) exec(console *processor.Console, variation *Variation) int {
-	return 0
-
+	value := byte(console.CPU.SP & processor.LowBitsMask)
+	console.CPU.X = value
+	console.CPU.SetZN(value)
+	return variation.cycles
 }
 
 func (o tsx) getVariations() []Variation {
@@ -217,8 +302,9 @@ func (o tsx) getName() string {
 type txs struct{}
 
 func (o txs) exec(console *processor.Console, variation *Variation) int {
-	return 0
-
+	value := int(console.CPU.X) | 0x0100
+	console.CPU.SP = value
+	return variation.cycles
 }
 
 func (o txs) getVariations() []Variation {
@@ -234,8 +320,10 @@ func (o txs) getName() string {
 type pla struct{}
 
 func (o pla) exec(console *processor.Console, variation *Variation) int {
-	return 0
-
+	value := console.Memory.StackPopData(console.CPU)
+	console.CPU.A = value
+	console.CPU.SetZN(value)
+	return variation.cycles
 }
 
 func (o pla) getVariations() []Variation {
@@ -251,8 +339,8 @@ func (o pla) getName() string {
 type pha struct{}
 
 func (o pha) exec(console *processor.Console, variation *Variation) int {
-	return 0
-
+	console.Memory.StackPushData(console.CPU, console.CPU.A)
+	return variation.cycles
 }
 
 func (o pha) getVariations() []Variation {
@@ -268,8 +356,10 @@ func (o pha) getName() string {
 type plp struct{}
 
 func (o plp) exec(console *processor.Console, variation *Variation) int {
-	return 0
-
+	value := console.Memory.StackPopData(console.CPU)
+	flags := value&processor.NotBreakBit | processor.BFlag
+	console.CPU.Flags = flags
+	return variation.cycles
 }
 
 func (o plp) getVariations() []Variation {
@@ -285,8 +375,9 @@ func (o plp) getName() string {
 type php struct{}
 
 func (o php) exec(console *processor.Console, variation *Variation) int {
-	return 0
-
+	value := console.CPU.Flags | processor.BreakBit | processor.BFlag
+	console.Memory.StackPushData(console.CPU, value)
+	return variation.cycles
 }
 
 func (o php) getVariations() []Variation {

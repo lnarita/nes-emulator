@@ -5,8 +5,17 @@ import "students.ic.unicamp.br/goten/processor"
 type bit struct{}
 
 func (o bit) exec(console *processor.Console, variation *Variation) int {
-	return 0
+	address, stall := variation.addressingMode.FetchAddress(console)
+	value := byte(variation.addressingMode.ReadFrom(console, address))
 
+	console.CPU.SetZN(value)
+	console.CPU.SetOverflow(value&processor.OverflowBit != 0)
+
+	var cycleAcc int = 0
+	if stall {
+		cycleAcc++
+	}
+	return variation.cycles + cycleAcc
 }
 
 func (o bit) getVariations() []Variation {
@@ -23,8 +32,8 @@ func (o bit) getName() string {
 type clc struct{}
 
 func (o clc) exec(console *processor.Console, variation *Variation) int {
-	return 0
-
+	console.CPU.SetCarry(false)
+	return variation.cycles
 }
 
 func (o clc) getVariations() []Variation {
@@ -40,8 +49,8 @@ func (o clc) getName() string {
 type sec struct{}
 
 func (o sec) exec(console *processor.Console, variation *Variation) int {
-	return 0
-
+	console.CPU.SetCarry(true)
+	return variation.cycles
 }
 
 func (o sec) getVariations() []Variation {
@@ -57,8 +66,8 @@ func (o sec) getName() string {
 type cld struct{}
 
 func (o cld) exec(console *processor.Console, variation *Variation) int {
-	return 0
-
+	console.CPU.SetDecimalMode(false)
+	return variation.cycles
 }
 
 func (o cld) getVariations() []Variation {
@@ -74,8 +83,8 @@ func (o cld) getName() string {
 type sed struct{}
 
 func (o sed) exec(console *processor.Console, variation *Variation) int {
-	return 0
-
+	console.CPU.SetDecimalMode(true)
+	return variation.cycles
 }
 
 func (o sed) getVariations() []Variation {
@@ -91,8 +100,8 @@ func (o sed) getName() string {
 type cli struct{}
 
 func (o cli) exec(console *processor.Console, variation *Variation) int {
-	return 0
-
+	console.CPU.DisableInterrupts(false)
+	return variation.cycles
 }
 
 func (o cli) getVariations() []Variation {
@@ -108,8 +117,8 @@ func (o cli) getName() string {
 type sei struct{}
 
 func (o sei) exec(console *processor.Console, variation *Variation) int {
-	return 0
-
+	console.CPU.DisableInterrupts(true)
+	return variation.cycles
 }
 
 func (o sei) getVariations() []Variation {
@@ -125,8 +134,8 @@ func (o sei) getName() string {
 type clv struct{}
 
 func (o clv) exec(console *processor.Console, variation *Variation) int {
-	return 0
-
+	console.CPU.SetOverflow(false)
+	return variation.cycles
 }
 
 func (o clv) getVariations() []Variation {
@@ -142,8 +151,7 @@ func (o clv) getName() string {
 type nop struct{}
 
 func (o nop) exec(console *processor.Console, variation *Variation) int {
-	return 0
-
+	return variation.cycles
 }
 
 func (o nop) getVariations() []Variation {
