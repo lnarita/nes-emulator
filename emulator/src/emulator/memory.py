@@ -108,10 +108,6 @@ class Memory:
             return self.ppu.oam[oamaddr]
         elif addr == 0x2007:
             self.ppu.ppudata = self.ppu.ram[self.ppu.ppuaddr]
-            if self.ppu.ppuctrl & 0b0000100:
-                self.ppu.ppuaddr += 32
-            else:
-                self.ppu.ppuaddr += 1
             return self.ppu.ppudata
         else:
             return 0x00
@@ -125,7 +121,6 @@ class Memory:
             self.ppu.oamaddr = value
         elif addr == 0x2004:
             self.ppu.oam[oamaddr] = value
-            self.ppu.oamaddr += 1
         elif addr == 0x2005:
             # Write low byte
             if self.ppu.high_latch:
@@ -144,10 +139,6 @@ class Memory:
                 self.ppu.hi_lo_latch = True
         elif addr == 0x2007:
             self.ppu.ram[self.ppu.ppuaddr] = value
-            if self.ppu.ppuctrl & 0b0000100:
-                self.ppu.ppuaddr += 32
-            else:
-                self.ppu.ppuaddr += 1
         elif addr == 0x4014:
             self.ppu.oamdma = value
             # DMA Transfer
