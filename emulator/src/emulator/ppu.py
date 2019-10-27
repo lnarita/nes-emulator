@@ -11,3 +11,4 @@ class PPU:
         self.oamdma = oamdma
         self.hi_lo_latch = hi_lo_latch
         self.oam = [0x0] * 256  # 64 sprites * 4 bytes
+        self.ram = [0x0] * 0x4000
