@@ -72,7 +72,7 @@ class PPU:
             self.patternlo = ((patternlo << 8) | (self.patternlo & 0b11111111))
             self.patternhi = ((patternhi << 8) | (self.patternhi & 0b11111111))
 
-    def __init__(self, ppuctrl=0x0, ppumask=0x0, ppustatus=0x0, oamaddr=0x0, oamdata=0x0, ppuscroll=0x0, ppuaddr=0x0, ppudata=0x0, oamdma=0x0, hi_lo_latch=False, ‭mirroring=True):
+    def __init__(self, ppuctrl=0x0, ppumask=0x0, ppustatus=0x0, oamaddr=0x0, oamdata=0x0, ppuscroll=0x0, ppuaddr=0x0, ppudata=0x0, oamdma=0x0, hi_lo_latch=False, mirroring=True):
         self.ppuctrl = ppuctrl
         self.ppumask = ppumask
         self.ppustatus = ppustatus
@@ -103,8 +103,8 @@ class PPU:
         self.screen = Window()
 
 
-    def nametable_addr(addr):
-        addr -= MemoryPositions.NAMETABLES.start
+    def nametable_addr(self, addr):
+        addr -= PPUMemoryPositions.NAMETABLES.start
 
         # Vertical mirroring
         if self.mirroring:
@@ -114,48 +114,48 @@ class PPU:
 
         # Horizontal mirroring
         else:
-            # Nametables 1 and 3
-            if addr % 0x800 >= 0x400:
+            # Nametable 3
+            if addr >= 0xC00:
+                addr -= 0x800
+            # Nametable 2
+            elif addr >= 0x800:
+                addr -= 0x400
+            # Nametable 1
+            elif addr >= 0x400:
                 addr -= 0x400
 
         return addr
 
 
     def fetch(self, addr):
-        if MemoryPositions.PATTERN_TABLES.contains(addr)
+        if PPUMemoryPositions.PATTERN_TABLES.contains(addr):
             pass
-
-        elif MemoryPositions.NAMETABLES.contains(addr):
-            return self.nametables[nametable_addr(addr)]
-
-        elif MemoryPositions.NAMETABLES_MIRROR.contains(addr):
-            return self.fetch(addr % 0x1000 + MemoryPositions.NAMETABLES.start)
-
-        elif MemoryPositions.PALLETES.contains(addr):
-            return self.palletes[addr - MemoryPositions.PALLETES.start]
-
-        elif MemoryPositions.PALLETE_MIRROR.contains(addr):
-            return self.fetch(addr % 0x20 + MemoryPositions.PALLETES.start)
-
-        elif MemoryPositions.MIRROR.contains(addr):
+        elif PPUMemoryPositions.NAMETABLES.contains(addr):
+            return self.nametables[self.nametable_addr(addr)]
+        elif PPUMemoryPositions.NAMETABLES_MIRROR.contains(addr):
+            return self.fetch(addr % 0x1000 + PPUMemoryPositions.NAMETABLES.start)
+        elif PPUMemoryPositions.PALLETES.contains(addr):
+            return self.palletes[addr - PPUMemoryPositions.PALLETES.start]
+        elif PPUMemoryPositions.PALLETE_MIRROR.contains(addr):
+            return self.fetch(addr % 0x20 + PPUMemoryPositions.PALLETES.start)
+        elif PPUMemoryPositions.MIRROR.contains(addr):
             return self.fetch(addr % 0x4000)
-
         else:
             raise IndexError("Invalid Address 0x{:04x}".format(addr))
 
 
     def store(self, addr, value):
-        if MemoryPositions.PATTERN_TABLES.contains(addr)
+        if PPUMemoryPositions.PATTERN_TABLES.contains(addr):
             pass
-        elif MemoryPositions.NAMETABLES.contains(addr):
-            self.nametables[nametable_addr(addr)] = value
-        elif MemoryPositions.NAMETABLES_MIRROR.contains(addr):
-            self.store(addr % 0x1000 + MemoryPositions.NAMETABLES.start)
-        elif MemoryPositions.PALLETES.contains(addr):
-            self.palletes[addr - MemoryPositions.PALLETES.start] = value
-        elif MemoryPositions.PALLETE_MIRROR.contains(addr):
-            self.store(addr % 0x20 + MemoryPositions.PALLETES.start)
-        elif MemoryPositions.MIRROR.contains(addr):
+        elif PPUMemoryPositions.NAMETABLES.contains(addr):
+            self.nametables[self.nametable_addr(addr)] = value
+        elif PPUMemoryPositions.NAMETABLES_MIRROR.contains(addr):
+            self.store(addr % 0x1000 + PPUMemoryPositions.NAMETABLES.start)
+        elif PPUMemoryPositions.PALLETES.contains(addr):
+            self.palletes[addr - PPUMemoryPositions.PALLETES.start] = value
+        elif PPUMemoryPositions.PALLETE_MIRROR.contains(addr):
+            self.store(addr % 0x20 + PPUMemoryPositions.PALLETES.start)
+        elif PPUMemoryPositions.MIRROR.contains(addr):
             self.store(addr % 0x4000)
         else:
             raise IndexError("Invalid Address 0x{:04x}".format(addr))
@@ -170,11 +170,11 @@ class PPU:
         sprAddr = bgAddr+16
 
         for i in range(16):
-            k = self.ram[bgAddr + i]
+            k = self.fetch(bgAddr + i)
             c = COLORS[k]
             self.bgPalettes[i//4][i%4] = c
 
-            k = self.ram[sprAddr + i]
+            k = self.fetch(sprAddr + i)
             c = COLORS[k]
             self.sprPalettes[i//4][i%4]= c
 
@@ -283,7 +283,7 @@ class PPU:
                 tileNo = 32*tileVer+tileHor
 
                 #gets the tile type by looking at name table
-                tileType = self.ram[nameTable+tileNo] #1 byte tile
+                tileType = self.fetch(nameTable+tileNo) #1 byte tile
                 tileType = 255
                 patternVer = line%8
                 patternHor = i%8
@@ -303,7 +303,7 @@ class PPU:
                 blockVer = line//32
                 blockHor = i//32
                 blockNo = 8*blockVer + blockHor
-                attribute = self.ram[attributeTable+blockNo]
+                attribute = self.fetch(attributeTable+blockNo)
 
                 #which tile in block
                 whichTile = 0

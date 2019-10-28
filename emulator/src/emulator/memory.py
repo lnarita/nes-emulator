@@ -142,7 +142,7 @@ class Memory:
                 self.ppu.ppuaddr = value << 8
                 self.ppu.hi_lo_latch = True
         elif addr == 0x2007:
-			self.ppu.store(ppuaddr, value)
+            self.ppu.store(self.ppu.ppuaddr, value)
             #print(hex(self.ppu.ppuaddr) + " "+str(self.ppu.ram[self.ppu.ppuaddr]))
             if (self.ppu.ppuaddr >= 0x3F00 and self.ppu.ppuaddr <=0x3F31): #palette change
                 self.ppu.getPalettes()
