@@ -44,7 +44,3 @@ func getAllOpCodes() map[byte]MapValue {
 }
 
 var AllOpCodes = getAllOpCodes()
-
-func (o OpcCode) ToString() {
-
-}
