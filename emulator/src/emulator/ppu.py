@@ -1,6 +1,16 @@
 from enum import unique, Enum, auto
 from emulator.window import Window
-import pygame
+
+# pygame silent import
+import os, sys
+with open(os.devnull, 'w') as f:
+    oldstdout = sys.stdout
+    sys.stdout = f
+
+    import pygame
+
+    sys.stdout = oldstdout
+
 from pygame import Color
 
 COLORS = [Color(124,124,124),Color(0,0,252),Color(0,0,188),Color(68,40,188),

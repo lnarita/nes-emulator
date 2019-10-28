@@ -21,7 +21,7 @@ def emulate(file_path):
     running = True
     file_contents = read_file(file_path)
     cartridge = Cartridge.from_bytes(file_contents)
-    ppu = PPU(‭mirroring=cartridge.header.flags_6&0b00000001)
+    ppu = PPU(mirroring=cartridge.header.flags_6&0b00000001)
     memory = Memory(cartridge.prg_rom,ppu=ppu)
     cpu = CPU(log_compatible_mode=nestest_log_format)
     ppu.setNMI(cpu,memory,NMI)
@@ -64,7 +64,7 @@ def emulate(file_path):
                     # abort program on BRK
                     running = False
                     break
-                #print_debug_line(cpu, previous_state, decoded, nestest_log_format)
+                print_debug_line(cpu, previous_state, decoded, nestest_log_format)
                 cpu.clear_state_mem()
         except IndexError as e:
             # we've reached a program counter that is not within memory bounds

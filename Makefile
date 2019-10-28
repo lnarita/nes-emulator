@@ -8,17 +8,21 @@ LOG=./log
 EXT=./emulator/ext
 NES=./emulator/src/main.py
 
-TESTS=$(addprefix ${BIN}/, $(notdir $(patsubst %.s,%,$(sort $(wildcard ${TST}/*.s)))))
+# TESTS=$(addprefix ${BIN}/, $(notdir $(patsubst %.s,%,$(sort $(wildcard ${TST}/*.s)))))
 ASSMBLR_DIR=${EXT}/asm6/
 CROSS_AS=${EXT}/asm6/asm6
 
 all: ${BIN} ${LOG}
 
+assemble: ${CROSS_AS}
+	cd ${TST}; ls *.s ;for i in *.s; do bin=$${i%.s} ; ../${CROSS_AS} $$i ../${BIN}/$$bin; done
+
+
 ${BIN}:
 	@mkdir -p ${BIN}
 
-${BIN}/%: ${TST}/%.s ${CROSS_AS}
-	${CROSS_AS} $< $@
+# ${BIN}/%: ${TST}/%.s ${CROSS_AS}
+# 	${CROSS_AS} $< $@
 
 ${LOG}:
 	@mkdir -p ${LOG}
@@ -27,11 +31,11 @@ ${CROSS_AS}:
 	@echo "compiling asm6f..."
 	{ cd ${ASSMBLR_DIR}; make all; }
 
-test: ${BIN} ${LOG} ${TESTS}
+test: ${BIN} ${LOG} assemble
 	@{  echo "************************* Tests ******************************"; \
 		test_failed=0; \
 		test_passed=0; \
-		for test in ${TESTS}; do \
+		for test in ${BIN}/*; do \
 			result="${LOG}/$$(basename $$test).log"; \
 			expected="${RES}/$$(basename $$test).r"; \
 			printf "Running $$test: "; \
@@ -53,4 +57,4 @@ test: ${BIN} ${LOG} ${TESTS}
 
 clean:
 	rm -rf ${BIN}/* ${LOG}/* ${CROSS_AS}
-	
+
