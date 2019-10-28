@@ -22,7 +22,7 @@ class PPUMemoryPositions(Enum):
 
 
 class PPU:
-    def __init__(self, ppuctrl=0x0, ppumask=0x0, ppustatus=0x0, oamaddr=0x0, oamdata=0x0, ppuscroll=0x0, ppuaddr=0x0, ppudata=0x0, oamdma=0x0, hi_lo_latch=False, ‭mirroring=False):
+    def __init__(self, ppuctrl=0x0, ppumask=0x0, ppustatus=0x0, oamaddr=0x0, oamdata=0x0, ppuscroll=0x0, ppuaddr=0x0, ppudata=0x0, oamdma=0x0, hi_lo_latch=False, ‭mirroring=True):
         self.ppuctrl = ppuctrl
         self.ppumask = ppumask
         self.ppustatus = ppustatus
@@ -84,14 +84,14 @@ class PPU:
         if MemoryPositions.PATTERN_TABLES.contains(addr)
             pass
         elif MemoryPositions.NAMETABLES.contains(addr):
-            pass
+            self.nametables[nametable_addr(addr)] = value
         elif MemoryPositions.NAMETABLES_MIRROR.contains(addr):
-            pass
+            self.store(addr % 0x1000 + MemoryPositions.NAMETABLES.start)
         elif MemoryPositions.PALLETES.contains(addr):
-            pass
+            self.palletes[addr - MemoryPositions.PALLETES.start] = value
         elif MemoryPositions.PALLETE_MIRROR.contains(addr):
-            pass
+            self.store(addr % 0x20 + MemoryPositions.PALLETES.start)
         elif MemoryPositions.MIRROR.contains(addr):
-            pass
+            self.store(addr % 0x4000)
         else:
             raise IndexError("Invalid Address 0x{:04x}".format(addr))
