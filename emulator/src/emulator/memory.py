@@ -35,7 +35,7 @@ class MemoryPositions(Enum):
 
 
 class Memory:
-    def __init__(self, rom=None, ram=None):
+    def __init__(self, rom=None, ram=None, ppu=None):
         def __pad_or_truncate(some_list, target_len):
             return some_list[:target_len] + [0x0] * (target_len - len(some_list))
 
@@ -45,7 +45,7 @@ class Memory:
             self.ram = __pad_or_truncate(ram, Memory.ram_size())
         self.rom = rom
         self.debug_mem = []
-        self.ppu = PPU()
+        self.ppu = ppu
 
 
     def fetch(self, addr):
@@ -104,7 +104,9 @@ class Memory:
     def fetch_ppu(self, addr):
         if addr == 0x2002:
             self.ppu.hi_lo_latch = False
-            return self.ppu.ppustatus
+            status = self.ppu.ppustatus
+            self.ppu.ppustatus = self.ppu.ppustatus & 0b01111111 # clears vblank flag
+            return status
         elif addr == 0x2004:
             return self.ppu.oam[oamaddr]
         elif addr == 0x2007:
@@ -140,8 +142,10 @@ class Memory:
                 self.ppu.ppuaddr = value << 8
                 self.ppu.hi_lo_latch = True
         elif addr == 0x2007:
-            self.ppu.store(ppuaddr, value)
-            # self.ppu.ram[self.ppu.ppuaddr] = value
+			self.ppu.store(ppuaddr, value)
+            #print(hex(self.ppu.ppuaddr) + " "+str(self.ppu.ram[self.ppu.ppuaddr]))
+            if (self.ppu.ppuaddr >= 0x3F00 and self.ppu.ppuaddr <=0x3F31): #palette change
+                self.ppu.getPalettes()
         elif addr == 0x4014:
             self.ppu.oamdma = value
             # DMA Transfer
