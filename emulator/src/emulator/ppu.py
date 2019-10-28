@@ -82,7 +82,7 @@ class PPU:
             self.patternlo = ((patternlo << 8) | (self.patternlo & 0b11111111))
             self.patternhi = ((patternhi << 8) | (self.patternhi & 0b11111111))
 
-    def __init__(self, ppuctrl=0x0, ppumask=0x0, ppustatus=0x0, oamaddr=0x0, oamdata=0x0, ppuscroll=0x0, ppuaddr=0x0, ppudata=0x0, oamdma=0x0, hi_lo_latch=False, mirroring=True):
+    def __init__(self, pattern_tables, ppuctrl=0x0, ppumask=0x0, ppustatus=0x0, oamaddr=0x0, oamdata=0x0, ppuscroll=0x0, ppuaddr=0x0, ppudata=0x0, oamdma=0x0, hi_lo_latch=False, mirroring=True):
         self.ppuctrl = ppuctrl
         self.ppumask = ppumask
         self.ppustatus = ppustatus
@@ -92,13 +92,14 @@ class PPU:
         self.ppuaddr = ppuaddr
         self.ppudata = ppudata
         self.oamdma = oamdma
-
+        self.mirroring = mirroring
         self.hi_lo_latch = hi_lo_latch
+
         self.oam = [0x0] * 256  # 64 sprites * 4 bytes
-        # self.ram = [0x0] * 0x4000
+        self.pattern_tables = pattern_tables
         self.nametables = [0x0] * 0x800
         self.palletes = [0x0] * 0x20
-        self.mirroring = mirroring
+
 
         #palettes
         self.bgPalettes = [[0 for x in range(4)] for y in range(4)]
@@ -139,7 +140,7 @@ class PPU:
 
     def fetch(self, addr):
         if PPUMemoryPositions.PATTERN_TABLES.contains(addr):
-            pass
+            return self.pattern_tables[addr]
         elif PPUMemoryPositions.NAMETABLES.contains(addr):
             return self.nametables[self.nametable_addr(addr)]
         elif PPUMemoryPositions.NAMETABLES_MIRROR.contains(addr):
