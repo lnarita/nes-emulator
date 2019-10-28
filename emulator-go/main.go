@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/go-gl/gl/v2.1/gl"
+	"github.com/go-gl/glfw/v3.0/glfw"
 	"students.ic.unicamp.br/goten/opcodes"
 	"students.ic.unicamp.br/goten/processor"
 )
@@ -39,6 +41,8 @@ func emulate(filePath string) {
 
 	running := true
 
+	// initUI()
+
 	for running {
 		decoded := fetchAndDecodeInstruction(&console)
 		decoded.Opc.Exec(&console, &decoded.Variation)
@@ -55,4 +59,40 @@ func fetchAndDecodeInstruction(console *processor.Console) opcodes.MapValue {
 	instruction := console.Memory.FetchData(console.CPU.PC)
 	decoded := opcodes.AllOpCodes[instruction]
 	return decoded
+}
+
+const (
+	width  = 256
+	height = 240
+	scale  = 3
+	title  = "NES"
+)
+
+func initUI() {
+	// initialize glfw
+	success := glfw.Init()
+	if !success {
+		panic("Failed to init glfw")
+	}
+	defer glfw.Terminate()
+
+	// create window
+	glfw.WindowHint(glfw.ContextVersionMajor, 2)
+	glfw.WindowHint(glfw.ContextVersionMinor, 1)
+	window, glfwerr := glfw.CreateWindow(width*scale, height*scale, title, nil, nil)
+	if glfwerr != nil {
+		panic(glfwerr)
+	}
+	window.MakeContextCurrent()
+
+	// initialize gl
+	if err := gl.Init(); err != nil {
+		panic(err)
+	}
+	gl.Enable(gl.TEXTURE_2D)
+
+	for !window.ShouldClose() {
+		window.SwapBuffers()
+		glfw.PollEvents()
+	}
 }
