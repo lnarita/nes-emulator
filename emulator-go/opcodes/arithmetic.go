@@ -4,7 +4,7 @@ import "students.ic.unicamp.br/goten/processor"
 
 type ora struct{}
 
-func (o ora) exec(console *processor.Console, variation *Variation) int {
+func (o ora) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -22,13 +22,13 @@ func (o ora) getVariations() []Variation {
 	}
 }
 
-func (o ora) getName() string {
+func (o ora) GetName() string {
 	return "ORA"
 }
 
 type and struct{}
 
-func (o and) exec(console *processor.Console, variation *Variation) int {
+func (o and) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -46,13 +46,13 @@ func (o and) getVariations() []Variation {
 	}
 }
 
-func (o and) getName() string {
+func (o and) GetName() string {
 	return "AND"
 }
 
 type eor struct{}
 
-func (o eor) exec(console *processor.Console, variation *Variation) int {
+func (o eor) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -70,13 +70,13 @@ func (o eor) getVariations() []Variation {
 	}
 }
 
-func (o eor) getName() string {
+func (o eor) GetName() string {
 	return "EOR"
 }
 
 type adc struct{}
 
-func (o adc) exec(console *processor.Console, variation *Variation) int {
+func (o adc) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -94,13 +94,13 @@ func (o adc) getVariations() []Variation {
 	}
 }
 
-func (o adc) getName() string {
+func (o adc) GetName() string {
 	return "ADC"
 }
 
 type sbc struct{}
 
-func (o sbc) exec(console *processor.Console, variation *Variation) int {
+func (o sbc) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -118,13 +118,13 @@ func (o sbc) getVariations() []Variation {
 	}
 }
 
-func (o sbc) getName() string {
+func (o sbc) GetName() string {
 	return "SBC"
 }
 
 type cmp struct{}
 
-func (o cmp) exec(console *processor.Console, variation *Variation) int {
+func (o cmp) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -142,13 +142,13 @@ func (o cmp) getVariations() []Variation {
 	}
 }
 
-func (o cmp) getName() string {
+func (o cmp) GetName() string {
 	return "CMP"
 }
 
 type cpx struct{}
 
-func (o cpx) exec(console *processor.Console, variation *Variation) int {
+func (o cpx) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -161,13 +161,13 @@ func (o cpx) getVariations() []Variation {
 	}
 }
 
-func (o cpx) getName() string {
+func (o cpx) GetName() string {
 	return "CPX"
 }
 
 type cpy struct{}
 
-func (o cpy) exec(console *processor.Console, variation *Variation) int {
+func (o cpy) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -180,13 +180,13 @@ func (o cpy) getVariations() []Variation {
 	}
 }
 
-func (o cpy) getName() string {
+func (o cpy) GetName() string {
 	return "CPY"
 }
 
 type dec struct{}
 
-func (o dec) exec(console *processor.Console, variation *Variation) int {
+func (o dec) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -200,13 +200,13 @@ func (o dec) getVariations() []Variation {
 	}
 }
 
-func (o dec) getName() string {
+func (o dec) GetName() string {
 	return "DEC"
 }
 
 type dex struct{}
 
-func (o dex) exec(console *processor.Console, variation *Variation) int {
+func (o dex) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -217,13 +217,13 @@ func (o dex) getVariations() []Variation {
 	}
 }
 
-func (o dex) getName() string {
+func (o dex) GetName() string {
 	return "DEX"
 }
 
 type dey struct{}
 
-func (o dey) exec(console *processor.Console, variation *Variation) int {
+func (o dey) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -234,13 +234,13 @@ func (o dey) getVariations() []Variation {
 	}
 }
 
-func (o dey) getName() string {
+func (o dey) GetName() string {
 	return "DEY"
 }
 
 type inc struct{}
 
-func (o inc) exec(console *processor.Console, variation *Variation) int {
+func (o inc) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -254,13 +254,13 @@ func (o inc) getVariations() []Variation {
 	}
 }
 
-func (o inc) getName() string {
+func (o inc) GetName() string {
 	return "INC"
 }
 
 type inx struct{}
 
-func (o inx) exec(console *processor.Console, variation *Variation) int {
+func (o inx) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -271,13 +271,13 @@ func (o inx) getVariations() []Variation {
 	}
 }
 
-func (o inx) getName() string {
+func (o inx) GetName() string {
 	return "INX"
 }
 
 type iny struct{}
 
-func (o iny) exec(console *processor.Console, variation *Variation) int {
+func (o iny) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -288,13 +288,13 @@ func (o iny) getVariations() []Variation {
 	}
 }
 
-func (o iny) getName() string {
+func (o iny) GetName() string {
 	return "INY"
 }
 
 type asl struct{}
 
-func (o asl) exec(console *processor.Console, variation *Variation) int {
+func (o asl) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -309,13 +309,13 @@ func (o asl) getVariations() []Variation {
 	}
 }
 
-func (o asl) getName() string {
+func (o asl) GetName() string {
 	return "ASL"
 }
 
 type rol struct{}
 
-func (o rol) exec(console *processor.Console, variation *Variation) int {
+func (o rol) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -330,13 +330,13 @@ func (o rol) getVariations() []Variation {
 	}
 }
 
-func (o rol) getName() string {
+func (o rol) GetName() string {
 	return "ROL"
 }
 
 type lsr struct{}
 
-func (o lsr) exec(console *processor.Console, variation *Variation) int {
+func (o lsr) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -351,13 +351,13 @@ func (o lsr) getVariations() []Variation {
 	}
 }
 
-func (o lsr) getName() string {
+func (o lsr) GetName() string {
 	return "LSR"
 }
 
 type ror struct{}
 
-func (o ror) exec(console *processor.Console, variation *Variation) int {
+func (o ror) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -372,7 +372,7 @@ func (o ror) getVariations() []Variation {
 	}
 }
 
-func (o ror) getName() string {
+func (o ror) GetName() string {
 	return "ROR"
 }
 

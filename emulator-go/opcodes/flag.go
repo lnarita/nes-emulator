@@ -4,7 +4,7 @@ import "students.ic.unicamp.br/goten/processor"
 
 type bit struct{}
 
-func (o bit) exec(console *processor.Console, variation *Variation) int {
+func (o bit) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -16,13 +16,13 @@ func (o bit) getVariations() []Variation {
 	}
 }
 
-func (o bit) getName() string {
+func (o bit) GetName() string {
 	return "BIT"
 }
 
 type clc struct{}
 
-func (o clc) exec(console *processor.Console, variation *Variation) int {
+func (o clc) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -33,13 +33,13 @@ func (o clc) getVariations() []Variation {
 	}
 }
 
-func (o clc) getName() string {
+func (o clc) GetName() string {
 	return "CLC"
 }
 
 type sec struct{}
 
-func (o sec) exec(console *processor.Console, variation *Variation) int {
+func (o sec) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -50,13 +50,13 @@ func (o sec) getVariations() []Variation {
 	}
 }
 
-func (o sec) getName() string {
+func (o sec) GetName() string {
 	return "SEC"
 }
 
 type cld struct{}
 
-func (o cld) exec(console *processor.Console, variation *Variation) int {
+func (o cld) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -67,13 +67,13 @@ func (o cld) getVariations() []Variation {
 	}
 }
 
-func (o cld) getName() string {
+func (o cld) GetName() string {
 	return "CLD"
 }
 
 type sed struct{}
 
-func (o sed) exec(console *processor.Console, variation *Variation) int {
+func (o sed) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -84,13 +84,13 @@ func (o sed) getVariations() []Variation {
 	}
 }
 
-func (o sed) getName() string {
+func (o sed) GetName() string {
 	return "SED"
 }
 
 type cli struct{}
 
-func (o cli) exec(console *processor.Console, variation *Variation) int {
+func (o cli) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -101,13 +101,13 @@ func (o cli) getVariations() []Variation {
 	}
 }
 
-func (o cli) getName() string {
+func (o cli) GetName() string {
 	return "CLI"
 }
 
 type sei struct{}
 
-func (o sei) exec(console *processor.Console, variation *Variation) int {
+func (o sei) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -118,13 +118,13 @@ func (o sei) getVariations() []Variation {
 	}
 }
 
-func (o sei) getName() string {
+func (o sei) GetName() string {
 	return "SEI"
 }
 
 type clv struct{}
 
-func (o clv) exec(console *processor.Console, variation *Variation) int {
+func (o clv) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -135,13 +135,13 @@ func (o clv) getVariations() []Variation {
 	}
 }
 
-func (o clv) getName() string {
+func (o clv) GetName() string {
 	return "CLV"
 }
 
 type nop struct{}
 
-func (o nop) exec(console *processor.Console, variation *Variation) int {
+func (o nop) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -152,7 +152,7 @@ func (o nop) getVariations() []Variation {
 	}
 }
 
-func (o nop) getName() string {
+func (o nop) GetName() string {
 	return "NOP"
 }
 

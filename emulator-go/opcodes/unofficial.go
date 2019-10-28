@@ -4,7 +4,7 @@ import "students.ic.unicamp.br/goten/processor"
 
 type ign struct{}
 
-func (o ign) exec(console *processor.Console, variation *Variation) int {
+func (o ign) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -30,13 +30,13 @@ func (o ign) getVariations() []Variation {
 	}
 }
 
-func (o ign) getName() string {
+func (o ign) GetName() string {
 	return "*NOP"
 }
 
 type skb struct{}
 
-func (o skb) exec(console *processor.Console, variation *Variation) int {
+func (o skb) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -51,13 +51,13 @@ func (o skb) getVariations() []Variation {
 	}
 }
 
-func (o skb) getName() string {
+func (o skb) GetName() string {
 	return "*NOP"
 }
 
 type unofficialNop struct{}
 
-func (o unofficialNop) exec(console *processor.Console, variation *Variation) int {
+func (o unofficialNop) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -73,13 +73,13 @@ func (o unofficialNop) getVariations() []Variation {
 	}
 }
 
-func (o unofficialNop) getName() string {
+func (o unofficialNop) GetName() string {
 	return "*NOP"
 }
 
 type lax struct{}
 
-func (o lax) exec(console *processor.Console, variation *Variation) int {
+func (o lax) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -95,13 +95,13 @@ func (o lax) getVariations() []Variation {
 	}
 }
 
-func (o lax) getName() string {
+func (o lax) GetName() string {
 	return "*LAX"
 }
 
 type sax struct{}
 
-func (o sax) exec(console *processor.Console, variation *Variation) int {
+func (o sax) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -115,13 +115,13 @@ func (o sax) getVariations() []Variation {
 	}
 }
 
-func (o sax) getName() string {
+func (o sax) GetName() string {
 	return "*SAX"
 }
 
 type unofficialSbc struct{}
 
-func (o unofficialSbc) exec(console *processor.Console, variation *Variation) int {
+func (o unofficialSbc) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -132,13 +132,13 @@ func (o unofficialSbc) getVariations() []Variation {
 	}
 }
 
-func (o unofficialSbc) getName() string {
+func (o unofficialSbc) GetName() string {
 	return "*SBC"
 }
 
 type dcp struct{}
 
-func (o dcp) exec(console *processor.Console, variation *Variation) int {
+func (o dcp) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -155,13 +155,13 @@ func (o dcp) getVariations() []Variation {
 	}
 }
 
-func (o dcp) getName() string {
+func (o dcp) GetName() string {
 	return "*DCP"
 }
 
 type isc struct{}
 
-func (o isc) exec(console *processor.Console, variation *Variation) int {
+func (o isc) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -178,13 +178,13 @@ func (o isc) getVariations() []Variation {
 	}
 }
 
-func (o isc) getName() string {
+func (o isc) GetName() string {
 	return "*ISB"
 }
 
 type slo struct{}
 
-func (o slo) exec(console *processor.Console, variation *Variation) int {
+func (o slo) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -201,13 +201,13 @@ func (o slo) getVariations() []Variation {
 	}
 }
 
-func (o slo) getName() string {
+func (o slo) GetName() string {
 	return "*SLO"
 }
 
 type rla struct{}
 
-func (o rla) exec(console *processor.Console, variation *Variation) int {
+func (o rla) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -224,13 +224,13 @@ func (o rla) getVariations() []Variation {
 	}
 }
 
-func (o rla) getName() string {
+func (o rla) GetName() string {
 	return "*RLA"
 }
 
 type sre struct{}
 
-func (o sre) exec(console *processor.Console, variation *Variation) int {
+func (o sre) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -247,13 +247,13 @@ func (o sre) getVariations() []Variation {
 	}
 }
 
-func (o sre) getName() string {
+func (o sre) GetName() string {
 	return "*SRE"
 }
 
 type rra struct{}
 
-func (o rra) exec(console *processor.Console, variation *Variation) int {
+func (o rra) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -270,7 +270,7 @@ func (o rra) getVariations() []Variation {
 	}
 }
 
-func (o rra) getName() string {
+func (o rra) GetName() string {
 	return "*RRA"
 }
 

@@ -4,7 +4,7 @@ import "students.ic.unicamp.br/goten/processor"
 
 type blp struct{}
 
-func (o blp) exec(console *processor.Console, variation *Variation) int {
+func (o blp) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -15,13 +15,13 @@ func (o blp) getVariations() []Variation {
 	}
 }
 
-func (o blp) getName() string {
+func (o blp) GetName() string {
 	return "BLP"
 }
 
 type bmi struct{}
 
-func (o bmi) exec(console *processor.Console, variation *Variation) int {
+func (o bmi) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -32,13 +32,13 @@ func (o bmi) getVariations() []Variation {
 	}
 }
 
-func (o bmi) getName() string {
+func (o bmi) GetName() string {
 	return "BMI"
 }
 
 type bvc struct{}
 
-func (o bvc) exec(console *processor.Console, variation *Variation) int {
+func (o bvc) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -49,13 +49,13 @@ func (o bvc) getVariations() []Variation {
 	}
 }
 
-func (o bvc) getName() string {
+func (o bvc) GetName() string {
 	return "BVC"
 }
 
 type bvs struct{}
 
-func (o bvs) exec(console *processor.Console, variation *Variation) int {
+func (o bvs) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -66,13 +66,13 @@ func (o bvs) getVariations() []Variation {
 	}
 }
 
-func (o bvs) getName() string {
+func (o bvs) GetName() string {
 	return "BVS"
 }
 
 type bcc struct{}
 
-func (o bcc) exec(console *processor.Console, variation *Variation) int {
+func (o bcc) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -83,13 +83,13 @@ func (o bcc) getVariations() []Variation {
 	}
 }
 
-func (o bcc) getName() string {
+func (o bcc) GetName() string {
 	return "bcc"
 }
 
 type bcs struct{}
 
-func (o bcs) exec(console *processor.Console, variation *Variation) int {
+func (o bcs) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -100,13 +100,13 @@ func (o bcs) getVariations() []Variation {
 	}
 }
 
-func (o bcs) getName() string {
+func (o bcs) GetName() string {
 	return "bcs"
 }
 
 type bne struct{}
 
-func (o bne) exec(console *processor.Console, variation *Variation) int {
+func (o bne) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -117,13 +117,13 @@ func (o bne) getVariations() []Variation {
 	}
 }
 
-func (o bne) getName() string {
+func (o bne) GetName() string {
 	return "BNE"
 }
 
 type beq struct{}
 
-func (o beq) exec(console *processor.Console, variation *Variation) int {
+func (o beq) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -134,13 +134,13 @@ func (o beq) getVariations() []Variation {
 	}
 }
 
-func (o beq) getName() string {
+func (o beq) GetName() string {
 	return "BEQ"
 }
 
 type brk struct{}
 
-func (o brk) exec(console *processor.Console, variation *Variation) int {
+func (o brk) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -151,13 +151,13 @@ func (o brk) getVariations() []Variation {
 	}
 }
 
-func (o brk) getName() string {
+func (o brk) GetName() string {
 	return "BRK"
 }
 
 type rti struct{}
 
-func (o rti) exec(console *processor.Console, variation *Variation) int {
+func (o rti) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -168,13 +168,13 @@ func (o rti) getVariations() []Variation {
 	}
 }
 
-func (o rti) getName() string {
+func (o rti) GetName() string {
 	return "RTI"
 }
 
 type jsr struct{}
 
-func (o jsr) exec(console *processor.Console, variation *Variation) int {
+func (o jsr) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -185,13 +185,13 @@ func (o jsr) getVariations() []Variation {
 	}
 }
 
-func (o jsr) getName() string {
+func (o jsr) GetName() string {
 	return "JSR"
 }
 
 type rts struct{}
 
-func (o rts) exec(console *processor.Console, variation *Variation) int {
+func (o rts) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -202,13 +202,13 @@ func (o rts) getVariations() []Variation {
 	}
 }
 
-func (o rts) getName() string {
+func (o rts) GetName() string {
 	return "JSR"
 }
 
 type jmp struct{}
 
-func (o jmp) exec(console *processor.Console, variation *Variation) int {
+func (o jmp) Exec(console *processor.Console, variation *Variation) int {
 	return 0
 
 }
@@ -220,7 +220,7 @@ func (o jmp) getVariations() []Variation {
 	}
 }
 
-func (o jmp) getName() string {
+func (o jmp) GetName() string {
 	return "JMP"
 }
 

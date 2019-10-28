@@ -36,7 +36,23 @@ func emulate(filePath string) {
 
 	ppu := &processor.PPU{}
 	console := processor.Console{CPU: cpu, PPU: ppu, Memory: mem}
-	fmt.Println(console)
 
-	fmt.Println(opcodes.AllOpCodes)
+	running := true
+
+	for running {
+		decoded := fetchAndDecodeInstruction(&console)
+		decoded.Opc.Exec(&console, &decoded.Variation)
+		console.CPU.PC++
+		if decoded.Opc.GetName() == "BRK" {
+			running = false
+		}
+
+	}
+
+}
+
+func fetchAndDecodeInstruction(console *processor.Console) opcodes.MapValue {
+	instruction := console.Memory.FetchData(console.CPU.PC)
+	decoded := opcodes.AllOpCodes[instruction]
+	return decoded
 }
