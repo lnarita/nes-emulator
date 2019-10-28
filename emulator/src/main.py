@@ -52,8 +52,11 @@ def emulate(file_path):
                 # TODO: remove, this is a breakpoint for debugging
                 aaaa = ""
 
+            ppu.reloadControllers()#reloads controllers every tick
+
             i+=1
             if (i==114):
+
                 ppu.scanLine(line)
                 i=0
                 line+=1
@@ -69,7 +72,7 @@ def emulate(file_path):
                     print("Break")
                     break
 
-                print_debug_line(cpu, previous_state, decoded, nestest_log_format)
+                #print_debug_line(cpu, previous_state, decoded, nestest_log_format)
                 cpu.clear_state_mem()
         except IndexError as e:
             # we've reached a program counter that is not within memory bounds

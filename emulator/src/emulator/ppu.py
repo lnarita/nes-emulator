@@ -20,9 +20,56 @@ COLORS = [Color(124,124,124),Color(0,0,252),Color(0,0,188),Color(68,40,188),
         Color(216,248,120),Color(184,248,184),Color(184,248,216),Color(0,252,252),
         Color(248,216,248),Color(0,0,0),Color(0,0,0)]
 
+class Controller:
+    def __init__(self):
+        self.up = 0
+        self.down = 0
+        self.left = 0
+        self.right = 0
+        self.A = 0
+        self.B = 0
+        self.select = 0
+        self.start = 0
+        self.whichButton = 0
+
+    def readButton(self):
+        k = ((self.A<<7)+(self.B<<6)+(self.select<<5)+(self.start<<4)+(self.up<<3)+(self.down<<2)+(self.left<<1)+self.right)
+        if (k!=0):
+            print(bin(k))
+        if (self.whichButton==0):
+            return self.A
+        elif (self.whichButton==1):
+            return self.B
+        elif (self.whichButton==2):
+            return self.select
+        elif (self.whichButton==3):
+            return self.start
+        elif (self.whichButton==4):
+            return self.up
+        elif (self.whichButton==5):
+            return self.down
+        elif (self.whichButton==6):
+            return self.left
+        elif (self.whichButton==7):
+            return self.right
+        else:
+            return 1
+        self.whichButton += 1
+
+    def reload(self,A,B,select,start,up,down,left,right):
+        self.whichButton = 0
+        self.A = A
+        self.B = B
+        self.select = select
+        self.start = start
+        self.up = up
+        self.down = down
+        self.left = left
+        self.right = right
+
 class PPU:
     #shifter
-    class TileDataShifter():#shifts right 16 bits
+    class TileDataShifter:#shifts right 16 bits
         def __init__(self):
             self.attribute = 0
             self.patternlo = 0
@@ -52,7 +99,6 @@ class PPU:
             self.patternhi = ((patternhi << 8) | (self.patternhi & 0b11111111))
 
 
-
     def __init__(self, ppuctrl=0x0, ppumask=0x0, ppustatus=0x0, oamaddr=0x0, oamdata=0x0, ppuscroll=0x0, ppuaddr=0x0, ppudata=0x0, oamdma=0x0, hi_lo_latch=False):
         self.ppuctrl = ppuctrl
         self.ppumask = ppumask
@@ -80,6 +126,11 @@ class PPU:
         #screen
         self.screen = Window()
 
+        #io
+        self.latchButtons = False
+        self.control1 = Controller()
+        self.control2 = Controller()
+
     def setNMI(self,cpu=None,memory=None, nmi=None):
         self.cpu = cpu
         self.memory = memory
@@ -98,6 +149,36 @@ class PPU:
             c = COLORS[k]
             self.sprPalettes[i//4][i%4]= c
 
+    def reloadControllers(self):
+        A1=B1=select1=start1=up1=down1=left1=right1 = 0
+        A2=B2=select2=start2=up2=down2=left2=right2 = 0
+        if self.latchButtons:
+            KEYS = pygame.key.get_pressed()
+            if KEYS[pygame.K_UP]:
+                up1=1
+            if KEYS[pygame.K_DOWN]:
+                down1=1
+            if KEYS[pygame.K_LEFT]:
+                left1=1
+            if KEYS[pygame.K_RIGHT]:
+                right1=1
+            if KEYS[pygame.K_BACKSPACE]:
+                select1=1
+            if KEYS[pygame.K_RETURN]:
+                start1=1
+            if KEYS[pygame.K_z]:
+                A1=1
+            if KEYS[pygame.K_x]:
+                B1=1
+            self.control1.reload(A1,B1,select1,start1,up1,down1,left1,right1)
+            self.control2.reload(A2,B2,select2,start2,up2,down2,left2,right2)
+        pygame.event.pump()
+
+    def readController(self,which):
+        if (which == 1):
+            return self.control1.readButton()
+        else:
+            return self.control2.readButton()
 
     def tick(self):
 
