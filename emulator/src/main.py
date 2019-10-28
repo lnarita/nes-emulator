@@ -21,7 +21,7 @@ def emulate(file_path):
     running = True
     file_contents = read_file(file_path)
     cartridge = Cartridge.from_bytes(file_contents)
-    ppu = PPU()
+    ppu = PPU(‭mirroring=cartridge.header.flags_6&0b00000001)
     memory = Memory(cartridge.prg_rom,ppu=ppu)
     cpu = CPU(log_compatible_mode=nestest_log_format)
     ppu.setNMI(cpu,memory,NMI)
@@ -89,7 +89,7 @@ def NMI(cpu,memory):
     cpu.sp -= 1
     cpu.sp = cpu.sp & 0xff ^ 0x0100
 
-    lo = memory.fetch(0xFFFA) 
+    lo = memory.fetch(0xFFFA)
     hi = memory.fetch(0xFFFB)
     hi <<= 8
     addr = hi|lo

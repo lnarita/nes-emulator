@@ -21,6 +21,26 @@ COLORS = [Color(124,124,124),Color(0,0,252),Color(0,0,188),Color(68,40,188),
         Color(216,248,120),Color(184,248,184),Color(184,248,216),Color(0,252,252),
         Color(248,216,248),Color(0,0,0),Color(0,0,0)]
 
+@unique
+class PPUMemoryPositions(Enum):
+    PATTERN_TABLES = (auto(), 0x0000, 0x1FFF)
+    NAMETABLES = (auto(), 0x2000, 0x2FFF)
+    NAMETABLES_MIRROR = (auto(), 0x3000, 0x3EFF)
+    PALLETES = (auto(), 0x3F00, 0x3F1F)
+    PALLETES_MIRROR = (auto(), 0x3F20, 0x3FFF)
+    MIRROR = (auto(), 0x4000, 0xFFFF)
+
+    def __init__(self, value, start, end):
+        self._value_ = value
+        self.start = start
+        self.end = end
+
+    def contains(self, addr):
+        return self.start <= addr <= self.end
+
+    def wrap(self, addr):
+        return (self.start + (addr - self.start) % ((self.end + 1) - self.start))
+
 class PPU:
     #shifter
     class TileDataShifter():#shifts right 16 bits
@@ -31,7 +51,7 @@ class PPU:
 
         def shift(self):
             #gets rightmost bit and shifts
-            atBit = (self.attribute & 1) 
+            atBit = (self.attribute & 1)
             loBit = (self.patternlo & 1)
             hiBit = (self.patternhi & 1)
             self.attribute >>= 1
@@ -53,52 +73,52 @@ class PPU:
             self.patternhi = ((patternhi << 8) | (self.patternhi & 0b11111111))
 
     def __init__(self, ppuctrl=0x0, ppumask=0x0, ppustatus=0x0, oamaddr=0x0, oamdata=0x0, ppuscroll=0x0, ppuaddr=0x0, ppudata=0x0, oamdma=0x0, hi_lo_latch=False, ‭mirroring=True):
-    self.ppuctrl = ppuctrl
-    self.ppumask = ppumask
-    self.ppustatus = ppustatus
-    self.oamaddr = oamaddr
-    self.oamdata = oamdata
-    self.ppuscroll = ppuscroll
-    self.ppuaddr = ppuaddr
-    self.ppudata = ppudata
-    self.oamdma = oamdma
-    
-    self.hi_lo_latch = hi_lo_latch
-    self.oam = [0x0] * 256  # 64 sprites * 4 bytes
-    # self.ram = [0x0] * 0x4000
-    self.nametables = [0x0] * 0x800
-    self.palletes = [0x0] * 0x20
-    self.mirroring = mirroring
+        self.ppuctrl = ppuctrl
+        self.ppumask = ppumask
+        self.ppustatus = ppustatus
+        self.oamaddr = oamaddr
+        self.oamdata = oamdata
+        self.ppuscroll = ppuscroll
+        self.ppuaddr = ppuaddr
+        self.ppudata = ppudata
+        self.oamdma = oamdma
 
-    #palettes
-    self.bgPalettes = [[0 for x in range(4)] for y in range(4)]
-    self.sprPalettes = [[0 for x in range(4)] for y in range(4)]
+        self.hi_lo_latch = hi_lo_latch
+        self.oam = [0x0] * 256  # 64 sprites * 4 bytes
+        # self.ram = [0x0] * 0x4000
+        self.nametables = [0x0] * 0x800
+        self.palletes = [0x0] * 0x20
+        self.mirroring = mirroring
 
-    #clock sync
-    self.scnLine = 261
-    self.clock = 0
-    self.evenFrame = False
+        #palettes
+        self.bgPalettes = [[0 for x in range(4)] for y in range(4)]
+        self.sprPalettes = [[0 for x in range(4)] for y in range(4)]
 
-    #screen
-    self.screen = Window()
+        #clock sync
+        self.scnLine = 261
+        self.clock = 0
+        self.evenFrame = False
+
+        #screen
+        self.screen = Window()
 
 
     def nametable_addr(addr):
-    addr -= MemoryPositions.NAMETABLES.start
+        addr -= MemoryPositions.NAMETABLES.start
 
-    # Vertical mirroring
-    if self.mirroring:
-        # Nametables 2 and 3
-        if addr >= 0x800:
-            addr -= 0x800
+        # Vertical mirroring
+        if self.mirroring:
+            # Nametables 2 and 3
+            if addr >= 0x800:
+                addr -= 0x800
 
-    # Horizontal mirroring
-    else:
-        # Nametables 1 and 3
-        if addr % 0x800 >= 0x400:
-            addr -= 0x400
+        # Horizontal mirroring
+        else:
+            # Nametables 1 and 3
+            if addr % 0x800 >= 0x400:
+                addr -= 0x400
 
-    return addr
+        return addr
 
 
     def fetch(self, addr):
@@ -166,7 +186,7 @@ class PPU:
             if (self.cycle >=1 and self.cycle<=256):
                 pass
                 #every 8 cycles:
-                #load nametable byte 
+                #load nametable byte
                 #attribute table byte
                 #pattern table low
                 #pattern table hi
@@ -182,7 +202,7 @@ class PPU:
 
             if (self.cycle >=257 and self.cycle <=320):
                 pass
-            
+
         elif (self.scnLine == 240): #TODO: Post render scanline
             pass
         elif (self.scnLine >=241 and self.scnLine <= 260):#TODO: vblank
@@ -219,7 +239,7 @@ class PPU:
     def vBlank(self,vb): #TODO: NMI
         if(vb):#vblank starts
             self.ppustatus = self.ppustatus | 0b10000000 #updates vblank flag
-            
+
             generateNMI = (self.ppuctrl & 0b10000000) > 0
             if generateNMI:
                pass
@@ -273,7 +293,7 @@ class PPU:
                 patternhi = self.memory.fetch(patternTable+tileType*16+8+patternVer)
                 #print(hex(patternTable+tileType*16))
                 #print (bin(patternhi) + " " + bin(patternlo))
-                
+
                 #gets the colorCode
                 hiBit = (patternhi&(1<<7-patternHor)) > 0
                 loBit = (patternlo&(1<<7-patternHor)) > 0
@@ -303,7 +323,7 @@ class PPU:
                 self.screen.setPixel(i,line,color)
 
             if line==239:
-                self.screen.flip()     
+                self.screen.flip()
 
         if line==241: # vblank
             pass
