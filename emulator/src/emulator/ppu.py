@@ -156,14 +156,13 @@ class PPU:
 
 
 
-    def vBlank(self,vb): #TODO: NMI
+    def vBlank(self,vb):
         if(vb):#vblank starts
             self.ppustatus = self.ppustatus | 0b10000000 #updates vblank flag
             
             generateNMI = (self.ppuctrl & 0b10000000) > 0
             if generateNMI:
-               pass
-               #self.nmi(self.cpu,self.memory)
+                self.nmi(self.cpu,self.memory)
 
         else:#vblank ends
             self.ppustatus = self.ppustatus & 0b01111111 # updates vblank flag
@@ -191,7 +190,6 @@ class PPU:
         if (patternTableCtrlBits==0):
             patternTable = 0x0
         else:
-            #patternTable = 0x4200
             patternTable = 0x1000
 
         if line < 240: #visible scanlines
@@ -213,7 +211,7 @@ class PPU:
                 patternhi = self.memory.fetch(patternTable+tileType*16+8+patternVer)
                 #print(hex(patternTable+tileType*16))
                 #print (bin(patternhi) + " " + bin(patternlo))
-                
+
                 #gets the colorCode
                 hiBit = (patternhi&(1<<7-patternHor)) > 0
                 loBit = (patternlo&(1<<7-patternHor)) > 0
@@ -246,9 +244,7 @@ class PPU:
                 self.screen.flip()     
 
         if line==241: # vblank
-            pass
             self.vBlank(True)
         if line== 261:
-            pass
-            #vBlank(False)
+            self.vBlank(False)
 

@@ -125,7 +125,7 @@ class Memory:
             self.ppu.oam[oamaddr] = value
         elif addr == 0x2005:
             # Write low byte
-            if self.ppu.high_latch:
+            if self.ppu.hi_lo_latch:
                 self.ppu.ppuscroll |= value
             # Write high byte
             else:
