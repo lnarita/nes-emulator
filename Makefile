@@ -57,3 +57,15 @@ test: ${BIN} ${LOG} assemble
 
 clean:
 	rm -rf ${BIN}/* ${LOG}/* ${CROSS_AS}
+
+.PHONY: res
+res: ${BIN} ${LOG} assemble
+	@{	for test in ${BIN}/*; do \
+			expected="${RES}/$$(basename $$test).r"; \
+			if [ ! -f "$$expected" ]; then \
+			    touch "$$expected"; \
+			fi; \
+			printf "Running $$test\n"; \
+			${PY} ${NES} $$test 2>&1 > $$expected; \
+		done; \
+	}
