@@ -7,22 +7,22 @@ BIN=./bin
 LOG=./log
 EXT=./emulator/ext
 NES=./emulator/src/main.py
-
-# TESTS=$(addprefix ${BIN}/, $(notdir $(patsubst %.s,%,$(sort $(wildcard ${TST}/*.s)))))
 ASSMBLR_DIR=${EXT}/asm6/
 CROSS_AS=${EXT}/asm6/asm6
 
 all: ${BIN} ${LOG}
 
 assemble: ${CROSS_AS}
-	cd ${TST}; ls *.s ;for i in *.s; do bin=$${i%.s} ; ../${CROSS_AS} $$i ../${BIN}/$$bin; done
-
+	{	cd ${TST}; \
+		for i in *.s; \
+		do \
+			bin=$${i%.s}; \
+			../${CROSS_AS} $$i ../${BIN}/$$bin; \
+		done \
+	}
 
 ${BIN}:
 	@mkdir -p ${BIN}
-
-# ${BIN}/%: ${TST}/%.s ${CROSS_AS}
-# 	${CROSS_AS} $< $@
 
 ${LOG}:
 	@mkdir -p ${LOG}
@@ -57,4 +57,3 @@ test: ${BIN} ${LOG} assemble
 
 clean:
 	rm -rf ${BIN}/* ${LOG}/* ${CROSS_AS}
-
