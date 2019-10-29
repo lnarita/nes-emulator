@@ -8,7 +8,6 @@ from emulator.memory import Memory, MemoryPositions
 from emulator.opcodes.jump import BRK
 from emulator.opcodes.opcodes import OpCodes
 from emulator.ppu import PPU
-from emulator.controller import Controller
 
 def main(args):
     emulate(args.file)
@@ -23,8 +22,7 @@ def emulate(file_path):
     file_contents = read_file(file_path)
     cartridge = Cartridge.from_bytes(file_contents)
     ppu = PPU(cartridge.chr_rom, mirroring=cartridge.header.flags_6&0b00000001)
-    controller = Controller(ppu)
-    memory = Memory(cartridge.prg_rom,ppu=ppu, controller=controller)
+    memory = Memory(cartridge.prg_rom,ppu=ppu)
     cpu = CPU(log_compatible_mode=nestest_log_format)
     ppu.setNMI(cpu,memory,NMI)
 

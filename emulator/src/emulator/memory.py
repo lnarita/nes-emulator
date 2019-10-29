@@ -36,7 +36,7 @@ class MemoryPositions(Enum):
 
 
 class Memory:
-    def __init__(self, rom=None, ram=None, ppu=None, controller=None):
+    def __init__(self, rom=None, ram=None, ppu=None):
         def __pad_or_truncate(some_list, target_len):
             return some_list[:target_len] + [0x0] * (target_len - len(some_list))
 
@@ -47,7 +47,6 @@ class Memory:
         self.rom = rom
         self.debug_mem = []
         self.ppu = ppu
-        self.controller = controller
 
 
     def fetch(self, addr):
@@ -69,7 +68,7 @@ class Memory:
             # TODO
             return 0xFF
         elif MemoryPositions.CONTROLLERS.contains(addr):
-            return int(self.controller.read())
+            return self.ppu.screen.read_keys()
         elif MemoryPositions.APU_IO_EXTRAS.contains(addr):
             # TODO
             return 0xFF
@@ -100,7 +99,7 @@ class Memory:
             # TODO
             return
         elif MemoryPositions.CONTROLLERS.contains(addr):
-            self.controller.latch(value & 0b00000001)
+            self.ppu.screen.latch_keys(value & 0b00000001)
         elif MemoryPositions.APU_IO_EXTRAS.contains(addr):
             # TODO
             return
