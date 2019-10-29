@@ -48,7 +48,7 @@ class Memory:
         self.ppu = ppu
 
 
-    def fetch(self, addr):
+    def fetch(self, addr, ld=0):
         if MemoryPositions.ZERO_PAGE.contains(addr) or \
                 MemoryPositions.STACK.contains(addr) or \
                 MemoryPositions.RAM.contains(addr):
@@ -65,7 +65,7 @@ class Memory:
             return self.fetch_ppu(addr%8 + 0x2000)
         elif MemoryPositions.APU_IO_REGISTERS.contains(addr):
             # TODO
-            return self.readIORegisters(addr)
+            return self.readIORegisters(addr,ld)
         elif MemoryPositions.APU_IO_EXTRAS.contains(addr):
             # TODO
             return 0xFF
@@ -105,14 +105,21 @@ class Memory:
         if (addr == 0x4016):#TODO expansion port latch bits?
             b = value&1
             self.ppu.latchButtons = b
-            #print(self.ppu.latchButtons)
+            if (b>0):
+                print("Latch------")
+            else:
+                print("-----------")
 
-    def readIORegisters(self,addr):#TODO
-        if (addr == 0x4016):
-            return self.ppu.readController(1)
-        elif (addr == 0x4017):
-            return self.ppu.readController(2)
-        else: 
+    def readIORegisters(self,addr,ld):#TODO
+        if ld==1:
+            if (addr == 0x4016):
+                value=self.ppu.readController(1)
+                return value
+            elif (addr == 0x4017):
+                return self.ppu.readController(2)
+            else: 
+                return 0xFF
+        else:
             return 0xFF
 
 

@@ -85,6 +85,7 @@ def emulate(file_path):
             cpu.inc_pc_by(1)
 
 def NMI(cpu,memory):
+    print("-------nmi------")
     #push return address
     hi = cpu.pc & 0b1111111100000000
     hi = hi >> 8
@@ -92,7 +93,7 @@ def NMI(cpu,memory):
 
     memory.stack_push(cpu,hi)
     memory.stack_push(cpu,lo)
-    print(hex((hi<<8)|lo))
+    
 
     #push status
     status = cpu.flags | 0b00110000
@@ -104,7 +105,6 @@ def NMI(cpu,memory):
     addr = hi|lo
     cpu.pc = addr
 
-    print(hex(addr))
     #cpu.pc = 0xc089
 
 

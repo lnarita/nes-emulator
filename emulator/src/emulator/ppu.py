@@ -64,28 +64,37 @@ class Controller:
         self.whichButton = 0
 
     def readButton(self):
-        k = ((self.A<<7)+(self.B<<6)+(self.select<<5)+(self.start<<4)+(self.up<<3)+(self.down<<2)+(self.left<<1)+self.right)
-        if (k!=0):
-            print(bin(k))
+        pressed = 0
         if (self.whichButton==0):
-            return self.A
+            pressed = self.A
+            print("A: " + str(pressed))
         elif (self.whichButton==1):
-            return self.B
+            pressed = self.B
+            print("B: " + str(pressed))
         elif (self.whichButton==2):
-            return self.select
+            pressed = self.select
+            print("Select: " + str(pressed))
         elif (self.whichButton==3):
-            return self.start
+            pressed = self.start
+            print("Start: " + str(pressed))
         elif (self.whichButton==4):
-            return self.up
+            pressed = self.up
+            print("up: " + str(pressed))
         elif (self.whichButton==5):
-            return self.down
+            pressed = self.down
+            print("down: " + str(pressed))
         elif (self.whichButton==6):
-            return self.left
+            pressed = self.left
+            print("left: " + str(pressed))
         elif (self.whichButton==7):
-            return self.right
+            pressed = self.right
+            print("right: " + str(pressed))
         else:
-            return 1
+            pressed = 1
+            print("None")
         self.whichButton += 1
+        return pressed
+
 
     def reload(self,A,B,select,start,up,down,left,right):
         self.whichButton = 0
@@ -246,6 +255,7 @@ class PPU:
         A1=B1=select1=start1=up1=down1=left1=right1 = 0
         A2=B2=select2=start2=up2=down2=left2=right2 = 0
         if self.latchButtons:
+            print("reloaded")
             KEYS = pygame.key.get_pressed()
             if KEYS[pygame.K_UP]:
                 up1=1
@@ -376,15 +386,13 @@ class PPU:
 
                 #gets the tile type by looking at name table
                 tileType = self.fetch(nameTable+tileNo) #1 byte tile
-                tileType = 255
+
                 patternVer = line%8
                 patternHor = i%8
 
                 #gets the pattern
-                patternlo = self.memory.fetch(patternTable+tileType*16+patternVer)
-                patternhi = self.memory.fetch(patternTable+tileType*16+8+patternVer)
-                #print(hex(patternTable+tileType*16))
-                #print (bin(patternhi) + " " + bin(patternlo))
+                patternlo = self.fetch(patternTable+tileType*16+patternVer)
+                patternhi = self.fetch(patternTable+tileType*16+8+patternVer)
 
                 #gets the colorCode
                 hiBit = (patternhi&(1<<7-patternHor)) > 0

@@ -22,7 +22,7 @@ class LDA(OpCode):
         def cycle_lda():
             if self.addressing_mode:
                 address = self.addressing_mode.fetch_address(cpu, memory)
-                value = self.addressing_mode.read_from(cpu, memory, address)
+                value = self.addressing_mode.read_from(cpu, memory, address,ld=1)
                 if self.addressing_mode != Immediate:
                     self.addressing_mode.data = "= %02X" % memory.fetch(address)
                     cpu.addr = memory.get_effective_address(address)
@@ -84,7 +84,7 @@ class LDX(OpCode):
         def cycle_ldx():
             if self.addressing_mode:
                 address = self.addressing_mode.fetch_address(cpu, memory)
-                value = self.addressing_mode.read_from(cpu, memory, address)
+                value = self.addressing_mode.read_from(cpu, memory, address,ld=1)
                 if self.addressing_mode != Immediate:
                     self.addressing_mode.data = "= %02X" % memory.fetch(address)
                     cpu.addr = memory.get_effective_address(address)
@@ -139,7 +139,7 @@ class LDY(OpCode):
         def cycle_ldy():
             if self.addressing_mode:
                 address = self.addressing_mode.fetch_address(cpu, memory)
-                value = self.addressing_mode.read_from(cpu, memory, address)
+                value = self.addressing_mode.read_from(cpu, memory, address,ld=1)
                 if self.addressing_mode != Immediate:
                     self.addressing_mode.data = "= %02X" % memory.fetch(address)
                     cpu.addr = memory.get_effective_address(address)
