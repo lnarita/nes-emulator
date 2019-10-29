@@ -50,10 +50,57 @@ class PPUMemoryPositions(Enum):
 
     def wrap(self, addr):
         return (self.start + (addr - self.start) % ((self.end + 1) - self.start))
+      
+class Controller:
+    def __init__(self):
+        self.up = 0
+        self.down = 0
+        self.left = 0
+        self.right = 0
+        self.A = 0
+        self.B = 0
+        self.select = 0
+        self.start = 0
+        self.whichButton = 0
+
+    def readButton(self):
+        k = ((self.A<<7)+(self.B<<6)+(self.select<<5)+(self.start<<4)+(self.up<<3)+(self.down<<2)+(self.left<<1)+self.right)
+        if (k!=0):
+            print(bin(k))
+        if (self.whichButton==0):
+            return self.A
+        elif (self.whichButton==1):
+            return self.B
+        elif (self.whichButton==2):
+            return self.select
+        elif (self.whichButton==3):
+            return self.start
+        elif (self.whichButton==4):
+            return self.up
+        elif (self.whichButton==5):
+            return self.down
+        elif (self.whichButton==6):
+            return self.left
+        elif (self.whichButton==7):
+            return self.right
+        else:
+            return 1
+        self.whichButton += 1
+
+    def reload(self,A,B,select,start,up,down,left,right):
+        self.whichButton = 0
+        self.A = A
+        self.B = B
+        self.select = select
+        self.start = start
+        self.up = up
+        self.down = down
+        self.left = left
+        self.right = right
 
 class PPU:
     #shifter
-    class TileDataShifter():#shifts right 16 bits
+    class TileDataShifter:#shifts right 16 bits
         def __init__(self):
             self.attribute = 0
             self.patternlo = 0
@@ -82,7 +129,9 @@ class PPU:
             self.patternlo = ((patternlo << 8) | (self.patternlo & 0b11111111))
             self.patternhi = ((patternhi << 8) | (self.patternhi & 0b11111111))
 
+
     def __init__(self, pattern_tables, ppuctrl=0x0, ppumask=0x0, ppustatus=0x0, oamaddr=0x0, oamdata=0x0, ppuscroll=0x0, ppuaddr=0x0, ppudata=0x0, oamdma=0x0, hi_lo_latch=False, mirroring=True):
+
         self.ppuctrl = ppuctrl
         self.ppumask = ppumask
         self.ppustatus = ppustatus
@@ -112,8 +161,12 @@ class PPU:
 
         #screen
         self.screen = Window()
-
-
+        
+        #io
+        self.latchButtons = False
+        self.control1 = Controller()
+        self.control2 = Controller()
+        
     def nametable_addr(self, addr):
         addr -= PPUMemoryPositions.NAMETABLES.start
 
@@ -189,6 +242,36 @@ class PPU:
             c = COLORS[k]
             self.sprPalettes[i//4][i%4]= c
 
+    def reloadControllers(self):
+        A1=B1=select1=start1=up1=down1=left1=right1 = 0
+        A2=B2=select2=start2=up2=down2=left2=right2 = 0
+        if self.latchButtons:
+            KEYS = pygame.key.get_pressed()
+            if KEYS[pygame.K_UP]:
+                up1=1
+            if KEYS[pygame.K_DOWN]:
+                down1=1
+            if KEYS[pygame.K_LEFT]:
+                left1=1
+            if KEYS[pygame.K_RIGHT]:
+                right1=1
+            if KEYS[pygame.K_BACKSPACE]:
+                select1=1
+            if KEYS[pygame.K_RETURN]:
+                start1=1
+            if KEYS[pygame.K_z]:
+                A1=1
+            if KEYS[pygame.K_x]:
+                B1=1
+            self.control1.reload(A1,B1,select1,start1,up1,down1,left1,right1)
+            self.control2.reload(A2,B2,select2,start2,up2,down2,left2,right2)
+        pygame.event.pump()
+
+    def readController(self,which):
+        if (which == 1):
+            return self.control1.readButton()
+        else:
+            return self.control2.readButton()
 
     def tick(self):
 
@@ -247,14 +330,13 @@ class PPU:
 
 
 
-    def vBlank(self,vb): #TODO: NMI
+    def vBlank(self,vb):
         if(vb):#vblank starts
             self.ppustatus = self.ppustatus | 0b10000000 #updates vblank flag
 
             generateNMI = (self.ppuctrl & 0b10000000) > 0
             if generateNMI:
-               pass
-               #self.nmi(self.cpu,self.memory)
+                self.nmi(self.cpu,self.memory)
 
         else:#vblank ends
             self.ppustatus = self.ppustatus & 0b01111111 # updates vblank flag
@@ -282,7 +364,6 @@ class PPU:
         if (patternTableCtrlBits==0):
             patternTable = 0x0
         else:
-            #patternTable = 0x4200
             patternTable = 0x1000
 
         if line < 240: #visible scanlines
@@ -337,9 +418,7 @@ class PPU:
                 self.screen.flip()
 
         if line==241: # vblank
-            pass
             self.vBlank(True)
         if line== 261:
-            pass
-            #vBlank(False)
+            self.vBlank(False)
 

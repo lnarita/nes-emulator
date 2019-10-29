@@ -65,7 +65,7 @@ class Memory:
             return self.fetch_ppu(addr%8 + 0x2000)
         elif MemoryPositions.APU_IO_REGISTERS.contains(addr):
             # TODO
-            return 0xFF
+            return self.readIORegisters(addr)
         elif MemoryPositions.APU_IO_EXTRAS.contains(addr):
             # TODO
             return 0xFF
@@ -89,17 +89,32 @@ class Memory:
             self.store_ppu(addr, value)
         elif MemoryPositions.PPU_REGISTERS_MIRROR.contains(addr):
             self.store_ppu(addr%8 + 0x2000, value)
-        elif 0x4000 <= addr <= 0xFFFF:
+        #elif 0x4000 <= addr <= 0xFFFF:
             # TODO: remove later
-            self.debug_mem.append(("%04X" % addr, "%02X" % value))
+         #   self.debug_mem.append(("%04X" % addr, "%02X" % value))
         elif MemoryPositions.APU_IO_REGISTERS.contains(addr):
+            self.storeIORegisters(addr,value)
             # TODO
-            return
         elif MemoryPositions.APU_IO_EXTRAS.contains(addr):
             # TODO
             return
         else:
             raise IndexError("Invalid Address 0x{:04x}".format(addr))
+
+    def storeIORegisters(self,addr,value):#TODO
+        if (addr == 0x4016):#TODO expansion port latch bits?
+            b = value&1
+            self.ppu.latchButtons = b
+            #print(self.ppu.latchButtons)
+
+    def readIORegisters(self,addr):#TODO
+        if (addr == 0x4016):
+            return self.ppu.readController(1)
+        elif (addr == 0x4017):
+            return self.ppu.readController(2)
+        else: 
+            return 0xFF
+
 
     def fetch_ppu(self, addr):
         if addr == 0x2002:
@@ -127,7 +142,7 @@ class Memory:
             self.ppu.oam[oamaddr] = value
         elif addr == 0x2005:
             # Write low byte
-            if self.ppu.high_latch:
+            if self.ppu.hi_lo_latch:
                 self.ppu.ppuscroll |= value
             # Write high byte
             else:
