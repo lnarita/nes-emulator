@@ -41,6 +41,10 @@ class Cartridge:
 
                 header = INesHeader(prg_rom_size, chr_rom_size, flags_6, flags_7, prg_ram_size, flags_9, flags_10)
                 prg_rom = cartridge_content[16:(header.prg_rom_size + 16)]
+                if len(cartridge_content) < (header.prg_rom_size + 16 + header.chr_rom_size):
+                    cartridge_content = bytearray(cartridge_content)
+                    for i in range((header.prg_rom_size + 16 + header.chr_rom_size) - len(cartridge_content)):
+                        cartridge_content.append(0)
                 chr_rom = cartridge_content[(header.prg_rom_size + 16):(header.prg_rom_size + 16 + header.chr_rom_size)]
 
                 return cls(header, prg_rom, chr_rom)
