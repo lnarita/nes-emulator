@@ -16,8 +16,8 @@ class AddressMode:
         return result
 
     @classmethod
-    def read_from(cls, cpu, memory, addr):
-        result = cpu.exec_in_cycle(memory.fetch, addr)
+    def read_from(cls, cpu, memory, addr,ld=0):
+        result = cpu.exec_in_cycle(memory.fetch, addr,ld)
         if addr == 0x2007:
             if memory.ppu.ppuctrl & 0b0000100:
                 memory.ppu.ppuaddr += 32
@@ -466,7 +466,7 @@ class Immediate(AddressMode):
         pass
 
     @classmethod
-    def read_from(cls, cpu, memory, addr):
+    def read_from(cls, cpu, memory, addr,ld=0):
         return addr
 
     @classmethod
@@ -499,7 +499,7 @@ class Accumulator(AddressMode):
         cpu.a = value
 
     @classmethod
-    def read_from(cls, cpu, memory, addr):
+    def read_from(cls, cpu, memory, addr,ld=0):
         return cpu.a
 
     @classmethod

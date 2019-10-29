@@ -50,10 +50,66 @@ class PPUMemoryPositions(Enum):
 
     def wrap(self, addr):
         return (self.start + (addr - self.start) % ((self.end + 1) - self.start))
+      
+class Controller:
+    def __init__(self):
+        self.up = 0
+        self.down = 0
+        self.left = 0
+        self.right = 0
+        self.A = 0
+        self.B = 0
+        self.select = 0
+        self.start = 0
+        self.whichButton = 0
+
+    def readButton(self):
+        pressed = 0
+        if (self.whichButton==0):
+            pressed = self.A
+            print("A: " + str(pressed))
+        elif (self.whichButton==1):
+            pressed = self.B
+            print("B: " + str(pressed))
+        elif (self.whichButton==2):
+            pressed = self.select
+            print("Select: " + str(pressed))
+        elif (self.whichButton==3):
+            pressed = self.start
+            print("Start: " + str(pressed))
+        elif (self.whichButton==4):
+            pressed = self.up
+            print("up: " + str(pressed))
+        elif (self.whichButton==5):
+            pressed = self.down
+            print("down: " + str(pressed))
+        elif (self.whichButton==6):
+            pressed = self.left
+            print("left: " + str(pressed))
+        elif (self.whichButton==7):
+            pressed = self.right
+            print("right: " + str(pressed))
+        else:
+            pressed = 1
+            print("None")
+        self.whichButton += 1
+        return pressed
+
+
+    def reload(self,A,B,select,start,up,down,left,right):
+        self.whichButton = 0
+        self.A = A
+        self.B = B
+        self.select = select
+        self.start = start
+        self.up = up
+        self.down = down
+        self.left = left
+        self.right = right
 
 class PPU:
     #shifter
-    class TileDataShifter():#shifts right 16 bits
+    class TileDataShifter:#shifts right 16 bits
         def __init__(self):
             self.attribute = 0
             self.patternlo = 0
@@ -82,7 +138,9 @@ class PPU:
             self.patternlo = ((patternlo << 8) | (self.patternlo & 0b11111111))
             self.patternhi = ((patternhi << 8) | (self.patternhi & 0b11111111))
 
-    def __init__(self, ppuctrl=0x0, ppumask=0x0, ppustatus=0x0, oamaddr=0x0, oamdata=0x0, ppuscroll=0x0, ppuaddr=0x0, ppudata=0x0, oamdma=0x0, hi_lo_latch=False, mirroring=True):
+
+    def __init__(self, pattern_tables, ppuctrl=0x0, ppumask=0x0, ppustatus=0x0, oamaddr=0x0, oamdata=0x0, ppuscroll=0x0, ppuaddr=0x0, ppudata=0x0, oamdma=0x0, hi_lo_latch=False, mirroring=True):
+
         self.ppuctrl = ppuctrl
         self.ppumask = ppumask
         self.ppustatus = ppustatus
@@ -92,13 +150,14 @@ class PPU:
         self.ppuaddr = ppuaddr
         self.ppudata = ppudata
         self.oamdma = oamdma
-
+        self.mirroring = mirroring
         self.hi_lo_latch = hi_lo_latch
+
         self.oam = [0x0] * 256  # 64 sprites * 4 bytes
-        # self.ram = [0x0] * 0x4000
+        self.pattern_tables = pattern_tables
         self.nametables = [0x0] * 0x800
         self.palletes = [0x0] * 0x20
-        self.mirroring = mirroring
+
 
         #palettes
         self.bgPalettes = [[0 for x in range(4)] for y in range(4)]
@@ -111,8 +170,12 @@ class PPU:
 
         #screen
         self.screen = Window()
-
-
+        
+        #io
+        self.latchButtons = False
+        self.control1 = Controller()
+        self.control2 = Controller()
+        
     def nametable_addr(self, addr):
         addr -= PPUMemoryPositions.NAMETABLES.start
 
@@ -139,7 +202,7 @@ class PPU:
 
     def fetch(self, addr):
         if PPUMemoryPositions.PATTERN_TABLES.contains(addr):
-            pass
+            return self.pattern_tables[addr]
         elif PPUMemoryPositions.NAMETABLES.contains(addr):
             return self.nametables[self.nametable_addr(addr)]
         elif PPUMemoryPositions.NAMETABLES_MIRROR.contains(addr):
@@ -188,6 +251,37 @@ class PPU:
             c = COLORS[k]
             self.sprPalettes[i//4][i%4]= c
 
+    def reloadControllers(self):
+        A1=B1=select1=start1=up1=down1=left1=right1 = 0
+        A2=B2=select2=start2=up2=down2=left2=right2 = 0
+        if self.latchButtons:
+            print("reloaded")
+            KEYS = pygame.key.get_pressed()
+            if KEYS[pygame.K_UP]:
+                up1=1
+            if KEYS[pygame.K_DOWN]:
+                down1=1
+            if KEYS[pygame.K_LEFT]:
+                left1=1
+            if KEYS[pygame.K_RIGHT]:
+                right1=1
+            if KEYS[pygame.K_BACKSPACE]:
+                select1=1
+            if KEYS[pygame.K_RETURN]:
+                start1=1
+            if KEYS[pygame.K_z]:
+                A1=1
+            if KEYS[pygame.K_x]:
+                B1=1
+            self.control1.reload(A1,B1,select1,start1,up1,down1,left1,right1)
+            self.control2.reload(A2,B2,select2,start2,up2,down2,left2,right2)
+        pygame.event.pump()
+
+    def readController(self,which):
+        if (which == 1):
+            return self.control1.readButton()
+        else:
+            return self.control2.readButton()
 
     def tick(self):
 
@@ -246,14 +340,13 @@ class PPU:
 
 
 
-    def vBlank(self,vb): #TODO: NMI
+    def vBlank(self,vb):
         if(vb):#vblank starts
             self.ppustatus = self.ppustatus | 0b10000000 #updates vblank flag
 
             generateNMI = (self.ppuctrl & 0b10000000) > 0
             if generateNMI:
-               pass
-               #self.nmi(self.cpu,self.memory)
+                self.nmi(self.cpu,self.memory)
 
         else:#vblank ends
             self.ppustatus = self.ppustatus & 0b01111111 # updates vblank flag
@@ -281,7 +374,6 @@ class PPU:
         if (patternTableCtrlBits==0):
             patternTable = 0x0
         else:
-            #patternTable = 0x4200
             patternTable = 0x1000
 
         if line < 240: #visible scanlines
@@ -294,15 +386,13 @@ class PPU:
 
                 #gets the tile type by looking at name table
                 tileType = self.fetch(nameTable+tileNo) #1 byte tile
-                tileType = 255
+
                 patternVer = line%8
                 patternHor = i%8
 
                 #gets the pattern
-                patternlo = self.memory.fetch(patternTable+tileType*16+patternVer)
-                patternhi = self.memory.fetch(patternTable+tileType*16+8+patternVer)
-                #print(hex(patternTable+tileType*16))
-                #print (bin(patternhi) + " " + bin(patternlo))
+                patternlo = self.fetch(patternTable+tileType*16+patternVer)
+                patternhi = self.fetch(patternTable+tileType*16+8+patternVer)
 
                 #gets the colorCode
                 hiBit = (patternhi&(1<<7-patternHor)) > 0
@@ -336,9 +426,7 @@ class PPU:
                 self.screen.flip()
 
         if line==241: # vblank
-            pass
             self.vBlank(True)
         if line== 261:
-            pass
-            #vBlank(False)
+            self.vBlank(False)
 

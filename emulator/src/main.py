@@ -9,6 +9,8 @@ from emulator.opcodes.jump import BRK
 from emulator.opcodes.opcodes import OpCodes
 from emulator.ppu import PPU
 
+import sys,os
+
 def main(args):
     emulate(args.file)
 
@@ -21,7 +23,7 @@ def emulate(file_path):
     running = True
     file_contents = read_file(file_path)
     cartridge = Cartridge.from_bytes(file_contents)
-    ppu = PPU(mirroring=cartridge.header.flags_6&0b00000001)
+    ppu = PPU(cartridge.chr_rom, mirroring=cartridge.header.flags_6&0b00000001)
     memory = Memory(cartridge.prg_rom,ppu=ppu)
     cpu = CPU(log_compatible_mode=nestest_log_format)
     ppu.setNMI(cpu,memory,NMI)
@@ -41,6 +43,7 @@ def emulate(file_path):
 
     i = 0
     line = 0
+
     while running:
         try:
             previous_state = CPUState(pc=cpu.pc, sp=cpu.sp, a=cpu.a, x=cpu.x, y=cpu.y, p=StatusRegisterFlags(int_value=cpu.flags), addr=cpu.addr, data=cpu.data,
@@ -49,8 +52,11 @@ def emulate(file_path):
                 # TODO: remove, this is a breakpoint for debugging
                 aaaa = ""
 
+            ppu.reloadControllers()#reloads controllers every tick
+
             i+=1
             if (i==114):
+
                 ppu.scanLine(line)
                 i=0
                 line+=1
@@ -63,8 +69,9 @@ def emulate(file_path):
                 if isinstance(decoded, BRK):
                     # abort program on BRK
                     running = False
+                    print("Break")
                     break
-                print_debug_line(cpu, previous_state, decoded, nestest_log_format)
+                #print_debug_line(cpu, previous_state, decoded, nestest_log_format)
                 cpu.clear_state_mem()
         except IndexError as e:
             # we've reached a program counter that is not within memory bounds
@@ -78,22 +85,27 @@ def emulate(file_path):
             cpu.inc_pc_by(1)
 
 def NMI(cpu,memory):
+    print("-------nmi------")
+    #push return address
+    hi = cpu.pc & 0b1111111100000000
+    hi = hi >> 8
+    lo = cpu.pc & 0b0000000011111111
+
+    memory.stack_push(cpu,hi)
+    memory.stack_push(cpu,lo)
+    
+
     #push status
     status = cpu.flags | 0b00110000
-    memory.store(cpu.sp, status)
-    cpu.sp -= 1
-    cpu.sp = cpu.sp & 0xff ^ 0x0100
-
-    #push return address
-    memory.store(cpu.sp, cpu.pc)
-    cpu.sp -= 1
-    cpu.sp = cpu.sp & 0xff ^ 0x0100
+    memory.stack_push(cpu,status)
 
     lo = memory.fetch(0xFFFA)
     hi = memory.fetch(0xFFFB)
     hi <<= 8
     addr = hi|lo
     cpu.pc = addr
+
+    #cpu.pc = 0xc089
 
 
 def fetch_and_decode_instruction(cpu, memory):
