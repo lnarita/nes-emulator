@@ -45,11 +45,13 @@ func emulate(filePath string) {
 
 	for running {
 		decoded := fetchAndDecodeInstruction(&console)
-		decoded.Opc.Exec(&console, &decoded.Variation)
+		_, opcodeLogging := decoded.Opc.Exec(&console, &decoded.Variation)
 		console.CPU.PC++
 		if decoded.Opc.GetName() == "BRK" {
 			running = false
 		}
+		fmt.Printf("%04X  %s  %s  CYC:%d\n", console.CPU.PC, opcodes.PrintOpCode(opcodeLogging), console.CPU.String(), console.CPU.Cycle)
+		fmt.Print(opcodes.PrintOpCode(opcodeLogging))
 
 	}
 
@@ -65,7 +67,7 @@ const (
 	width  = 256
 	height = 240
 	scale  = 3
-	title  = "NES"
+	title  = "GOTEN NES EMULATOR"
 )
 
 func initUI() {

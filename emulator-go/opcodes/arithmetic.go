@@ -4,7 +4,7 @@ import "students.ic.unicamp.br/goten/processor"
 
 type ora struct{}
 
-func (o ora) Exec(console *processor.Console, variation *Variation) int {
+func (o ora) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
 	var cycleAcc int = 0
 	address, stall := variation.addressingMode.FetchAddress(console)
 	value := byte(variation.addressingMode.ReadFrom(console, address))
@@ -16,7 +16,7 @@ func (o ora) Exec(console *processor.Console, variation *Variation) int {
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc
+	return variation.cycles + cycleAcc, LoggingStruct{}
 }
 
 func (o ora) getVariations() []Variation {
@@ -38,7 +38,7 @@ func (o ora) GetName() string {
 
 type and struct{}
 
-func (o and) Exec(console *processor.Console, variation *Variation) int {
+func (o and) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
 	var cycleAcc int = 0
 	address, stall := variation.addressingMode.FetchAddress(console)
 	value := byte(variation.addressingMode.ReadFrom(console, address))
@@ -50,7 +50,7 @@ func (o and) Exec(console *processor.Console, variation *Variation) int {
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc
+	return variation.cycles + cycleAcc, LoggingStruct{}
 }
 
 func (o and) getVariations() []Variation {
@@ -72,7 +72,7 @@ func (o and) GetName() string {
 
 type eor struct{}
 
-func (o eor) Exec(console *processor.Console, variation *Variation) int {
+func (o eor) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
 	var cycleAcc int = 0
 	address, stall := variation.addressingMode.FetchAddress(console)
 	value := byte(variation.addressingMode.ReadFrom(console, address))
@@ -84,7 +84,7 @@ func (o eor) Exec(console *processor.Console, variation *Variation) int {
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc
+	return variation.cycles + cycleAcc, LoggingStruct{}
 }
 
 func (o eor) getVariations() []Variation {
@@ -106,7 +106,7 @@ func (o eor) GetName() string {
 
 type adc struct{}
 
-func (o adc) Exec(console *processor.Console, variation *Variation) int {
+func (o adc) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
 	var cycleAcc int = 0
 	address, stall := variation.addressingMode.FetchAddress(console)
 	value := byte(variation.addressingMode.ReadFrom(console, address))
@@ -128,7 +128,7 @@ func (o adc) Exec(console *processor.Console, variation *Variation) int {
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc
+	return variation.cycles + cycleAcc, LoggingStruct{}
 }
 
 func (o adc) getVariations() []Variation {
@@ -150,7 +150,7 @@ func (o adc) GetName() string {
 
 type sbc struct{}
 
-func (o sbc) Exec(console *processor.Console, variation *Variation) int {
+func (o sbc) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
 	var cycleAcc int = 0
 	address, stall := variation.addressingMode.FetchAddress(console)
 	value := byte(variation.addressingMode.ReadFrom(console, address))
@@ -171,7 +171,7 @@ func (o sbc) Exec(console *processor.Console, variation *Variation) int {
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc
+	return variation.cycles + cycleAcc, LoggingStruct{}
 }
 
 func (o sbc) getVariations() []Variation {
@@ -193,7 +193,7 @@ func (o sbc) GetName() string {
 
 type cmp struct{}
 
-func (o cmp) Exec(console *processor.Console, variation *Variation) int {
+func (o cmp) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
 	var cycleAcc int = 0
 	address, stall := variation.addressingMode.FetchAddress(console)
 	value := byte(variation.addressingMode.ReadFrom(console, address))
@@ -210,7 +210,7 @@ func (o cmp) Exec(console *processor.Console, variation *Variation) int {
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc
+	return variation.cycles + cycleAcc, LoggingStruct{}
 }
 
 func (o cmp) getVariations() []Variation {
@@ -232,7 +232,7 @@ func (o cmp) GetName() string {
 
 type cpx struct{}
 
-func (o cpx) Exec(console *processor.Console, variation *Variation) int {
+func (o cpx) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
 	var cycleAcc int = 0
 	address, stall := variation.addressingMode.FetchAddress(console)
 	value := byte(variation.addressingMode.ReadFrom(console, address))
@@ -249,7 +249,7 @@ func (o cpx) Exec(console *processor.Console, variation *Variation) int {
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc
+	return variation.cycles + cycleAcc, LoggingStruct{}
 }
 
 func (o cpx) getVariations() []Variation {
@@ -266,7 +266,7 @@ func (o cpx) GetName() string {
 
 type cpy struct{}
 
-func (o cpy) Exec(console *processor.Console, variation *Variation) int {
+func (o cpy) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
 	var cycleAcc int = 0
 	address, stall := variation.addressingMode.FetchAddress(console)
 	value := byte(variation.addressingMode.ReadFrom(console, address))
@@ -283,7 +283,7 @@ func (o cpy) Exec(console *processor.Console, variation *Variation) int {
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc
+	return variation.cycles + cycleAcc, LoggingStruct{}
 }
 
 func (o cpy) getVariations() []Variation {
@@ -300,7 +300,7 @@ func (o cpy) GetName() string {
 
 type dec struct{}
 
-func (o dec) Exec(console *processor.Console, variation *Variation) int {
+func (o dec) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
 	var cycleAcc int = 0
 	address, stall := variation.addressingMode.FetchAddress(console)
 	old_value := variation.addressingMode.ReadFrom(console, address)
@@ -312,7 +312,7 @@ func (o dec) Exec(console *processor.Console, variation *Variation) int {
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc
+	return variation.cycles + cycleAcc, LoggingStruct{}
 }
 
 func (o dec) getVariations() []Variation {
@@ -330,12 +330,12 @@ func (o dec) GetName() string {
 
 type dex struct{}
 
-func (o dex) Exec(console *processor.Console, variation *Variation) int {
+func (o dex) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
 	value := byte(processor.Wrap(0x00, 0xFF, int(console.CPU.X)-1))
 
 	console.CPU.X = value
 	console.CPU.SetZN(value)
-	return variation.cycles
+	return variation.cycles, LoggingStruct{}
 }
 
 func (o dex) getVariations() []Variation {
@@ -350,12 +350,12 @@ func (o dex) GetName() string {
 
 type dey struct{}
 
-func (o dey) Exec(console *processor.Console, variation *Variation) int {
+func (o dey) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
 	value := byte(processor.Wrap(0x00, 0xFF, int(console.CPU.Y)-1))
 
 	console.CPU.Y = value
 	console.CPU.SetZN(value)
-	return variation.cycles
+	return variation.cycles, LoggingStruct{}
 }
 
 func (o dey) getVariations() []Variation {
@@ -370,7 +370,7 @@ func (o dey) GetName() string {
 
 type inc struct{}
 
-func (o inc) Exec(console *processor.Console, variation *Variation) int {
+func (o inc) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
 	var cycleAcc int = 0
 	address, stall := variation.addressingMode.FetchAddress(console)
 	old_value := variation.addressingMode.ReadFrom(console, address)
@@ -382,7 +382,7 @@ func (o inc) Exec(console *processor.Console, variation *Variation) int {
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc
+	return variation.cycles + cycleAcc, LoggingStruct{}
 }
 
 func (o inc) getVariations() []Variation {
@@ -400,12 +400,12 @@ func (o inc) GetName() string {
 
 type inx struct{}
 
-func (o inx) Exec(console *processor.Console, variation *Variation) int {
+func (o inx) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
 	value := byte(processor.Wrap(0x00, 0xFF, int(console.CPU.X)+1))
 
 	console.CPU.X = value
 	console.CPU.SetZN(value)
-	return variation.cycles
+	return variation.cycles, LoggingStruct{}
 }
 
 func (o inx) getVariations() []Variation {
@@ -420,12 +420,12 @@ func (o inx) GetName() string {
 
 type iny struct{}
 
-func (o iny) Exec(console *processor.Console, variation *Variation) int {
+func (o iny) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
 	value := byte(processor.Wrap(0x00, 0xFF, int(console.CPU.Y)+1))
 
 	console.CPU.Y = value
 	console.CPU.SetZN(value)
-	return variation.cycles
+	return variation.cycles, LoggingStruct{}
 }
 
 func (o iny) getVariations() []Variation {
@@ -440,7 +440,7 @@ func (o iny) GetName() string {
 
 type asl struct{}
 
-func (o asl) Exec(console *processor.Console, variation *Variation) int {
+func (o asl) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
 	var cycleAcc int = 0
 	address, stall := variation.addressingMode.FetchAddress(console)
 	old_value := variation.addressingMode.ReadFrom(console, address)
@@ -455,7 +455,7 @@ func (o asl) Exec(console *processor.Console, variation *Variation) int {
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc
+	return variation.cycles + cycleAcc, LoggingStruct{}
 }
 
 func (o asl) getVariations() []Variation {
@@ -474,7 +474,7 @@ func (o asl) GetName() string {
 
 type rol struct{}
 
-func (o rol) Exec(console *processor.Console, variation *Variation) int {
+func (o rol) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
 	var cycleAcc int = 0
 	address, stall := variation.addressingMode.FetchAddress(console)
 	old_value := variation.addressingMode.ReadFrom(console, address)
@@ -494,7 +494,7 @@ func (o rol) Exec(console *processor.Console, variation *Variation) int {
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc
+	return variation.cycles + cycleAcc, LoggingStruct{}
 }
 
 func (o rol) getVariations() []Variation {
@@ -513,7 +513,7 @@ func (o rol) GetName() string {
 
 type lsr struct{}
 
-func (o lsr) Exec(console *processor.Console, variation *Variation) int {
+func (o lsr) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
 	var cycleAcc int = 0
 	address, stall := variation.addressingMode.FetchAddress(console)
 	old_value := variation.addressingMode.ReadFrom(console, address)
@@ -528,7 +528,7 @@ func (o lsr) Exec(console *processor.Console, variation *Variation) int {
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc
+	return variation.cycles + cycleAcc, LoggingStruct{}
 }
 
 func (o lsr) getVariations() []Variation {
@@ -547,7 +547,7 @@ func (o lsr) GetName() string {
 
 type ror struct{}
 
-func (o ror) Exec(console *processor.Console, variation *Variation) int {
+func (o ror) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
 	var cycleAcc int = 0
 	address, stall := variation.addressingMode.FetchAddress(console)
 	old_value := variation.addressingMode.ReadFrom(console, address)
@@ -567,7 +567,7 @@ func (o ror) Exec(console *processor.Console, variation *Variation) int {
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc
+	return variation.cycles + cycleAcc, LoggingStruct{}
 }
 
 func (o ror) getVariations() []Variation {

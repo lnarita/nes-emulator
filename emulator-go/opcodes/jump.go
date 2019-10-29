@@ -25,8 +25,8 @@ func branch(console *processor.Console, variation *Variation, shouldTakeBranch b
 
 type blp struct{}
 
-func (o blp) Exec(console *processor.Console, variation *Variation) int {
-	return branch(console, variation, !console.CPU.IsNegative())
+func (o blp) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
+	return branch(console, variation, !console.CPU.IsNegative()), LoggingStruct{}
 }
 
 func (o blp) getVariations() []Variation {
@@ -41,8 +41,8 @@ func (o blp) GetName() string {
 
 type bmi struct{}
 
-func (o bmi) Exec(console *processor.Console, variation *Variation) int {
-	return branch(console, variation, console.CPU.IsNegative())
+func (o bmi) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
+	return branch(console, variation, console.CPU.IsNegative()), LoggingStruct{}
 }
 
 func (o bmi) getVariations() []Variation {
@@ -57,8 +57,8 @@ func (o bmi) GetName() string {
 
 type bvc struct{}
 
-func (o bvc) Exec(console *processor.Console, variation *Variation) int {
-	return branch(console, variation, !console.CPU.IsOverflow())
+func (o bvc) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
+	return branch(console, variation, !console.CPU.IsOverflow()), LoggingStruct{}
 }
 
 func (o bvc) getVariations() []Variation {
@@ -73,8 +73,8 @@ func (o bvc) GetName() string {
 
 type bvs struct{}
 
-func (o bvs) Exec(console *processor.Console, variation *Variation) int {
-	return branch(console, variation, console.CPU.IsOverflow())
+func (o bvs) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
+	return branch(console, variation, console.CPU.IsOverflow()), LoggingStruct{}
 }
 
 func (o bvs) getVariations() []Variation {
@@ -89,8 +89,8 @@ func (o bvs) GetName() string {
 
 type bcc struct{}
 
-func (o bcc) Exec(console *processor.Console, variation *Variation) int {
-	return branch(console, variation, !console.CPU.HasCarry())
+func (o bcc) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
+	return branch(console, variation, !console.CPU.HasCarry()), LoggingStruct{}
 
 }
 
@@ -106,8 +106,8 @@ func (o bcc) GetName() string {
 
 type bcs struct{}
 
-func (o bcs) Exec(console *processor.Console, variation *Variation) int {
-	return branch(console, variation, console.CPU.HasCarry())
+func (o bcs) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
+	return branch(console, variation, console.CPU.HasCarry()), LoggingStruct{}
 }
 
 func (o bcs) getVariations() []Variation {
@@ -122,8 +122,8 @@ func (o bcs) GetName() string {
 
 type bne struct{}
 
-func (o bne) Exec(console *processor.Console, variation *Variation) int {
-	return branch(console, variation, !console.CPU.IsZero())
+func (o bne) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
+	return branch(console, variation, !console.CPU.IsZero()), LoggingStruct{}
 }
 
 func (o bne) getVariations() []Variation {
@@ -138,8 +138,8 @@ func (o bne) GetName() string {
 
 type beq struct{}
 
-func (o beq) Exec(console *processor.Console, variation *Variation) int {
-	return branch(console, variation, console.CPU.IsZero())
+func (o beq) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
+	return branch(console, variation, console.CPU.IsZero()), LoggingStruct{}
 }
 
 func (o beq) getVariations() []Variation {
@@ -154,7 +154,7 @@ func (o beq) GetName() string {
 
 type brk struct{}
 
-func (o brk) Exec(console *processor.Console, variation *Variation) int {
+func (o brk) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
 	console.Memory.StackPushAddress(console.CPU, console.CPU.PC)
 
 	flags := console.CPU.Flags
@@ -165,7 +165,7 @@ func (o brk) Exec(console *processor.Console, variation *Variation) int {
 	console.CPU.PC = irq
 	console.CPU.SetBreak(true)
 
-	return variation.cycles
+	return variation.cycles, LoggingStruct{}
 }
 
 func (o brk) getVariations() []Variation {
@@ -180,14 +180,14 @@ func (o brk) GetName() string {
 
 type rti struct{}
 
-func (o rti) Exec(console *processor.Console, variation *Variation) int {
+func (o rti) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
 	value := console.Memory.StackPopData(console.CPU)
 
 	flags := value&processor.NotBreakBit | processor.BFlag
 	console.CPU.Flags = flags
 	pc := console.Memory.StackPopAddress(console.CPU)
 	console.CPU.PC = pc
-	return variation.cycles
+	return variation.cycles, LoggingStruct{}
 }
 
 func (o rti) getVariations() []Variation {
@@ -202,7 +202,7 @@ func (o rti) GetName() string {
 
 type jsr struct{}
 
-func (o jsr) Exec(console *processor.Console, variation *Variation) int {
+func (o jsr) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
 	var cycleAcc int = 0
 	address, stall := variation.addressingMode.FetchAddress(console)
 
@@ -214,7 +214,7 @@ func (o jsr) Exec(console *processor.Console, variation *Variation) int {
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc
+	return variation.cycles + cycleAcc, LoggingStruct{}
 }
 
 func (o jsr) getVariations() []Variation {
@@ -229,10 +229,10 @@ func (o jsr) GetName() string {
 
 type rts struct{}
 
-func (o rts) Exec(console *processor.Console, variation *Variation) int {
+func (o rts) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
 	address := console.Memory.StackPopAddress(console.CPU)
 	console.CPU.PC = address + 1
-	return variation.cycles
+	return variation.cycles, LoggingStruct{}
 }
 
 func (o rts) getVariations() []Variation {
@@ -247,7 +247,7 @@ func (o rts) GetName() string {
 
 type jmp struct{}
 
-func (o jmp) Exec(console *processor.Console, variation *Variation) int {
+func (o jmp) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
 	var cycleAcc int = 0
 	address, stall := variation.addressingMode.FetchAddress(console)
 
@@ -257,7 +257,7 @@ func (o jmp) Exec(console *processor.Console, variation *Variation) int {
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc
+	return variation.cycles + cycleAcc, LoggingStruct{}
 }
 
 func (o jmp) getVariations() []Variation {
