@@ -22,7 +22,6 @@ func (console *Console) Tick() {
 	console.CPU.Tick()
 }
 
-
 func (console *Console) FetchData(address uint16) byte {
 	switch {
 	case address >= 0x6000 || address < 0x2000:
@@ -61,10 +60,8 @@ func (console *Console) FetchAddress(address uint16) uint16 {
 
 func (console *Console) StoreData(address uint16, data byte) {
 	switch {
-	case address >= 0x6000:
-		console.Memory.mapper.Write(address, data)
-	case address < 0x2000:
-		console.Memory.RAM[address%0x0800] = data
+	case address >= 0x6000 || address < 0x2000:
+		console.Memory.Write(address, data)
 	case address < 0x4000:
 		// PPU registers
 	case address == 0x4014:
@@ -93,8 +90,8 @@ func (console *Console) StackPopData() byte {
 }
 
 func (console *Console) StackPushAddress(data uint16) {
-	console.StackPushData(byte(data>>8))
-	console.StackPushData(byte(data&0x00FF))
+	console.StackPushData(byte(data >> 8))
+	console.StackPushData(byte(data & 0x00FF))
 }
 
 func (console *Console) StackPopAddress() uint16 {
@@ -102,4 +99,3 @@ func (console *Console) StackPopAddress() uint16 {
 	high := console.StackPopData()
 	return uint16(high)<<8 | uint16(low)
 }
-

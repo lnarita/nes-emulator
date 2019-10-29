@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"time"
 
 	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/go-gl/glfw/v3.0/glfw"
@@ -39,16 +40,12 @@ func emulate(filePath string) {
 	ppu := &processor.PPU{}
 	console := processor.Console{CPU: cpu, PPU: ppu, Memory: mem}
 
-	running := true
-
 	// initUI()
 
-	for running {
+	for {
+		start := time.Now()
 		state := opcodes.State{PC: console.CPU.PC, SP: console.CPU.SP, A: console.CPU.A, X: console.CPU.X, Y: console.CPU.Y, Flags: console.CPU.Flags, Cycle: console.CPU.Cycle}
-		if state.PC == 0xE928 {
-			fmt.Println("ugh")
-		}
-		//start := time.Now()
+
 		decoded := fetchAndDecodeInstruction(&console)
 		console.CPU.PC++
 
@@ -56,18 +53,21 @@ func emulate(filePath string) {
 		state.OpCode = decoded.Variation
 
 		cycle := decoded.Opc.Exec(&console, &decoded.Variation, &state)
-		for i:=0;i<cycle;i++ {
+		for i := 0; i < cycle; i++ {
 			console.CPU.Cycle++
-			if console.CPU.Cycle % 1000 == 0 {
-				fmt.Printf("ping\n")
-			}
 		}
 		if decoded.Opc.GetName() == "BRK" {
-			running = false
+			break
 		}
-		//elapsed := time.Since(start)
-		//log.Printf("elapsed: %0.15f - expected: %0.15f\n", elapsed.Seconds(), processor.CyclePeriod*float64(cycle))
+		elapsed := time.Since(start).Seconds()
+		expected := processor.CyclePeriod * float64(cycle)
 		fmt.Printf("%s\n", state)
+		//fmt.Printf("%s\n| elapsed: %0.15f - expected: %0.15f\n", state, elapsed, expected)
+		if elapsed >= expected {
+			fmt.Printf("<<<<< (%s) - %0.15f >>>>>\n", state.OpCodeName, elapsed/expected)
+		} else {
+			time.Sleep(time.Duration(expected-elapsed) * time.Second)
+		}
 	}
 
 }
