@@ -13,6 +13,7 @@ class AddressMode:
                 memory.ppu.ppuaddr += 1
         elif addr == 0x2004:
             memory.ppu.oamaddr += 1
+
         return result
 
     @classmethod
@@ -23,6 +24,8 @@ class AddressMode:
                 memory.ppu.ppuaddr += 32
             else:
                 memory.ppu.ppuaddr += 1
+        elif addr == 0x4016:
+            memory.controller.read_count += 1 % 8
         return result
 
     @classmethod

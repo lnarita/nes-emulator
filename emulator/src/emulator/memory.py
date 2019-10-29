@@ -14,7 +14,8 @@ class MemoryPositions(Enum):
     RAM_MIRROR_3 = (auto(), 0x1800, 0x1FFF)
     PPU_REGISTERS = (auto(), 0x2000, 0x2007)
     PPU_REGISTERS_MIRROR = (auto(), 0x2008, 0x3FFF)
-    APU_IO_REGISTERS = (auto(), 0x4000, 0x4017)
+    APU_IO_REGISTERS = (auto(), 0x4000, 0x4015)
+    CONTROLLERS = (auto(), 0x4016, 0x4017)
     APU_IO_EXTRAS = (auto(), 0x4018, 0x401F)
     CARTRIDGE = (auto(), 0x4020, 0xFFFF)
     PRG_ROM_START = (auto(), 0xC000, 0xFFFF)  # the PRG ROM size is defined by the iNES header, so `end` is a dummy value
@@ -35,7 +36,7 @@ class MemoryPositions(Enum):
 
 
 class Memory:
-    def __init__(self, rom=None, ram=None, ppu=None):
+    def __init__(self, rom=None, ram=None, ppu=None, controller=None):
         def __pad_or_truncate(some_list, target_len):
             return some_list[:target_len] + [0x0] * (target_len - len(some_list))
 
@@ -46,6 +47,7 @@ class Memory:
         self.rom = rom
         self.debug_mem = []
         self.ppu = ppu
+        self.controller = controller
 
 
     def fetch(self, addr):
@@ -66,6 +68,8 @@ class Memory:
         elif MemoryPositions.APU_IO_REGISTERS.contains(addr):
             # TODO
             return 0xFF
+        elif MemoryPositions.CONTROLLERS.contains(addr):
+            return int(self.controller.read())
         elif MemoryPositions.APU_IO_EXTRAS.contains(addr):
             # TODO
             return 0xFF
@@ -95,6 +99,8 @@ class Memory:
         elif MemoryPositions.APU_IO_REGISTERS.contains(addr):
             # TODO
             return
+        elif MemoryPositions.CONTROLLERS.contains(addr):
+            self.controller.latch(value & 0b00000001)
         elif MemoryPositions.APU_IO_EXTRAS.contains(addr):
             # TODO
             return
