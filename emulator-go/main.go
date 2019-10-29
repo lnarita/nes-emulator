@@ -3,9 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	//"log"
 	"os"
-	//"time"
 
 	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/go-gl/glfw/v3.0/glfw"
@@ -68,14 +66,14 @@ func emulate(filePath string) {
 			running = false
 		}
 		//elapsed := time.Since(start)
-		//log.Printf("elapsed: %0.15f - expected: %0.15f\n", elapsed.Seconds(), processor.CyclePeriod*float64(cycles))
+		//log.Printf("elapsed: %0.15f - expected: %0.15f\n", elapsed.Seconds(), processor.CyclePeriod*float64(cycle))
 		fmt.Printf("%s\n", state)
 	}
 
 }
 
 func fetchAndDecodeInstruction(console *processor.Console) opcodes.MapValue {
-	instruction := console.Memory.FetchData(console.CPU.PC)
+	instruction := console.FetchData(console.CPU.PC)
 	decoded := opcodes.AllOpCodes[instruction]
 	return decoded
 }

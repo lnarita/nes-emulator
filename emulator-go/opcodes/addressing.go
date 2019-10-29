@@ -22,9 +22,9 @@ func (a indirect) ReadFrom(console *processor.Console, address uint16) int {
 }
 
 func (a indirect) FetchAddress(console *processor.Console, state *State) (uint16, bool) {
-	pointer := console.Memory.FetchAddress(console.CPU.PC)
+	pointer := console.FetchAddress(console.CPU.PC)
 	console.CPU.PC += 2
-	address := console.Memory.FetchAddress(pointer)
+	address := console.FetchAddress(pointer)
 
 	/// log
 	state.ParameterCount = 2
@@ -44,21 +44,21 @@ func (a indirect) AddressFormatString() (string, int) {
 type indirectX struct{}
 
 func (a indirectX) WriteTo(console *processor.Console, address uint16, value byte) {
-	console.Memory.StoreData(address, value)
+	console.StoreData(address, value)
 }
 
 func (a indirectX) ReadFrom(console *processor.Console, address uint16) int {
-	data := console.Memory.FetchData(address)
+	data := console.FetchData(address)
 	return int(data)
 }
 
 func (a indirectX) FetchAddress(console *processor.Console, state *State) (uint16, bool) {
-	acc := console.Memory.FetchData(console.CPU.PC)
+	acc := console.FetchData(console.CPU.PC)
 	console.CPU.PC++
 
 	pointer := console.CPU.X + acc
 
-	address := console.Memory.FetchAddress(uint16(pointer))
+	address := console.FetchAddress(uint16(pointer))
 
 	/// log
 	state.ParameterCount = 1
@@ -78,21 +78,21 @@ func (a indirectX) AddressFormatString() (string, int) {
 type indirectY struct{}
 
 func (a indirectY) WriteTo(console *processor.Console, address uint16, value byte) {
-	console.Memory.StoreData(address, value)
+	console.StoreData(address, value)
 }
 
 func (a indirectY) ReadFrom(console *processor.Console, address uint16) int {
-	data := console.Memory.FetchData(address)
+	data := console.FetchData(address)
 	return int(data)
 }
 
 func (a indirectY) FetchAddress(console *processor.Console, state *State) (uint16, bool) {
-	pointer := uint16(console.Memory.FetchData(console.CPU.PC))
+	pointer := uint16(console.FetchData(console.CPU.PC))
 	console.CPU.PC++
 
-	startAddressLow := uint16(console.Memory.FetchData(pointer))
+	startAddressLow := uint16(console.FetchData(pointer))
 
-	startAddressHigh := uint16(console.Memory.FetchData(processor.WrapUint16(0x00, 0xFF, pointer+1))) << 8
+	startAddressHigh := uint16(console.FetchData(processor.WrapUint16(0x00, 0xFF, pointer+1))) << 8
 
 	baseAddress := startAddressLow + startAddressHigh
 	address := baseAddress + uint16(console.CPU.Y)
@@ -115,16 +115,16 @@ func (a indirectY) AddressFormatString() (string, int) {
 type zeroPage struct{}
 
 func (a zeroPage) WriteTo(console *processor.Console, address uint16, value byte) {
-	console.Memory.StoreData(address, value)
+	console.StoreData(address, value)
 }
 
 func (a zeroPage) ReadFrom(console *processor.Console, address uint16) int {
-	data := console.Memory.FetchData(address)
+	data := console.FetchData(address)
 	return int(data)
 }
 
 func (a zeroPage) FetchAddress(console *processor.Console, state *State) (uint16, bool) {
-	address := uint16(console.Memory.FetchData(console.CPU.PC))
+	address := uint16(console.FetchData(console.CPU.PC))
 	console.CPU.PC++
 
 	/// log
@@ -143,16 +143,16 @@ func (a zeroPage) AddressFormatString() (string, int) {
 type zeroPageX struct{}
 
 func (a zeroPageX) WriteTo(console *processor.Console, address uint16, value byte) {
-	console.Memory.StoreData(address, value)
+	console.StoreData(address, value)
 }
 
 func (a zeroPageX) ReadFrom(console *processor.Console, address uint16) int {
-	data := console.Memory.FetchData(address)
+	data := console.FetchData(address)
 	return int(data)
 }
 
 func (a zeroPageX) FetchAddress(console *processor.Console, state *State) (uint16, bool) {
-	baseAddress := console.Memory.FetchData(console.CPU.PC)
+	baseAddress := console.FetchData(console.CPU.PC)
 	console.CPU.PC++
 
 	address := baseAddress + console.CPU.X
@@ -174,16 +174,16 @@ func (a zeroPageX) AddressFormatString() (string, int) {
 type zeroPageY struct{}
 
 func (a zeroPageY) WriteTo(console *processor.Console, address uint16, value byte) {
-	console.Memory.StoreData(address, value)
+	console.StoreData(address, value)
 }
 
 func (a zeroPageY) ReadFrom(console *processor.Console, address uint16) int {
-	data := console.Memory.FetchData(address)
+	data := console.FetchData(address)
 	return int(data)
 }
 
 func (a zeroPageY) FetchAddress(console *processor.Console, state *State) (uint16, bool) {
-	baseAddress := console.Memory.FetchData(console.CPU.PC)
+	baseAddress := console.FetchData(console.CPU.PC)
 	console.CPU.PC++
 
 	address := baseAddress + console.CPU.Y
@@ -205,19 +205,19 @@ func (a zeroPageY) AddressFormatString() (string, int) {
 type absolute struct{}
 
 func (a absolute) WriteTo(console *processor.Console, address uint16, value byte) {
-	console.Memory.StoreData(address, value)
+	console.StoreData(address, value)
 }
 
 func (a absolute) ReadFrom(console *processor.Console, address uint16) int {
-	data := console.Memory.FetchData(address)
+	data := console.FetchData(address)
 	return int(data)
 }
 
 func (a absolute) FetchAddress(console *processor.Console, state *State) (uint16, bool) {
-	startAddressLow := uint16(console.Memory.FetchData(console.CPU.PC))
+	startAddressLow := uint16(console.FetchData(console.CPU.PC))
 	console.CPU.PC++
 
-	startAddressHigh := uint16(console.Memory.FetchData(console.CPU.PC)) << 8
+	startAddressHigh := uint16(console.FetchData(console.CPU.PC)) << 8
 	console.CPU.PC++
 
 	address := startAddressLow + startAddressHigh
@@ -242,19 +242,19 @@ func pageCross(a uint16, b uint16) bool {
 type absoluteY struct{}
 
 func (a absoluteY) WriteTo(console *processor.Console, address uint16, value byte) {
-	console.Memory.StoreData(address, value)
+	console.StoreData(address, value)
 }
 
 func (a absoluteY) ReadFrom(console *processor.Console, address uint16) int {
-	data := console.Memory.FetchData(address)
+	data := console.FetchData(address)
 	return int(data)
 }
 
 func (a absoluteY) FetchAddress(console *processor.Console, state *State) (uint16, bool) {
-	startAddressLow := uint16(console.Memory.FetchData(console.CPU.PC))
+	startAddressLow := uint16(console.FetchData(console.CPU.PC))
 	console.CPU.PC++
 
-	startAddressHigh := uint16(console.Memory.FetchData(console.CPU.PC)) << 8
+	startAddressHigh := uint16(console.FetchData(console.CPU.PC)) << 8
 	console.CPU.PC++
 
 	baseAddress := startAddressLow + startAddressHigh
@@ -278,19 +278,19 @@ func (a absoluteY) AddressFormatString() (string, int) {
 type absoluteX struct{}
 
 func (a absoluteX) WriteTo(console *processor.Console, address uint16, value byte) {
-	console.Memory.StoreData(address, value)
+	console.StoreData(address, value)
 }
 
 func (a absoluteX) ReadFrom(console *processor.Console, address uint16) int {
-	data := console.Memory.FetchData(address)
+	data := console.FetchData(address)
 	return int(data)
 }
 
 func (a absoluteX) FetchAddress(console *processor.Console, state *State) (uint16, bool) {
-	startAddressLow := uint16(console.Memory.FetchData(console.CPU.PC))
+	startAddressLow := uint16(console.FetchData(console.CPU.PC))
 	console.CPU.PC++
 
-	startAddressHigh := uint16(console.Memory.FetchData(console.CPU.PC)) << 8
+	startAddressHigh := uint16(console.FetchData(console.CPU.PC)) << 8
 	console.CPU.PC++
 
 	baseAddress := startAddressLow + startAddressHigh
@@ -322,7 +322,7 @@ func (a immediate) ReadFrom(console *processor.Console, address uint16) int {
 }
 
 func (a immediate) FetchAddress(console *processor.Console, state *State) (uint16, bool) {
-	address := uint16(console.Memory.FetchData(console.CPU.PC))
+	address := uint16(console.FetchData(console.CPU.PC))
 	console.CPU.PC++
 
 	/// log
@@ -366,13 +366,13 @@ func (a relative) WriteTo(console *processor.Console, address uint16, value byte
 }
 
 func (a relative) ReadFrom(console *processor.Console, address uint16) int {
-	pointer := console.Memory.FetchData(address)
+	pointer := console.FetchData(address)
 	console.CPU.PC++
 	return int(pointer)
 }
 
 func (a relative) FetchAddress(console *processor.Console, state *State) (uint16, bool) {
-	address := uint16(console.Memory.FetchData(console.CPU.PC))
+	address := uint16(console.FetchData(console.CPU.PC))
 	console.CPU.PC++
 
 	// ????

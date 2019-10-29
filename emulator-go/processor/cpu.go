@@ -37,7 +37,9 @@ func Setup(memory *Memory, automation bool) *CPU {
 	if automation {
 		resetAddress = 0xC000
 	} else {
-		resetAddress = memory.FetchAddress(Reset)
+		resetAddressLow := uint16(memory.Read(Reset))
+		resetAddressHigh := uint16(memory.Read(Reset + 1))
+		resetAddress = resetAddressHigh<<8 | resetAddressLow
 	}
 	//cpu := CPU{Flags: 0x34, PC: resetAddress, SP: 0x1FF}
 	cpu := CPU{Flags: 0x24, PC: resetAddress, SP: 0x1FD, Cycle: 7}

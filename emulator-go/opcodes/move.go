@@ -57,7 +57,7 @@ func (o sta) Exec(console *processor.Console, variation *Variation, state *State
 
 		/// log
 		state.HasData = true
-		state.Data = console.Memory.FetchData(address)
+		state.Data = console.FetchData(address)
 
 		variation.addressingMode.WriteTo(console, address, console.CPU.A)
 	}
@@ -136,7 +136,7 @@ func (o stx) Exec(console *processor.Console, variation *Variation, state *State
 
 		/// log
 		state.HasData = true
-		state.Data = console.Memory.FetchData(address)
+		state.Data = console.FetchData(address)
 
 		variation.addressingMode.WriteTo(console, address, console.CPU.X)
 	}
@@ -211,7 +211,7 @@ func (o sty) Exec(console *processor.Console, variation *Variation, state *State
 
 		/// log
 		state.HasData = true
-		state.Data = console.Memory.FetchData(address)
+		state.Data = console.FetchData(address)
 
 		variation.addressingMode.WriteTo(console, address, console.CPU.Y)
 	}
@@ -352,7 +352,7 @@ func (o txs) GetName() string {
 type pla struct{}
 
 func (o pla) Exec(console *processor.Console, variation *Variation, state *State) int {
-	value := console.Memory.StackPopData(console.CPU)
+	value := console.StackPopData()
 	console.CPU.A = value
 	console.CPU.SetZN(value)
 	return variation.cycles
@@ -371,7 +371,7 @@ func (o pla) GetName() string {
 type pha struct{}
 
 func (o pha) Exec(console *processor.Console, variation *Variation, state *State) int {
-	console.Memory.StackPushData(console.CPU, console.CPU.A)
+	console.StackPushData(console.CPU.A)
 	return variation.cycles
 }
 
@@ -388,7 +388,7 @@ func (o pha) GetName() string {
 type plp struct{}
 
 func (o plp) Exec(console *processor.Console, variation *Variation, state *State) int {
-	value := console.Memory.StackPopData(console.CPU)
+	value := console.StackPopData()
 	flags := value&processor.NotBreakBit | processor.BFlag
 	console.CPU.Flags = flags
 	return variation.cycles
@@ -408,7 +408,7 @@ type php struct{}
 
 func (o php) Exec(console *processor.Console, variation *Variation, state *State) int {
 	value := console.CPU.Flags | processor.BreakBit | processor.BFlag
-	console.Memory.StackPushData(console.CPU, value)
+	console.StackPushData(value)
 	return variation.cycles
 }
 

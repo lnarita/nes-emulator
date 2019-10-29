@@ -153,12 +153,12 @@ func (o beq) GetName() string {
 type brk struct{}
 
 func (o brk) Exec(console *processor.Console, variation *Variation, state *State) int {
-	console.Memory.StackPushAddress(console.CPU, console.CPU.PC)
+	console.StackPushAddress(console.CPU.PC)
 
 	flags := console.CPU.Flags
-	console.Memory.StackPushData(console.CPU, flags|processor.BreakBit)
+	console.StackPushData(flags|processor.BreakBit)
 
-	irq := uint16(console.Memory.FetchAddress(processor.IRQ))
+	irq := uint16(console.FetchAddress(processor.IRQ))
 
 	console.CPU.PC = irq
 	console.CPU.SetBreak(true)
@@ -179,11 +179,11 @@ func (o brk) GetName() string {
 type rti struct{}
 
 func (o rti) Exec(console *processor.Console, variation *Variation, state *State) int {
-	value := console.Memory.StackPopData(console.CPU)
+	value := console.StackPopData()
 
 	flags := value&processor.NotBreakBit | processor.BFlag
 	console.CPU.Flags = flags
-	pc := uint16(console.Memory.StackPopAddress(console.CPU))
+	pc := uint16(console.StackPopAddress())
 	console.CPU.PC = pc
 	return variation.cycles
 }
@@ -204,7 +204,7 @@ func (o jsr) Exec(console *processor.Console, variation *Variation, state *State
 	var cycleAcc int = 0
 	address, stall := variation.addressingMode.FetchAddress(console, state)
 
-	console.Memory.StackPushAddress(console.CPU, console.CPU.PC-1)
+	console.StackPushAddress(console.CPU.PC-1)
 
 	console.CPU.PC = address
 
@@ -228,7 +228,7 @@ func (o jsr) GetName() string {
 type rts struct{}
 
 func (o rts) Exec(console *processor.Console, variation *Variation, state *State) int {
-	address := console.Memory.StackPopAddress(console.CPU)
+	address := console.StackPopAddress()
 	console.CPU.PC = uint16(address) + 1
 	return variation.cycles
 }
