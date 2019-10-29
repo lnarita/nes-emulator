@@ -14,19 +14,23 @@ type Memory struct {
 	mapper Mapper
 }
 
-func (m Memory) String() string {
-	return fmt.Sprintf("MEM { RAM: [% X], ROM: %s }", m.RAM, m.mapper)
+func (mem Memory) String() string {
+	return fmt.Sprintf("MEM { RAM: [% X], ROM: %s }", mem.RAM, mem.mapper)
 }
 
-func Wrap(start, end, address int) int {
-	return start + (address-start)%((end+1)-start)
+func WrapInt(start, end, value int) int {
+	return start + (value-start)%((end+1)-start)
+}
+
+func WrapUint16(start, end, value uint16) uint16 {
+	return start + (value-start)%((end+1)-start)
 }
 
 func Load(cartridge *Cartridge) *Memory {
 	return &Memory{RAM: make([]byte, 2*KB), mapper: CreateMapper(cartridge)}
 }
 
-func (mem Memory) FetchData(address int) byte {
+func (mem *Memory) FetchData(address uint16) byte {
 	switch {
 	case address >= 0x6000:
 		return mem.mapper.Read(address)
@@ -50,21 +54,21 @@ func (mem Memory) FetchData(address int) byte {
 	return 0xFF
 }
 
-func (mem Memory) FetchAddress(address int) int {
-	var ptrLow, ptrHigh int
+func (mem *Memory) FetchAddress(address uint16) uint16 {
+	var ptrLow, ptrHigh uint16
 	ptrLow = address
-	if (ptrLow & LowBitsMask) == LowBitsMask {
-		ptrHigh = address & HighBitsMask // NES hardware bug: wrap address within page
+	if (ptrLow & 0x00FF) == 0x00FF {
+		ptrHigh = address & 0xFF00 // NES hardware bug: wrap address within page
 	} else {
 		ptrHigh = address + 1
 	}
-	var low, high int
-	low = int(mem.FetchData(ptrLow))
-	high = int(mem.FetchData(ptrHigh))
+	var low, high uint16
+	low = uint16(mem.FetchData(ptrLow))
+	high = uint16(mem.FetchData(ptrHigh))
 	return (high << 8) | low
 }
 
-func (mem Memory) StoreData(address int, data byte) {
+func (mem *Memory) StoreData(address uint16, data byte) {
 	switch {
 	case address >= 0x6000:
 		mem.mapper.Write(address, data)
@@ -87,23 +91,23 @@ func (mem Memory) StoreData(address int, data byte) {
 	}
 }
 
-func (mem Memory) StackPushData(cpu *CPU, data byte) {
+func (mem *Memory) StackPushData(cpu *CPU, data byte) {
 	mem.StoreData(cpu.SP, data)
-	cpu.SP = Wrap(0x0100, 0x01FF, cpu.SP-1)
+	cpu.SP = WrapUint16(0x0100, 0x01FF, cpu.SP-1)
 }
 
-func (mem Memory) StackPopData(cpu *CPU) byte {
-	cpu.SP = Wrap(0x0100, 0x01FF, cpu.SP+1)
+func (mem *Memory) StackPopData(cpu *CPU) byte {
+	cpu.SP = WrapUint16(0x0100, 0x01FF, cpu.SP+1)
 	return mem.FetchData(cpu.SP)
 }
 
-func (mem Memory) StackPushAddress(cpu *CPU, data int) {
+func (mem *Memory) StackPushAddress(cpu *CPU, data uint16) {
 	mem.StackPushData(cpu, byte(data>>8))
-	mem.StackPushData(cpu, byte(data&LowBitsMask))
+	mem.StackPushData(cpu, byte(data&0x00FF))
 }
 
-func (mem Memory) StackPopAddress(cpu *CPU) int {
+func (mem *Memory) StackPopAddress(cpu *CPU) uint16 {
 	low := mem.StackPopData(cpu)
 	high := mem.StackPopData(cpu)
-	return int(high)<<8 | int(low)
+	return uint16(high)<<8 | uint16(low)
 }

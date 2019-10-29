@@ -10,12 +10,6 @@ const (
 	// KB bits in a kb
 	KB = 1024
 
-	// HighBitsMask binary mask for the high 8 bits
-	HighBitsMask = 0xFF00
-
-	// LowBitsMask binary mask for the low 8 bits
-	LowBitsMask = 0x00FF
-
 	NegativeBit      byte = 0b1000_0000
 	OverflowBit      byte = 0b0100_0000
 	BFlag            byte = 0b0010_0000

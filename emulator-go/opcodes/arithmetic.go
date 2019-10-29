@@ -4,10 +4,14 @@ import "students.ic.unicamp.br/goten/processor"
 
 type ora struct{}
 
-func (o ora) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
+func (o ora) Exec(console *processor.Console, variation *Variation, state *State) int {
 	var cycleAcc int = 0
-	address, stall := variation.addressingMode.FetchAddress(console)
+	address, stall := variation.addressingMode.FetchAddress(console, state)
 	value := byte(variation.addressingMode.ReadFrom(console, address))
+
+	/// log
+	state.HasData = true
+	state.Data = value
 
 	console.CPU.A |= value
 	console.CPU.SetZN(console.CPU.A)
@@ -16,19 +20,19 @@ func (o ora) Exec(console *processor.Console, variation *Variation) (int, Loggin
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc, LoggingStruct{}
+	return variation.cycles + cycleAcc
 }
 
 func (o ora) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x01, addressingMode: processor.IndirectX, cycles: 6},
-		Variation{opcode: 0x05, addressingMode: processor.ZeroPage, cycles: 3},
-		Variation{opcode: 0x09, addressingMode: processor.Immediate, cycles: 2},
-		Variation{opcode: 0x0D, addressingMode: processor.Absolute, cycles: 4},
-		Variation{opcode: 0x11, addressingMode: processor.IndirectY, cycles: 5},
-		Variation{opcode: 0x15, addressingMode: processor.ZeroPageX, cycles: 4},
-		Variation{opcode: 0x19, addressingMode: processor.AbsoluteY, cycles: 4},
-		Variation{opcode: 0x1D, addressingMode: processor.AbsoluteX, cycles: 4},
+		{opcode: 0x01, addressingMode: IndirectX, cycles: 6},
+		{opcode: 0x05, addressingMode: ZeroPage, cycles: 3},
+		{opcode: 0x09, addressingMode: Immediate, cycles: 2},
+		{opcode: 0x0D, addressingMode: Absolute, cycles: 4},
+		{opcode: 0x11, addressingMode: IndirectY, cycles: 5},
+		{opcode: 0x15, addressingMode: ZeroPageX, cycles: 4},
+		{opcode: 0x19, addressingMode: AbsoluteY, cycles: 4},
+		{opcode: 0x1D, addressingMode: AbsoluteX, cycles: 4},
 	}
 }
 
@@ -38,10 +42,14 @@ func (o ora) GetName() string {
 
 type and struct{}
 
-func (o and) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
+func (o and) Exec(console *processor.Console, variation *Variation, state *State) int {
 	var cycleAcc int = 0
-	address, stall := variation.addressingMode.FetchAddress(console)
+	address, stall := variation.addressingMode.FetchAddress(console, state)
 	value := byte(variation.addressingMode.ReadFrom(console, address))
+
+	/// log
+	state.HasData = true
+	state.Data = value
 
 	console.CPU.A &= value
 	console.CPU.SetZN(console.CPU.A)
@@ -50,19 +58,19 @@ func (o and) Exec(console *processor.Console, variation *Variation) (int, Loggin
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc, LoggingStruct{}
+	return variation.cycles + cycleAcc
 }
 
 func (o and) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x21, addressingMode: processor.IndirectX, cycles: 6},
-		Variation{opcode: 0x25, addressingMode: processor.ZeroPage, cycles: 3},
-		Variation{opcode: 0x29, addressingMode: processor.Immediate, cycles: 2},
-		Variation{opcode: 0x2D, addressingMode: processor.Absolute, cycles: 4},
-		Variation{opcode: 0x31, addressingMode: processor.IndirectY, cycles: 5},
-		Variation{opcode: 0x35, addressingMode: processor.ZeroPageX, cycles: 4},
-		Variation{opcode: 0x39, addressingMode: processor.AbsoluteY, cycles: 4},
-		Variation{opcode: 0x3D, addressingMode: processor.AbsoluteX, cycles: 4},
+		{opcode: 0x21, addressingMode: IndirectX, cycles: 6},
+		{opcode: 0x25, addressingMode: ZeroPage, cycles: 3},
+		{opcode: 0x29, addressingMode: Immediate, cycles: 2},
+		{opcode: 0x2D, addressingMode: Absolute, cycles: 4},
+		{opcode: 0x31, addressingMode: IndirectY, cycles: 5},
+		{opcode: 0x35, addressingMode: ZeroPageX, cycles: 4},
+		{opcode: 0x39, addressingMode: AbsoluteY, cycles: 4},
+		{opcode: 0x3D, addressingMode: AbsoluteX, cycles: 4},
 	}
 }
 
@@ -72,10 +80,14 @@ func (o and) GetName() string {
 
 type eor struct{}
 
-func (o eor) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
+func (o eor) Exec(console *processor.Console, variation *Variation, state *State) int {
 	var cycleAcc int = 0
-	address, stall := variation.addressingMode.FetchAddress(console)
+	address, stall := variation.addressingMode.FetchAddress(console, state)
 	value := byte(variation.addressingMode.ReadFrom(console, address))
+
+	/// log
+	state.HasData = true
+	state.Data = value
 
 	console.CPU.A ^= value
 	console.CPU.SetZN(console.CPU.A)
@@ -84,19 +96,19 @@ func (o eor) Exec(console *processor.Console, variation *Variation) (int, Loggin
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc, LoggingStruct{}
+	return variation.cycles + cycleAcc
 }
 
 func (o eor) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x41, addressingMode: processor.IndirectX, cycles: 6},
-		Variation{opcode: 0x45, addressingMode: processor.ZeroPage, cycles: 3},
-		Variation{opcode: 0x49, addressingMode: processor.Immediate, cycles: 2},
-		Variation{opcode: 0x4D, addressingMode: processor.Absolute, cycles: 4},
-		Variation{opcode: 0x51, addressingMode: processor.IndirectY, cycles: 5},
-		Variation{opcode: 0x55, addressingMode: processor.ZeroPageX, cycles: 4},
-		Variation{opcode: 0x59, addressingMode: processor.AbsoluteY, cycles: 4},
-		Variation{opcode: 0x5D, addressingMode: processor.AbsoluteX, cycles: 4},
+		{opcode: 0x41, addressingMode: IndirectX, cycles: 6},
+		{opcode: 0x45, addressingMode: ZeroPage, cycles: 3},
+		{opcode: 0x49, addressingMode: Immediate, cycles: 2},
+		{opcode: 0x4D, addressingMode: Absolute, cycles: 4},
+		{opcode: 0x51, addressingMode: IndirectY, cycles: 5},
+		{opcode: 0x55, addressingMode: ZeroPageX, cycles: 4},
+		{opcode: 0x59, addressingMode: AbsoluteY, cycles: 4},
+		{opcode: 0x5D, addressingMode: AbsoluteX, cycles: 4},
 	}
 }
 
@@ -106,16 +118,21 @@ func (o eor) GetName() string {
 
 type adc struct{}
 
-func (o adc) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
+func (o adc) Exec(console *processor.Console, variation *Variation, state *State) int {
 	var cycleAcc int = 0
-	address, stall := variation.addressingMode.FetchAddress(console)
+	address, stall := variation.addressingMode.FetchAddress(console, state)
 	value := byte(variation.addressingMode.ReadFrom(console, address))
+
+	/// log
+	state.HasData = true
+	state.Data = value
+
 	add := console.CPU.A
 
-	result := add + value + (console.CPU.Flags + processor.CarryBit)
-	signal1 := (add >> 7) & processor.LowBitsMask
-	signal2 := (value >> 7) & processor.LowBitsMask
-	signalResult := (result >> 7) & processor.LowBitsMask
+	result := add + value + (console.CPU.Flags & processor.CarryBit)
+	signal1 := (add >> 7) & 0x00FF
+	signal2 := (value >> 7) & 0x00FF
+	signalResult := (result >> 7) & 0x00FF
 	overflow := (signal1 == signal2) && (signal1 != signalResult)
 	carry := add > result
 
@@ -128,19 +145,19 @@ func (o adc) Exec(console *processor.Console, variation *Variation) (int, Loggin
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc, LoggingStruct{}
+	return variation.cycles + cycleAcc
 }
 
 func (o adc) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x61, addressingMode: processor.IndirectX, cycles: 6},
-		Variation{opcode: 0x65, addressingMode: processor.ZeroPage, cycles: 3},
-		Variation{opcode: 0x69, addressingMode: processor.Immediate, cycles: 2},
-		Variation{opcode: 0x6D, addressingMode: processor.Absolute, cycles: 4},
-		Variation{opcode: 0x71, addressingMode: processor.IndirectY, cycles: 5},
-		Variation{opcode: 0x75, addressingMode: processor.ZeroPageX, cycles: 4},
-		Variation{opcode: 0x79, addressingMode: processor.AbsoluteY, cycles: 4},
-		Variation{opcode: 0x7D, addressingMode: processor.AbsoluteX, cycles: 4},
+		{opcode: 0x61, addressingMode: IndirectX, cycles: 6},
+		{opcode: 0x65, addressingMode: ZeroPage, cycles: 3},
+		{opcode: 0x69, addressingMode: Immediate, cycles: 2},
+		{opcode: 0x6D, addressingMode: Absolute, cycles: 4},
+		{opcode: 0x71, addressingMode: IndirectY, cycles: 5},
+		{opcode: 0x75, addressingMode: ZeroPageX, cycles: 4},
+		{opcode: 0x79, addressingMode: AbsoluteY, cycles: 4},
+		{opcode: 0x7D, addressingMode: AbsoluteX, cycles: 4},
 	}
 }
 
@@ -150,17 +167,26 @@ func (o adc) GetName() string {
 
 type sbc struct{}
 
-func (o sbc) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
+func (o sbc) Exec(console *processor.Console, variation *Variation, state *State) int {
 	var cycleAcc int = 0
-	address, stall := variation.addressingMode.FetchAddress(console)
+	address, stall := variation.addressingMode.FetchAddress(console, state)
 	value := byte(variation.addressingMode.ReadFrom(console, address))
+
+	/// log
+	state.HasData = true
+	state.Data = value
+
 	sub := console.CPU.A
 
-	result := int(sub) - int(value) - int(console.CPU.Flags+processor.CarryBit)
-	a := byte(uint8(result))
+	off := 1
+	if console.CPU.HasCarry() {
+		off = 0
+	}
+	result := int(sub) - int(value) - off
+	a := uint8(result)
 
-	overflow := (sub^value&processor.NegativeBit > 0) && (sub^a&processor.NegativeBit > 0)
-	carry := a >= 0
+	overflow := ((sub^value)&processor.NegativeBit > 0) && ((sub^a)&processor.NegativeBit > 0)
+	carry := result >= 0
 
 	console.CPU.A = a
 	console.CPU.SetCarry(carry)
@@ -171,19 +197,19 @@ func (o sbc) Exec(console *processor.Console, variation *Variation) (int, Loggin
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc, LoggingStruct{}
+	return variation.cycles + cycleAcc
 }
 
 func (o sbc) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xE1, addressingMode: processor.IndirectX, cycles: 6},
-		Variation{opcode: 0xE5, addressingMode: processor.ZeroPage, cycles: 3},
-		Variation{opcode: 0xE9, addressingMode: processor.Immediate, cycles: 2},
-		Variation{opcode: 0xED, addressingMode: processor.Absolute, cycles: 4},
-		Variation{opcode: 0xF1, addressingMode: processor.IndirectY, cycles: 5},
-		Variation{opcode: 0xF5, addressingMode: processor.ZeroPageX, cycles: 4},
-		Variation{opcode: 0xF9, addressingMode: processor.AbsoluteY, cycles: 4},
-		Variation{opcode: 0xFD, addressingMode: processor.AbsoluteX, cycles: 4},
+		{opcode: 0xE1, addressingMode: IndirectX, cycles: 6},
+		{opcode: 0xE5, addressingMode: ZeroPage, cycles: 3},
+		{opcode: 0xE9, addressingMode: Immediate, cycles: 2},
+		{opcode: 0xED, addressingMode: Absolute, cycles: 4},
+		{opcode: 0xF1, addressingMode: IndirectY, cycles: 5},
+		{opcode: 0xF5, addressingMode: ZeroPageX, cycles: 4},
+		{opcode: 0xF9, addressingMode: AbsoluteY, cycles: 4},
+		{opcode: 0xFD, addressingMode: AbsoluteX, cycles: 4},
 	}
 }
 
@@ -193,14 +219,19 @@ func (o sbc) GetName() string {
 
 type cmp struct{}
 
-func (o cmp) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
+func (o cmp) Exec(console *processor.Console, variation *Variation, state *State) int {
 	var cycleAcc int = 0
-	address, stall := variation.addressingMode.FetchAddress(console)
+	address, stall := variation.addressingMode.FetchAddress(console, state)
 	value := byte(variation.addressingMode.ReadFrom(console, address))
+
+	/// log
+	state.HasData = true
+	state.Data = value
+
 	sub := console.CPU.A
 
 	result := int(sub) - int(value)
-	a := byte(uint8(result))
+	a := uint8(result)
 	carry := sub >= a
 
 	console.CPU.SetCarry(carry)
@@ -210,19 +241,19 @@ func (o cmp) Exec(console *processor.Console, variation *Variation) (int, Loggin
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc, LoggingStruct{}
+	return variation.cycles + cycleAcc
 }
 
 func (o cmp) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xC1, addressingMode: processor.IndirectX, cycles: 6},
-		Variation{opcode: 0xC5, addressingMode: processor.ZeroPage, cycles: 3},
-		Variation{opcode: 0xC9, addressingMode: processor.Immediate, cycles: 2},
-		Variation{opcode: 0xCD, addressingMode: processor.Absolute, cycles: 4},
-		Variation{opcode: 0xD1, addressingMode: processor.IndirectY, cycles: 5},
-		Variation{opcode: 0xD5, addressingMode: processor.ZeroPageX, cycles: 4},
-		Variation{opcode: 0xD9, addressingMode: processor.AbsoluteY, cycles: 4},
-		Variation{opcode: 0xDD, addressingMode: processor.AbsoluteX, cycles: 4},
+		{opcode: 0xC1, addressingMode: IndirectX, cycles: 6},
+		{opcode: 0xC5, addressingMode: ZeroPage, cycles: 3},
+		{opcode: 0xC9, addressingMode: Immediate, cycles: 2},
+		{opcode: 0xCD, addressingMode: Absolute, cycles: 4},
+		{opcode: 0xD1, addressingMode: IndirectY, cycles: 5},
+		{opcode: 0xD5, addressingMode: ZeroPageX, cycles: 4},
+		{opcode: 0xD9, addressingMode: AbsoluteY, cycles: 4},
+		{opcode: 0xDD, addressingMode: AbsoluteX, cycles: 4},
 	}
 }
 
@@ -232,14 +263,19 @@ func (o cmp) GetName() string {
 
 type cpx struct{}
 
-func (o cpx) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
+func (o cpx) Exec(console *processor.Console, variation *Variation, state *State) int {
 	var cycleAcc int = 0
-	address, stall := variation.addressingMode.FetchAddress(console)
+	address, stall := variation.addressingMode.FetchAddress(console, state)
 	value := byte(variation.addressingMode.ReadFrom(console, address))
+
+	/// log
+	state.HasData = true
+	state.Data = value
+
 	sub := console.CPU.X
 
 	result := int(sub) - int(value)
-	a := byte(uint8(result))
+	a := uint8(result)
 	carry := sub >= a
 
 	console.CPU.SetCarry(carry)
@@ -249,14 +285,14 @@ func (o cpx) Exec(console *processor.Console, variation *Variation) (int, Loggin
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc, LoggingStruct{}
+	return variation.cycles + cycleAcc
 }
 
 func (o cpx) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xE0, addressingMode: processor.Immediate, cycles: 2},
-		Variation{opcode: 0xE4, addressingMode: processor.ZeroPage, cycles: 3},
-		Variation{opcode: 0xEC, addressingMode: processor.Absolute, cycles: 4},
+		{opcode: 0xE0, addressingMode: Immediate, cycles: 2},
+		{opcode: 0xE4, addressingMode: ZeroPage, cycles: 3},
+		{opcode: 0xEC, addressingMode: Absolute, cycles: 4},
 	}
 }
 
@@ -266,14 +302,19 @@ func (o cpx) GetName() string {
 
 type cpy struct{}
 
-func (o cpy) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
+func (o cpy) Exec(console *processor.Console, variation *Variation, state *State) int {
 	var cycleAcc int = 0
-	address, stall := variation.addressingMode.FetchAddress(console)
+	address, stall := variation.addressingMode.FetchAddress(console, state)
 	value := byte(variation.addressingMode.ReadFrom(console, address))
+
+	/// log
+	state.HasData = true
+	state.Data = value
+
 	sub := console.CPU.Y
 
 	result := int(sub) - int(value)
-	a := byte(uint8(result))
+	a := uint8(result)
 	carry := sub >= a
 
 	console.CPU.SetCarry(carry)
@@ -283,14 +324,14 @@ func (o cpy) Exec(console *processor.Console, variation *Variation) (int, Loggin
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc, LoggingStruct{}
+	return variation.cycles + cycleAcc
 }
 
 func (o cpy) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xC0, addressingMode: processor.Immediate, cycles: 2},
-		Variation{opcode: 0xC4, addressingMode: processor.ZeroPage, cycles: 3},
-		Variation{opcode: 0xCC, addressingMode: processor.Absolute, cycles: 4},
+		{opcode: 0xC0, addressingMode: Immediate, cycles: 2},
+		{opcode: 0xC4, addressingMode: ZeroPage, cycles: 3},
+		{opcode: 0xCC, addressingMode: Absolute, cycles: 4},
 	}
 }
 
@@ -300,27 +341,33 @@ func (o cpy) GetName() string {
 
 type dec struct{}
 
-func (o dec) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
+func (o dec) Exec(console *processor.Console, variation *Variation, state *State) int {
 	var cycleAcc int = 0
-	address, stall := variation.addressingMode.FetchAddress(console)
-	old_value := variation.addressingMode.ReadFrom(console, address)
-	value := byte(processor.Wrap(0x00, 0xFF, old_value-1))
+	address, stall := variation.addressingMode.FetchAddress(console, state)
+	oldValue := byte(variation.addressingMode.ReadFrom(console, address))
 
+	/// log
+	state.HasData = true
+	state.Data = oldValue
+
+	value := oldValue - 1
+
+	variation.addressingMode.WriteTo(console, address, value)
 	console.CPU.SetZN(value)
 
 	if stall {
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc, LoggingStruct{}
+	return variation.cycles + cycleAcc
 }
 
 func (o dec) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xC6, addressingMode: processor.ZeroPage, cycles: 5},
-		Variation{opcode: 0xCE, addressingMode: processor.Absolute, cycles: 6},
-		Variation{opcode: 0xD6, addressingMode: processor.ZeroPageX, cycles: 6},
-		Variation{opcode: 0xDE, addressingMode: processor.AbsoluteX, cycles: 7},
+		{opcode: 0xC6, addressingMode: ZeroPage, cycles: 5},
+		{opcode: 0xCE, addressingMode: Absolute, cycles: 6},
+		{opcode: 0xD6, addressingMode: ZeroPageX, cycles: 6},
+		{opcode: 0xDE, addressingMode: AbsoluteX, cycles: 7},
 	}
 }
 
@@ -330,17 +377,17 @@ func (o dec) GetName() string {
 
 type dex struct{}
 
-func (o dex) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
-	value := byte(processor.Wrap(0x00, 0xFF, int(console.CPU.X)-1))
+func (o dex) Exec(console *processor.Console, variation *Variation, state *State) int {
+	value := console.CPU.X - 1
 
 	console.CPU.X = value
 	console.CPU.SetZN(value)
-	return variation.cycles, LoggingStruct{}
+	return variation.cycles
 }
 
 func (o dex) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xCA, addressingMode: nil, cycles: 2},
+		{opcode: 0xCA, addressingMode: nil, cycles: 2},
 	}
 }
 
@@ -350,17 +397,17 @@ func (o dex) GetName() string {
 
 type dey struct{}
 
-func (o dey) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
-	value := byte(processor.Wrap(0x00, 0xFF, int(console.CPU.Y)-1))
+func (o dey) Exec(console *processor.Console, variation *Variation, state *State) int {
+	value := console.CPU.Y - 1
 
 	console.CPU.Y = value
 	console.CPU.SetZN(value)
-	return variation.cycles, LoggingStruct{}
+	return variation.cycles
 }
 
 func (o dey) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x88, addressingMode: nil, cycles: 2},
+		{opcode: 0x88, addressingMode: nil, cycles: 2},
 	}
 }
 
@@ -370,27 +417,33 @@ func (o dey) GetName() string {
 
 type inc struct{}
 
-func (o inc) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
+func (o inc) Exec(console *processor.Console, variation *Variation, state *State) int {
 	var cycleAcc int = 0
-	address, stall := variation.addressingMode.FetchAddress(console)
-	old_value := variation.addressingMode.ReadFrom(console, address)
-	value := byte(processor.Wrap(0x00, 0xFF, old_value+1))
+	address, stall := variation.addressingMode.FetchAddress(console, state)
+	oldValue := byte(variation.addressingMode.ReadFrom(console, address))
 
+	/// log
+	state.HasData = true
+	state.Data = oldValue
+
+	value := oldValue + 1
+
+	variation.addressingMode.WriteTo(console, address, value)
 	console.CPU.SetZN(value)
 
 	if stall {
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc, LoggingStruct{}
+	return variation.cycles + cycleAcc
 }
 
 func (o inc) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xE6, addressingMode: processor.ZeroPage, cycles: 5},
-		Variation{opcode: 0xEE, addressingMode: processor.Absolute, cycles: 6},
-		Variation{opcode: 0xF6, addressingMode: processor.ZeroPageX, cycles: 6},
-		Variation{opcode: 0xFE, addressingMode: processor.AbsoluteX, cycles: 7},
+		{opcode: 0xE6, addressingMode: ZeroPage, cycles: 5},
+		{opcode: 0xEE, addressingMode: Absolute, cycles: 6},
+		{opcode: 0xF6, addressingMode: ZeroPageX, cycles: 6},
+		{opcode: 0xFE, addressingMode: AbsoluteX, cycles: 7},
 	}
 }
 
@@ -400,17 +453,17 @@ func (o inc) GetName() string {
 
 type inx struct{}
 
-func (o inx) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
-	value := byte(processor.Wrap(0x00, 0xFF, int(console.CPU.X)+1))
+func (o inx) Exec(console *processor.Console, variation *Variation, state *State) int {
+	value := console.CPU.X + 1
 
 	console.CPU.X = value
 	console.CPU.SetZN(value)
-	return variation.cycles, LoggingStruct{}
+	return variation.cycles
 }
 
 func (o inx) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xE8, addressingMode: nil, cycles: 2},
+		{opcode: 0xE8, addressingMode: nil, cycles: 2},
 	}
 }
 
@@ -420,17 +473,17 @@ func (o inx) GetName() string {
 
 type iny struct{}
 
-func (o iny) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
-	value := byte(processor.Wrap(0x00, 0xFF, int(console.CPU.Y)+1))
+func (o iny) Exec(console *processor.Console, variation *Variation, state *State) int {
+	value := console.CPU.Y + 1
 
 	console.CPU.Y = value
 	console.CPU.SetZN(value)
-	return variation.cycles, LoggingStruct{}
+	return variation.cycles
 }
 
 func (o iny) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0xC8, addressingMode: nil, cycles: 2},
+		{opcode: 0xC8, addressingMode: nil, cycles: 2},
 	}
 }
 
@@ -440,31 +493,36 @@ func (o iny) GetName() string {
 
 type asl struct{}
 
-func (o asl) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
+func (o asl) Exec(console *processor.Console, variation *Variation, state *State) int {
 	var cycleAcc int = 0
-	address, stall := variation.addressingMode.FetchAddress(console)
-	old_value := variation.addressingMode.ReadFrom(console, address)
-	value := old_value << 1
-	carry := (value & processor.HighBitsMask) > 0
+	address, stall := variation.addressingMode.FetchAddress(console, state)
+	oldValue := variation.addressingMode.ReadFrom(console, address)
 
-	console.CPU.A = byte(value)
+	/// log
+	state.HasData = true
+	state.Data = byte(oldValue)
+
+	value := oldValue << 1
+	carry := (value & 0xFF00) > 0
+
+	variation.addressingMode.WriteTo(console, address, byte(value))
 	console.CPU.SetCarry(carry)
-	console.CPU.SetZN(console.CPU.A)
+	console.CPU.SetZN(byte(value))
 
 	if stall {
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc, LoggingStruct{}
+	return variation.cycles + cycleAcc
 }
 
 func (o asl) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x06, addressingMode: processor.ZeroPage, cycles: 5},
-		Variation{opcode: 0x0A, addressingMode: processor.ZeroPage, cycles: 2},
-		Variation{opcode: 0x0E, addressingMode: processor.ZeroPage, cycles: 6},
-		Variation{opcode: 0x16, addressingMode: processor.ZeroPage, cycles: 6},
-		Variation{opcode: 0x1E, addressingMode: processor.ZeroPage, cycles: 7},
+		{opcode: 0x06, addressingMode: ZeroPage, cycles: 5},
+		{opcode: 0x0A, addressingMode: Accumulator, cycles: 2},
+		{opcode: 0x0E, addressingMode: Absolute, cycles: 6},
+		{opcode: 0x16, addressingMode: ZeroPageX, cycles: 6},
+		{opcode: 0x1E, addressingMode: AbsoluteX, cycles: 7},
 	}
 }
 
@@ -474,36 +532,41 @@ func (o asl) GetName() string {
 
 type rol struct{}
 
-func (o rol) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
+func (o rol) Exec(console *processor.Console, variation *Variation, state *State) int {
 	var cycleAcc int = 0
-	address, stall := variation.addressingMode.FetchAddress(console)
-	old_value := variation.addressingMode.ReadFrom(console, address)
-	value := old_value << 1 & int(processor.LowBitsMask)
+	address, stall := variation.addressingMode.FetchAddress(console, state)
+	oldValue := variation.addressingMode.ReadFrom(console, address)
+
+	/// log
+	state.HasData = true
+	state.Data = byte(oldValue)
+
+	value := oldValue << 1 & 0x00FF
 	if console.CPU.HasCarry() {
 		value |= 0b0000_0001
 	} else {
 		value &= 0b1111_1110
 	}
-	carry := (old_value & 0b1000_0000) > 0
+	carry := (oldValue & 0b1000_0000) > 0
 
-	console.CPU.A = byte(value)
+	variation.addressingMode.WriteTo(console, address, byte(value))
 	console.CPU.SetCarry(carry)
-	console.CPU.SetZN(console.CPU.A)
+	console.CPU.SetZN(byte(value))
 
 	if stall {
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc, LoggingStruct{}
+	return variation.cycles + cycleAcc
 }
 
 func (o rol) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x26, addressingMode: processor.ZeroPage, cycles: 5},
-		Variation{opcode: 0x2A, addressingMode: processor.ZeroPage, cycles: 2},
-		Variation{opcode: 0x2E, addressingMode: processor.ZeroPage, cycles: 6},
-		Variation{opcode: 0x36, addressingMode: processor.ZeroPage, cycles: 6},
-		Variation{opcode: 0x3E, addressingMode: processor.ZeroPage, cycles: 7},
+		{opcode: 0x26, addressingMode: ZeroPage, cycles: 5},
+		{opcode: 0x2A, addressingMode: Accumulator, cycles: 2},
+		{opcode: 0x2E, addressingMode: Absolute, cycles: 6},
+		{opcode: 0x36, addressingMode: ZeroPageX, cycles: 6},
+		{opcode: 0x3E, addressingMode: AbsoluteX, cycles: 7},
 	}
 }
 
@@ -513,31 +576,37 @@ func (o rol) GetName() string {
 
 type lsr struct{}
 
-func (o lsr) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
+func (o lsr) Exec(console *processor.Console, variation *Variation, state *State) int {
 	var cycleAcc int = 0
-	address, stall := variation.addressingMode.FetchAddress(console)
-	old_value := variation.addressingMode.ReadFrom(console, address)
-	value := old_value >> 1 & int(processor.LowBitsMask)
-	carry := (old_value & 0b0000_0001) > 0
+	address, stall := variation.addressingMode.FetchAddress(console, state)
+	oldValue := variation.addressingMode.ReadFrom(console, address)
 
-	console.CPU.A = byte(value)
+	/// log
+	state.HasData = true
+	state.Data = byte(oldValue)
+
+	value := oldValue >> 1 & 0x00FF
+	carry := (oldValue & 0b0000_0001) > 0
+
+	variation.addressingMode.WriteTo(console, address, byte(value))
+
 	console.CPU.SetCarry(carry)
-	console.CPU.SetZN(console.CPU.A)
+	console.CPU.SetZN(byte(value))
 
 	if stall {
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc, LoggingStruct{}
+	return variation.cycles + cycleAcc
 }
 
 func (o lsr) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x46, addressingMode: processor.ZeroPage, cycles: 5},
-		Variation{opcode: 0x4A, addressingMode: processor.ZeroPage, cycles: 2},
-		Variation{opcode: 0x4E, addressingMode: processor.ZeroPage, cycles: 6},
-		Variation{opcode: 0x56, addressingMode: processor.ZeroPage, cycles: 6},
-		Variation{opcode: 0x5E, addressingMode: processor.ZeroPage, cycles: 7},
+		{opcode: 0x46, addressingMode: ZeroPage, cycles: 5},
+		{opcode: 0x4A, addressingMode: Accumulator, cycles: 2},
+		{opcode: 0x4E, addressingMode: Absolute, cycles: 6},
+		{opcode: 0x56, addressingMode: ZeroPageX, cycles: 6},
+		{opcode: 0x5E, addressingMode: AbsoluteX, cycles: 7},
 	}
 }
 
@@ -547,36 +616,41 @@ func (o lsr) GetName() string {
 
 type ror struct{}
 
-func (o ror) Exec(console *processor.Console, variation *Variation) (int, LoggingStruct) {
+func (o ror) Exec(console *processor.Console, variation *Variation, state *State) int {
 	var cycleAcc int = 0
-	address, stall := variation.addressingMode.FetchAddress(console)
-	old_value := variation.addressingMode.ReadFrom(console, address)
-	value := old_value >> 1 & int(processor.LowBitsMask)
+	address, stall := variation.addressingMode.FetchAddress(console, state)
+	oldValue := variation.addressingMode.ReadFrom(console, address)
+
+	/// log
+	state.HasData = true
+	state.Data = byte(oldValue)
+
+	value := oldValue >> 1 & 0x00FF
 	if console.CPU.HasCarry() {
 		value |= 0b1000_0000
 	} else {
 		value &= 0b0111_1111
 	}
-	carry := (old_value & 0b0000_0001) > 0
+	carry := (oldValue & 0b0000_0001) > 0
 
-	console.CPU.A = byte(value)
+	variation.addressingMode.WriteTo(console, address,byte(value))
 	console.CPU.SetCarry(carry)
-	console.CPU.SetZN(console.CPU.A)
+	console.CPU.SetZN(byte(value))
 
 	if stall {
 		cycleAcc++
 	}
 
-	return variation.cycles + cycleAcc, LoggingStruct{}
+	return variation.cycles + cycleAcc
 }
 
 func (o ror) getVariations() []Variation {
 	return []Variation{
-		Variation{opcode: 0x66, addressingMode: processor.ZeroPage, cycles: 5},
-		Variation{opcode: 0x6A, addressingMode: processor.ZeroPage, cycles: 2},
-		Variation{opcode: 0x6E, addressingMode: processor.ZeroPage, cycles: 6},
-		Variation{opcode: 0x76, addressingMode: processor.ZeroPage, cycles: 6},
-		Variation{opcode: 0x7E, addressingMode: processor.ZeroPage, cycles: 7},
+		{opcode: 0x66, addressingMode: ZeroPage, cycles: 5},
+		{opcode: 0x6A, addressingMode: Accumulator, cycles: 2},
+		{opcode: 0x6E, addressingMode: Absolute, cycles: 6},
+		{opcode: 0x76, addressingMode: ZeroPageX, cycles: 6},
+		{opcode: 0x7E, addressingMode: AbsoluteX, cycles: 7},
 	}
 }
 

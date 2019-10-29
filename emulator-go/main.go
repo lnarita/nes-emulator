@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	//"log"
 	"os"
+	//"time"
 
 	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/go-gl/glfw/v3.0/glfw"
@@ -34,7 +36,7 @@ func emulate(filePath string) {
 
 	mem := processor.Load(car)
 
-	cpu := processor.Setup(mem)
+	cpu := processor.Setup(mem, true)
 
 	ppu := &processor.PPU{}
 	console := processor.Console{CPU: cpu, PPU: ppu, Memory: mem}
@@ -44,15 +46,30 @@ func emulate(filePath string) {
 	// initUI()
 
 	for running {
+		state := opcodes.State{PC: console.CPU.PC, SP: console.CPU.SP, A: console.CPU.A, X: console.CPU.X, Y: console.CPU.Y, Flags: console.CPU.Flags, Cycle: console.CPU.Cycle}
+		if state.PC == 0xE928 {
+			fmt.Println("ugh")
+		}
+		//start := time.Now()
 		decoded := fetchAndDecodeInstruction(&console)
-		_, opcodeLogging := decoded.Opc.Exec(&console, &decoded.Variation)
 		console.CPU.PC++
+
+		state.OpCodeName = decoded.Opc.GetName()
+		state.OpCode = decoded.Variation
+
+		cycle := decoded.Opc.Exec(&console, &decoded.Variation, &state)
+		for i:=0;i<cycle;i++ {
+			console.CPU.Cycle++
+			if console.CPU.Cycle % 1000 == 0 {
+				fmt.Printf("ping\n")
+			}
+		}
 		if decoded.Opc.GetName() == "BRK" {
 			running = false
 		}
-		fmt.Printf("%04X  %s  %s  CYC:%d\n", console.CPU.PC, opcodes.PrintOpCode(opcodeLogging), console.CPU.String(), console.CPU.Cycle)
-		fmt.Print(opcodes.PrintOpCode(opcodeLogging))
-
+		//elapsed := time.Since(start)
+		//log.Printf("elapsed: %0.15f - expected: %0.15f\n", elapsed.Seconds(), processor.CyclePeriod*float64(cycles))
+		fmt.Printf("%s\n", state)
 	}
 
 }
