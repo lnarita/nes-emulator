@@ -10,11 +10,10 @@ with open(os.devnull, 'w') as f:
 
 from pygame import Color
 import time
+from emulator.config import *
 
-W_WIDTH = 256*2
-W_HEIGHT = 240*2
-
-
+W_WIDTH = 256*DISPLAY_SCALE
+W_HEIGHT = 240*DISPLAY_SCALE
 
 
 class Window():
@@ -30,7 +29,7 @@ class Window():
 		pygame.display.set_caption("NES emulator")
 
 	def setPixel(self,i,j,color):
-		pygame.draw.rect(self.surface, color, pygame.Rect(i*2,j*2,2,2))
+		pygame.draw.rect(self.surface, color, pygame.Rect(i*DISPLAY_SCALE,j*DISPLAY_SCALE,DISPLAY_SCALE,DISPLAY_SCALE))
 
 
 	def flip(self):

@@ -1,5 +1,6 @@
 from enum import unique, Enum, auto
 from emulator.window import Window
+from emulator.config import *
 
 # pygame silent import
 import os, sys
@@ -50,7 +51,7 @@ class PPUMemoryPositions(Enum):
 
     def wrap(self, addr):
         return (self.start + (addr - self.start) % ((self.end + 1) - self.start))
-      
+
 class Controller:
     def __init__(self):
         self.up = 0
@@ -170,12 +171,12 @@ class PPU:
 
         #screen
         self.screen = Window()
-        
+
         #io
         self.latchButtons = False
         self.control1 = Controller()
         self.control2 = Controller()
-        
+
     def nametable_addr(self, addr):
         addr -= PPUMemoryPositions.NAMETABLES.start
 
@@ -257,21 +258,21 @@ class PPU:
         if self.latchButtons:
             print("reloaded")
             KEYS = pygame.key.get_pressed()
-            if KEYS[pygame.K_UP]:
+            if KEYS[UP_BUTTON]:
                 up1=1
-            if KEYS[pygame.K_DOWN]:
+            if KEYS[DOWN_BUTTON]:
                 down1=1
-            if KEYS[pygame.K_LEFT]:
+            if KEYS[LEFT_BUTTON]:
                 left1=1
-            if KEYS[pygame.K_RIGHT]:
+            if KEYS[RIGHT_BUTTON]:
                 right1=1
-            if KEYS[pygame.K_BACKSPACE]:
+            if KEYS[SELECT_BUTTON]:
                 select1=1
-            if KEYS[pygame.K_RETURN]:
+            if KEYS[START_BUTTON]:
                 start1=1
-            if KEYS[pygame.K_z]:
+            if KEYS[A_BUTTON]:
                 A1=1
-            if KEYS[pygame.K_x]:
+            if KEYS[B_BUTTON]:
                 B1=1
             self.control1.reload(A1,B1,select1,start1,up1,down1,left1,right1)
             self.control2.reload(A2,B2,select2,start2,up2,down2,left2,right2)
