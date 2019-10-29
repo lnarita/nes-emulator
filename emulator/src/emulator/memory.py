@@ -92,14 +92,14 @@ class Memory:
             self.store_ppu(addr, value)
         elif MemoryPositions.PPU_REGISTERS_MIRROR.contains(addr):
             self.store_ppu(addr%8 + 0x2000, value)
+        elif MemoryPositions.CONTROLLERS.contains(addr):
+            self.ppu.screen.latch_keys(value & 0b00000001)
         elif 0x4000 <= addr <= 0xFFFF:
             # TODO: remove later
             self.debug_mem.append(("%04X" % addr, "%02X" % value))
         elif MemoryPositions.APU_IO_REGISTERS.contains(addr):
             # TODO
             return
-        elif MemoryPositions.CONTROLLERS.contains(addr):
-            self.ppu.screen.latch_keys(value & 0b00000001)
         elif MemoryPositions.APU_IO_EXTRAS.contains(addr):
             # TODO
             return
