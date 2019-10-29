@@ -1,6 +1,14 @@
-import pygame
+# pygame silent import
+import os, sys
+with open(os.devnull, 'w') as f:
+    oldstdout = sys.stdout
+    sys.stdout = f
+
+    import pygame
+
+    sys.stdout = oldstdout
+
 from pygame import Color
-import sys
 import time
 
 W_WIDTH = 256*2
@@ -22,11 +30,11 @@ class Window():
 		pygame.display.set_caption("NES emulator")
 
 	def setPixel(self,i,j,color):
-		pygame.draw.rect(self.surface, color, pygame.Rect(i*2,j*2,2,2)) 
+		pygame.draw.rect(self.surface, color, pygame.Rect(i*2,j*2,2,2))
 
 
 	def flip(self):
-		pygame.display.flip() 
+		pygame.display.flip()
 
 
 def main():

@@ -47,6 +47,7 @@ class Memory:
         self.debug_mem = []
         self.ppu = ppu
 
+
     def fetch(self, addr):
         if MemoryPositions.ZERO_PAGE.contains(addr) or \
                 MemoryPositions.STACK.contains(addr) or \
@@ -124,7 +125,8 @@ class Memory:
         elif addr == 0x2004:
             return self.ppu.oam[oamaddr]
         elif addr == 0x2007:
-            self.ppu.ppudata = self.ppu.ram[self.ppu.ppuaddr]
+            # self.ppu.ppudata = self.ppu.ram[self.ppu.ppuaddr]
+            self.ppu.ppudata = self.ppu.fetch(self.ppu.ppuaddr)
             return self.ppu.ppudata
         else:
             return 0x00
@@ -155,11 +157,10 @@ class Memory:
                 self.ppu.ppuaddr = value << 8
                 self.ppu.hi_lo_latch = True
         elif addr == 0x2007:
-            self.ppu.ram[self.ppu.ppuaddr] = value
+            self.ppu.store(self.ppu.ppuaddr, value)
             #print(hex(self.ppu.ppuaddr) + " "+str(self.ppu.ram[self.ppu.ppuaddr]))
             if (self.ppu.ppuaddr >= 0x3F00 and self.ppu.ppuaddr <=0x3F31): #palette change
                 self.ppu.getPalettes()
-
         elif addr == 0x4014:
             self.ppu.oamdma = value
             # DMA Transfer

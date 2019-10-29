@@ -23,7 +23,7 @@ def emulate(file_path):
     running = True
     file_contents = read_file(file_path)
     cartridge = Cartridge.from_bytes(file_contents)
-    ppu = PPU()
+    ppu = PPU(cartridge.chr_rom, mirroring=cartridge.header.flags_6&0b00000001)
     memory = Memory(cartridge.prg_rom,ppu=ppu)
     cpu = CPU(log_compatible_mode=nestest_log_format)
     ppu.setNMI(cpu,memory,NMI)
@@ -71,7 +71,6 @@ def emulate(file_path):
                     running = False
                     print("Break")
                     break
-
                 #print_debug_line(cpu, previous_state, decoded, nestest_log_format)
                 cpu.clear_state_mem()
         except IndexError as e:
@@ -99,7 +98,7 @@ def NMI(cpu,memory):
     status = cpu.flags | 0b00110000
     memory.stack_push(cpu,status)
 
-    lo = memory.fetch(0xFFFA) 
+    lo = memory.fetch(0xFFFA)
     hi = memory.fetch(0xFFFB)
     hi <<= 8
     addr = hi|lo

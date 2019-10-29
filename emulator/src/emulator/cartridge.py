@@ -13,9 +13,10 @@ class INesHeader:
 
 
 class Cartridge:
-    def __init__(self, header, prg_rom):
+    def __init__(self, header, prg_rom, chr_rom):
         self.header = header
         self.prg_rom = prg_rom
+        self.chr_rom = chr_rom
 
     @classmethod
     def from_bytes(cls, cartridge_content):
@@ -40,5 +41,7 @@ class Cartridge:
 
                 header = INesHeader(prg_rom_size, chr_rom_size, flags_6, flags_7, prg_ram_size, flags_9, flags_10)
                 prg_rom = cartridge_content[16:(header.prg_rom_size + 16)]
-                return cls(header, prg_rom)
+                chr_rom = cartridge_content[(header.prg_rom_size + 16):(header.prg_rom_size + 16 + header.chr_rom_size)]
+
+                return cls(header, prg_rom, chr_rom)
         raise ValueError("Invalid iNES Header!")
