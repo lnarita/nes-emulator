@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"runtime"
 	"time"
 
-	"github.com/go-gl/gl/v2.1/gl"
-	"github.com/go-gl/glfw/v3.0/glfw"
+	"github.com/go-gl/gl/v4.1-core/gl"
+	"github.com/go-gl/glfw/v3.2/glfw"
 	"students.ic.unicamp.br/goten/opcodes"
 	"students.ic.unicamp.br/goten/processor"
 )
@@ -40,7 +41,7 @@ func emulate(filePath string) {
 	ppu := &processor.PPU{}
 	console := processor.Console{CPU: cpu, PPU: ppu, Memory: mem}
 
-	// initUI()
+	initUI()
 
 	for {
 		start := time.Now()
@@ -86,19 +87,21 @@ const (
 )
 
 func initUI() {
+	runtime.LockOSThread()
+
 	// initialize glfw
-	success := glfw.Init()
-	if !success {
-		panic("Failed to init glfw")
+	err := glfw.Init()
+	if err != nil {
+		panic(err)
 	}
 	defer glfw.Terminate()
 
 	// create window
 	glfw.WindowHint(glfw.ContextVersionMajor, 2)
 	glfw.WindowHint(glfw.ContextVersionMinor, 1)
-	window, glfwerr := glfw.CreateWindow(width*scale, height*scale, title, nil, nil)
-	if glfwerr != nil {
-		panic(glfwerr)
+	window, err := glfw.CreateWindow(width*scale, height*scale, title, nil, nil)
+	if err != nil {
+		panic(err)
 	}
 	window.MakeContextCurrent()
 
