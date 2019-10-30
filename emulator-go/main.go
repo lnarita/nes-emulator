@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"runtime"
 	"time"
 
-	"github.com/go-gl/gl/v4.1-core/gl"
-	"github.com/go-gl/glfw/v3.2/glfw"
 	"students.ic.unicamp.br/goten/opcodes"
 	"students.ic.unicamp.br/goten/processor"
+	"students.ic.unicamp.br/goten/ui"
 )
 
 func main() {
@@ -41,9 +39,9 @@ func emulate(filePath string) {
 	ppu := &processor.PPU{}
 	console := processor.Console{CPU: cpu, PPU: ppu, Memory: mem}
 
-	initUI()
-
+	go ui.InitUI()
 	for {
+
 		start := time.Now()
 		state := opcodes.State{PC: console.CPU.PC, SP: console.CPU.SP, A: console.CPU.A, X: console.CPU.X, Y: console.CPU.Y, Flags: console.CPU.Flags, Cycle: console.CPU.Cycle}
 
@@ -69,6 +67,7 @@ func emulate(filePath string) {
 		} else {
 			time.Sleep(time.Duration(expected-elapsed) * time.Second)
 		}
+		time.Sleep(50000)
 	}
 
 }
@@ -77,42 +76,4 @@ func fetchAndDecodeInstruction(console *processor.Console) opcodes.MapValue {
 	instruction := console.FetchData(console.CPU.PC)
 	decoded := opcodes.AllOpCodes[instruction]
 	return decoded
-}
-
-const (
-	width  = 256
-	height = 240
-	scale  = 3
-	title  = "GOTEN NES EMULATOR"
-)
-
-func initUI() {
-	runtime.LockOSThread()
-
-	// initialize glfw
-	err := glfw.Init()
-	if err != nil {
-		panic(err)
-	}
-	defer glfw.Terminate()
-
-	// create window
-	glfw.WindowHint(glfw.ContextVersionMajor, 2)
-	glfw.WindowHint(glfw.ContextVersionMinor, 1)
-	window, err := glfw.CreateWindow(width*scale, height*scale, title, nil, nil)
-	if err != nil {
-		panic(err)
-	}
-	window.MakeContextCurrent()
-
-	// initialize gl
-	if err := gl.Init(); err != nil {
-		panic(err)
-	}
-	gl.Enable(gl.TEXTURE_2D)
-
-	for !window.ShouldClose() {
-		window.SwapBuffers()
-		glfw.PollEvents()
-	}
 }
