@@ -67,7 +67,7 @@ func emulate(filePath string) {
 		} else {
 			time.Sleep(time.Duration(expected-elapsed) * time.Second)
 		}
-		time.Sleep(50000)
+		time.Sleep(500000)
 	}
 
 }
