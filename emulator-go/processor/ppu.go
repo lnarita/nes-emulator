@@ -3,6 +3,8 @@ package processor
 import "fmt"
 
 type PPU struct {
+	Console *Console // parent pointer :/
+
 	Cycle    int
 	ScanLine int
 	Frame    uint64
@@ -11,16 +13,21 @@ type PPU struct {
 	nameTable [2048]byte
 	oam       [256]byte
 
+	// PPU registers
 	V uint16
 	T uint16
 	X byte
 	W byte
 	F byte
-
-	register byte
 }
 
-func (ppu PPU) Tick() {
+func (ppu *PPU) ExecCycle() {
+	ppu.Tick()
+	ppu.Tick()
+	ppu.Tick()
+}
+
+func (ppu *PPU) Tick() {
 	ppu.Cycle++
 }
 

@@ -10,8 +10,8 @@ func (o ign) Exec(console *processor.Console, variation *Variation, state *State
 	value := byte(variation.addressingMode.ReadFrom(console, address))
 
 	/// log
-	state.HasData = true
-	state.Data = value
+	state.hasData = true
+	state.data = value
 
 	if stall {
 		cycleAcc++
@@ -53,8 +53,8 @@ func (o skb) Exec(console *processor.Console, variation *Variation, state *State
 	value := byte(variation.addressingMode.ReadFrom(console, address))
 
 	/// log
-	state.HasData = true
-	state.Data = value
+	state.hasData = true
+	state.data = value
 
 	if stall {
 		cycleAcc++
@@ -109,8 +109,8 @@ func (o lax) Exec(console *processor.Console, variation *Variation, state *State
 		value := byte(variation.addressingMode.ReadFrom(console, address))
 
 		/// log
-		state.HasData = true
-		state.Data = value
+		state.hasData = true
+		state.data = value
 
 		console.CPU.A = value
 		console.CPU.SetZN(value)
@@ -155,8 +155,8 @@ func (o sax) Exec(console *processor.Console, variation *Variation, state *State
 		address, stall = variation.addressingMode.FetchAddress(console, state)
 
 		/// log
-		state.HasData = true
-		state.Data = console.FetchData(address)
+		state.hasData = true
+		state.data = console.FetchData(address)
 
 		variation.addressingMode.WriteTo(console, address, value)
 	}
@@ -189,8 +189,8 @@ func (o unofficialSbc) Exec(console *processor.Console, variation *Variation, st
 	value := byte(variation.addressingMode.ReadFrom(console, address))
 
 	/// log
-	state.HasData = true
-	state.Data = value
+	state.hasData = true
+	state.data = value
 
 	sub := console.CPU.A
 
@@ -235,8 +235,8 @@ func (o dcp) Exec(console *processor.Console, variation *Variation, state *State
 	value := processor.WrapInt(0x00, 0xFF, oldValue-1)
 
 	/// log
-	state.HasData = true
-	state.Data = byte(oldValue)
+	state.hasData = true
+	state.data = byte(oldValue)
 
 	variation.addressingMode.WriteTo(console, address, byte(value))
 
@@ -280,8 +280,8 @@ func (o isc) Exec(console *processor.Console, variation *Variation, state *State
 	oldValue := variation.addressingMode.ReadFrom(console, address)
 
 	/// log
-	state.HasData = true
-	state.Data = byte(oldValue)
+	state.hasData = true
+	state.data = byte(oldValue)
 
 	value := byte(processor.WrapInt(0x00, 0xFF, oldValue+1))
 	variation.addressingMode.WriteTo(console, address, value)
@@ -336,8 +336,8 @@ func (o slo) Exec(console *processor.Console, variation *Variation, state *State
 	oldValue := variation.addressingMode.ReadFrom(console, address)
 
 	/// log
-	state.HasData = true
-	state.Data = byte(oldValue)
+	state.hasData = true
+	state.data = byte(oldValue)
 
 	variation.addressingMode.WriteTo(console, address, byte(oldValue))
 	value := oldValue << 1
@@ -380,8 +380,8 @@ func (o rla) Exec(console *processor.Console, variation *Variation, state *State
 	oldValue := variation.addressingMode.ReadFrom(console, address)
 
 	/// log
-	state.HasData = true
-	state.Data = byte(oldValue)
+	state.hasData = true
+	state.data = byte(oldValue)
 
 	variation.addressingMode.WriteTo(console, address, byte(oldValue))
 	value := oldValue << 1 & 0x00FF
@@ -429,8 +429,8 @@ func (o sre) Exec(console *processor.Console, variation *Variation, state *State
 	oldValue := variation.addressingMode.ReadFrom(console, address)
 
 	/// log
-	state.HasData = true
-	state.Data = byte(oldValue)
+	state.hasData = true
+	state.data = byte(oldValue)
 
 	variation.addressingMode.WriteTo(console, address, byte(oldValue))
 	value := oldValue >> 1 & 0x00FF
@@ -473,8 +473,8 @@ func (o rra) Exec(console *processor.Console, variation *Variation, state *State
 	oldValue := variation.addressingMode.ReadFrom(console, address)
 
 	/// log
-	state.HasData = true
-	state.Data = byte(oldValue)
+	state.hasData = true
+	state.data = byte(oldValue)
 
 	variation.addressingMode.WriteTo(console, address, byte(oldValue))
 	value := oldValue >> 1 & 0x00FF

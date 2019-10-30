@@ -27,12 +27,12 @@ func (a indirect) FetchAddress(console *processor.Console, state *State) (uint16
 	address := console.FetchAddress(pointer)
 
 	/// log
-	state.ParameterCount = 2
-	state.Parameter1 = byte(pointer & 0x00FF)
-	state.Parameter2 = byte(pointer & 0xFF00 >> 8)
-	state.Address = make([]interface{}, 2)
-	state.Address[0] = pointer
-	state.Address[1] = address
+	state.parameterCount = 2
+	state.parameter1 = byte(pointer & 0x00FF)
+	state.parameter2 = byte(pointer & 0xFF00 >> 8)
+	state.addressCount = 2
+	state.address1 = pointer
+	state.address2 = address
 
 	return address, false
 }
@@ -61,12 +61,12 @@ func (a indirectX) FetchAddress(console *processor.Console, state *State) (uint1
 	address := console.FetchAddress(uint16(pointer))
 
 	/// log
-	state.ParameterCount = 1
-	state.Parameter1 = acc & 0x00FF
-	state.Address = make([]interface{}, 3)
-	state.Address[0] = acc
-	state.Address[1] = pointer
-	state.Address[2] = address
+	state.parameterCount = 1
+	state.parameter1 = acc & 0x00FF
+	state.addressCount = 3
+	state.address1 = acc
+	state.address2 = pointer
+	state.address3 = address
 
 	return address, false
 }
@@ -98,12 +98,12 @@ func (a indirectY) FetchAddress(console *processor.Console, state *State) (uint1
 	address := baseAddress + uint16(console.CPU.Y)
 
 	/// log
-	state.ParameterCount = 1
-	state.Parameter1 = byte(pointer & 0x00FF)
-	state.Address = make([]interface{}, 3)
-	state.Address[0] = pointer
-	state.Address[1] = startAddressHigh + startAddressLow
-	state.Address[2] = address
+	state.parameterCount = 1
+	state.parameter1 = byte(pointer & 0x00FF)
+	state.addressCount = 3
+	state.address1 = pointer
+	state.address2 = startAddressHigh + startAddressLow
+	state.address3 = address
 
 	return address, pageCross(baseAddress, address)
 }
@@ -128,10 +128,10 @@ func (a zeroPage) FetchAddress(console *processor.Console, state *State) (uint16
 	console.CPU.PC++
 
 	/// log
-	state.ParameterCount = 1
-	state.Parameter1 = byte(address & 0x00FF)
-	state.Address = make([]interface{}, 1)
-	state.Address[0] = address
+	state.parameterCount = 1
+	state.parameter1 = byte(address & 0x00FF)
+	state.addressCount = 1
+	state.address1 = address
 
 	return address, false
 }
@@ -158,11 +158,11 @@ func (a zeroPageX) FetchAddress(console *processor.Console, state *State) (uint1
 	address := baseAddress + console.CPU.X
 
 	/// log
-	state.ParameterCount = 1
-	state.Parameter1 = byte(baseAddress & 0x00FF)
-	state.Address = make([]interface{}, 2)
-	state.Address[0] = baseAddress
-	state.Address[1] = address
+	state.parameterCount = 1
+	state.parameter1 = byte(baseAddress & 0x00FF)
+	state.addressCount = 2
+	state.address1 = baseAddress
+	state.address2 = address
 
 	return uint16(address), false
 }
@@ -189,11 +189,11 @@ func (a zeroPageY) FetchAddress(console *processor.Console, state *State) (uint1
 	address := baseAddress + console.CPU.Y
 
 	/// log
-	state.ParameterCount = 1
-	state.Parameter1 = byte(baseAddress & 0x00FF)
-	state.Address = make([]interface{}, 2)
-	state.Address[0] = baseAddress
-	state.Address[1] = address
+	state.parameterCount = 1
+	state.parameter1 = byte(baseAddress & 0x00FF)
+	state.addressCount = 2
+	state.address1 = baseAddress
+	state.address2 = address
 
 	return uint16(address), false
 }
@@ -223,11 +223,11 @@ func (a absolute) FetchAddress(console *processor.Console, state *State) (uint16
 	address := startAddressLow + startAddressHigh
 
 	/// log
-	state.ParameterCount = 2
-	state.Parameter1 = byte(startAddressLow)
-	state.Parameter2 = byte(startAddressHigh >> 8)
-	state.Address = make([]interface{}, 1)
-	state.Address[0] = address
+	state.parameterCount = 2
+	state.parameter1 = byte(startAddressLow)
+	state.parameter2 = byte(startAddressHigh >> 8)
+	state.addressCount = 1
+	state.address1 = address
 
 	return address, false
 }
@@ -261,12 +261,12 @@ func (a absoluteY) FetchAddress(console *processor.Console, state *State) (uint1
 	address := baseAddress + uint16(console.CPU.Y)
 
 	/// log
-	state.ParameterCount = 2
-	state.Parameter1 = byte(startAddressLow)
-	state.Parameter2 = byte(startAddressHigh >> 8)
-	state.Address = make([]interface{}, 2)
-	state.Address[0] = baseAddress
-	state.Address[1] = address
+	state.parameterCount = 2
+	state.parameter1 = byte(startAddressLow)
+	state.parameter2 = byte(startAddressHigh >> 8)
+	state.addressCount = 2
+	state.address1 = baseAddress
+	state.address2 = address
 
 	return address, pageCross(baseAddress, address)
 }
@@ -297,12 +297,12 @@ func (a absoluteX) FetchAddress(console *processor.Console, state *State) (uint1
 	address := baseAddress + uint16(console.CPU.X)
 
 	/// log
-	state.ParameterCount = 2
-	state.Parameter1 = byte(startAddressLow)
-	state.Parameter2 = byte(startAddressHigh >> 8)
-	state.Address = make([]interface{}, 2)
-	state.Address[0] = baseAddress
-	state.Address[1] = address
+	state.parameterCount = 2
+	state.parameter1 = byte(startAddressLow)
+	state.parameter2 = byte(startAddressHigh >> 8)
+	state.addressCount = 2
+	state.address1 = baseAddress
+	state.address2 = address
 
 	return address, pageCross(baseAddress, address)
 }
@@ -326,10 +326,10 @@ func (a immediate) FetchAddress(console *processor.Console, state *State) (uint1
 	console.CPU.PC++
 
 	/// log
-	state.ParameterCount = 1
-	state.Parameter1 = byte(address)
-	state.Address = make([]interface{}, 1)
-	state.Address[0] = address
+	state.parameterCount = 1
+	state.parameter1 = byte(address)
+	state.addressCount = 1
+	state.address1 = address
 
 	return address, false
 }
@@ -350,8 +350,9 @@ func (a accumulator) ReadFrom(console *processor.Console, address uint16) int {
 
 func (a accumulator) FetchAddress(console *processor.Console, state *State) (uint16, bool) {
 	/// log
-	state.ParameterCount = 0
-	state.Address = make([]interface{}, 0)
+	state.parameterCount = 0
+	state.addressCount = 0
+
 	return 0x00, false // FIXME??: this should do nothing
 }
 
@@ -381,10 +382,10 @@ func (a relative) FetchAddress(console *processor.Console, state *State) (uint16
 	}
 
 	/// log
-	state.ParameterCount = 1
-	state.Parameter1 = byte(address)
-	state.Address = make([]interface{}, 1)
-	state.Address[0] = address + console.CPU.PC
+	state.parameterCount = 1
+	state.parameter1 = byte(address)
+	state.addressCount = 1
+	state.address1 = address + console.CPU.PC
 
 	return address, false
 }

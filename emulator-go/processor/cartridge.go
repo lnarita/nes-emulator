@@ -103,7 +103,7 @@ func CartridgeFromBytes(content []byte) (*Cartridge, error) {
 			//    PRG ROM data (16384 * x bytes)
 			//    CHR ROM data, if present (8192 * y bytes)
 			//    PlayChoice INST-ROM, if present (0 or 8192 bytes)
-			//    PlayChoice PROM, if present (16 bytes Data, 16 bytes CounterOut) (this is often missing, see PC10 ROM-Images for details)
+			//    PlayChoice PROM, if present (16 bytes data, 16 bytes CounterOut) (this is often missing, see PC10 ROM-Images for details)
 			trainerSize := 0
 			if hasTrainerData {
 				trainerSize = TrainerSize

@@ -9,8 +9,8 @@ func (o bit) Exec(console *processor.Console, variation *Variation, state *State
 	value := byte(variation.addressingMode.ReadFrom(console, address))
 
 	/// log
-	state.HasData = true
-	state.Data = value
+	state.hasData = true
+	state.data = value
 
 	console.CPU.SetZN(value)
 	console.CPU.SetZero(value & console.CPU.A == 0)

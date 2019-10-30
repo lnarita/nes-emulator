@@ -10,8 +10,8 @@ func (o ora) Exec(console *processor.Console, variation *Variation, state *State
 	value := byte(variation.addressingMode.ReadFrom(console, address))
 
 	/// log
-	state.HasData = true
-	state.Data = value
+	state.hasData = true
+	state.data = value
 
 	console.CPU.A |= value
 	console.CPU.SetZN(console.CPU.A)
@@ -48,8 +48,8 @@ func (o and) Exec(console *processor.Console, variation *Variation, state *State
 	value := byte(variation.addressingMode.ReadFrom(console, address))
 
 	/// log
-	state.HasData = true
-	state.Data = value
+	state.hasData = true
+	state.data = value
 
 	console.CPU.A &= value
 	console.CPU.SetZN(console.CPU.A)
@@ -86,8 +86,8 @@ func (o eor) Exec(console *processor.Console, variation *Variation, state *State
 	value := byte(variation.addressingMode.ReadFrom(console, address))
 
 	/// log
-	state.HasData = true
-	state.Data = value
+	state.hasData = true
+	state.data = value
 
 	console.CPU.A ^= value
 	console.CPU.SetZN(console.CPU.A)
@@ -124,8 +124,8 @@ func (o adc) Exec(console *processor.Console, variation *Variation, state *State
 	value := byte(variation.addressingMode.ReadFrom(console, address))
 
 	/// log
-	state.HasData = true
-	state.Data = value
+	state.hasData = true
+	state.data = value
 
 	add := console.CPU.A
 
@@ -173,8 +173,8 @@ func (o sbc) Exec(console *processor.Console, variation *Variation, state *State
 	value := byte(variation.addressingMode.ReadFrom(console, address))
 
 	/// log
-	state.HasData = true
-	state.Data = value
+	state.hasData = true
+	state.data = value
 
 	sub := console.CPU.A
 
@@ -225,8 +225,8 @@ func (o cmp) Exec(console *processor.Console, variation *Variation, state *State
 	value := byte(variation.addressingMode.ReadFrom(console, address))
 
 	/// log
-	state.HasData = true
-	state.Data = value
+	state.hasData = true
+	state.data = value
 
 	sub := console.CPU.A
 
@@ -269,8 +269,8 @@ func (o cpx) Exec(console *processor.Console, variation *Variation, state *State
 	value := byte(variation.addressingMode.ReadFrom(console, address))
 
 	/// log
-	state.HasData = true
-	state.Data = value
+	state.hasData = true
+	state.data = value
 
 	sub := console.CPU.X
 
@@ -308,8 +308,8 @@ func (o cpy) Exec(console *processor.Console, variation *Variation, state *State
 	value := byte(variation.addressingMode.ReadFrom(console, address))
 
 	/// log
-	state.HasData = true
-	state.Data = value
+	state.hasData = true
+	state.data = value
 
 	sub := console.CPU.Y
 
@@ -347,8 +347,8 @@ func (o dec) Exec(console *processor.Console, variation *Variation, state *State
 	oldValue := byte(variation.addressingMode.ReadFrom(console, address))
 
 	/// log
-	state.HasData = true
-	state.Data = oldValue
+	state.hasData = true
+	state.data = oldValue
 
 	value := oldValue - 1
 
@@ -423,8 +423,8 @@ func (o inc) Exec(console *processor.Console, variation *Variation, state *State
 	oldValue := byte(variation.addressingMode.ReadFrom(console, address))
 
 	/// log
-	state.HasData = true
-	state.Data = oldValue
+	state.hasData = true
+	state.data = oldValue
 
 	value := oldValue + 1
 
@@ -499,8 +499,8 @@ func (o asl) Exec(console *processor.Console, variation *Variation, state *State
 	oldValue := variation.addressingMode.ReadFrom(console, address)
 
 	/// log
-	state.HasData = true
-	state.Data = byte(oldValue)
+	state.hasData = true
+	state.data = byte(oldValue)
 
 	value := oldValue << 1
 	carry := (value & 0xFF00) > 0
@@ -538,8 +538,8 @@ func (o rol) Exec(console *processor.Console, variation *Variation, state *State
 	oldValue := variation.addressingMode.ReadFrom(console, address)
 
 	/// log
-	state.HasData = true
-	state.Data = byte(oldValue)
+	state.hasData = true
+	state.data = byte(oldValue)
 
 	value := oldValue << 1 & 0x00FF
 	if console.CPU.HasCarry() {
@@ -582,8 +582,8 @@ func (o lsr) Exec(console *processor.Console, variation *Variation, state *State
 	oldValue := variation.addressingMode.ReadFrom(console, address)
 
 	/// log
-	state.HasData = true
-	state.Data = byte(oldValue)
+	state.hasData = true
+	state.data = byte(oldValue)
 
 	value := oldValue >> 1 & 0x00FF
 	carry := (oldValue & 0b0000_0001) > 0
@@ -622,8 +622,8 @@ func (o ror) Exec(console *processor.Console, variation *Variation, state *State
 	oldValue := variation.addressingMode.ReadFrom(console, address)
 
 	/// log
-	state.HasData = true
-	state.Data = byte(oldValue)
+	state.hasData = true
+	state.data = byte(oldValue)
 
 	value := oldValue >> 1 & 0x00FF
 	if console.CPU.HasCarry() {

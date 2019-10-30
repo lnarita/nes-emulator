@@ -12,25 +12,28 @@ type State struct {
 	X              byte
 	Y              byte
 	Flags          byte
-	Address        []interface{}
-	Data           byte
-	HasData        bool
+	addressCount   byte
+	address1       interface{}
+	address2       interface{}
+	address3       interface{}
+	data           byte
+	hasData        bool
 	Cycle          int
 	PPUCycle       int
 	OpCodeName     string
 	OpCode         Variation
-	Parameter1     byte
-	Parameter2     byte
-	ParameterCount byte
+	parameter1     byte
+	parameter2     byte
+	parameterCount byte
 }
 
 func (s State) String() string {
 	var hexDump string
-	switch s.ParameterCount {
+	switch s.parameterCount {
 	case 1:
-		hexDump = fmt.Sprintf("%02X", s.Parameter1)
+		hexDump = fmt.Sprintf("%02X", s.parameter1)
 	case 2:
-		hexDump = fmt.Sprintf("%02X %02X", s.Parameter1, s.Parameter2)
+		hexDump = fmt.Sprintf("%02X %02X", s.parameter1, s.parameter2)
 	default:
 		hexDump = ""
 	}
@@ -39,9 +42,19 @@ func (s State) String() string {
 		addrFormatStr, _ := s.OpCode.addressingMode.AddressFormatString()
 		var addressStr string
 		var dataStr string
-		addressStr = fmt.Sprintf(addrFormatStr, s.Address...)
-		if s.HasData && s.OpCode.addressingMode != Accumulator && s.OpCode.addressingMode != Immediate {
-			dataStr = fmt.Sprintf("= %02X", s.Data)
+		switch s.addressCount {
+		case 0:
+			addressStr = addrFormatStr
+		case 2:
+			addressStr = fmt.Sprintf(addrFormatStr, s.address1, s.address2)
+		case 3:
+			addressStr = fmt.Sprintf(addrFormatStr, s.address1, s.address2, s.address3)
+		default:
+			addressStr = fmt.Sprintf(addrFormatStr, s.address1)
+		}
+
+		if s.hasData && s.OpCode.addressingMode != Accumulator && s.OpCode.addressingMode != Immediate {
+			dataStr = fmt.Sprintf("= %02X", s.data)
 		} else {
 			dataStr = ""
 		}
@@ -57,4 +70,10 @@ func (s State) String() string {
 	}
 	state := fmt.Sprintf("A:%02X X:%02X Y:%02X P:%02X SP:%02X", s.A, s.X, s.Y, s.Flags, s.SP&0x00FF)
 	return fmt.Sprintf("%04X  %40s  %s  CYC:%d", s.PC, opcode, state, s.Cycle)
+}
+
+func (s *State) ClearState() {
+	s.hasData = false
+	s.parameterCount = 0
+	s.addressCount = 0
 }

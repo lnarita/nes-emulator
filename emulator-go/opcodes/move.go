@@ -15,8 +15,8 @@ func (o lda) Exec(console *processor.Console, variation *Variation, state *State
 		value := byte(variation.addressingMode.ReadFrom(console, address))
 
 		/// log
-		state.HasData = true
-		state.Data = value
+		state.hasData = true
+		state.data = value
 
 		console.CPU.A = value
 		console.CPU.SetZN(value)
@@ -56,8 +56,8 @@ func (o sta) Exec(console *processor.Console, variation *Variation, state *State
 		address, stall = variation.addressingMode.FetchAddress(console, state)
 
 		/// log
-		state.HasData = true
-		state.Data = console.FetchData(address)
+		state.hasData = true
+		state.data = console.FetchData(address)
 
 		variation.addressingMode.WriteTo(console, address, console.CPU.A)
 	}
@@ -97,8 +97,8 @@ func (o ldx) Exec(console *processor.Console, variation *Variation, state *State
 		value := byte(variation.addressingMode.ReadFrom(console, address))
 
 		/// log
-		state.HasData = true
-		state.Data = value
+		state.hasData = true
+		state.data = value
 
 		console.CPU.X = value
 		console.CPU.SetZN(value)
@@ -135,8 +135,8 @@ func (o stx) Exec(console *processor.Console, variation *Variation, state *State
 		address, stall = variation.addressingMode.FetchAddress(console, state)
 
 		/// log
-		state.HasData = true
-		state.Data = console.FetchData(address)
+		state.hasData = true
+		state.data = console.FetchData(address)
 
 		variation.addressingMode.WriteTo(console, address, console.CPU.X)
 	}
@@ -172,8 +172,8 @@ func (o ldy) Exec(console *processor.Console, variation *Variation, state *State
 		value := byte(variation.addressingMode.ReadFrom(console, address))
 
 		/// log
-		state.HasData = true
-		state.Data = value
+		state.hasData = true
+		state.data = value
 
 		console.CPU.Y = value
 		console.CPU.SetZN(value)
@@ -210,8 +210,8 @@ func (o sty) Exec(console *processor.Console, variation *Variation, state *State
 		address, stall = variation.addressingMode.FetchAddress(console, state)
 
 		/// log
-		state.HasData = true
-		state.Data = console.FetchData(address)
+		state.hasData = true
+		state.data = console.FetchData(address)
 
 		variation.addressingMode.WriteTo(console, address, console.CPU.Y)
 	}

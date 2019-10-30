@@ -28,7 +28,7 @@ func (cpu CPU) String() string {
 		cpu.Cycle, cpu.PC, cpu.SP, cpu.A, cpu.X, cpu.Y, cpu.Flags, cpu.Flags)
 }
 
-func (cpu CPU) Tick() {
+func (cpu *CPU) Tick() {
 	cpu.Cycle++
 }
 
@@ -99,12 +99,4 @@ func (cpu *CPU) IsZero() bool {
 }
 func (cpu *CPU) HasCarry() bool {
 	return cpu.Flags&CarryBit != 0
-}
-func (cpu *CPU) TriggerNMI() {
-	cpu.interrupt = interruptNMI
-}
-func (cpu *CPU) TriggerIRQ() {
-	if !cpu.AreInterruptsDisabled() {
-		cpu.interrupt = interruptIRQ
-	}
 }

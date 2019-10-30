@@ -156,7 +156,7 @@ func (o brk) Exec(console *processor.Console, variation *Variation, state *State
 	console.StackPushAddress(console.CPU.PC)
 
 	flags := console.CPU.Flags
-	console.StackPushData(flags|processor.BreakBit)
+	console.StackPushData(flags | processor.BreakBit)
 
 	irq := uint16(console.FetchAddress(processor.IRQ))
 
@@ -204,8 +204,7 @@ func (o jsr) Exec(console *processor.Console, variation *Variation, state *State
 	var cycleAcc int = 0
 	address, stall := variation.addressingMode.FetchAddress(console, state)
 
-	console.StackPushAddress(console.CPU.PC-1)
-
+	console.StackPushAddress(console.CPU.PC - 1)
 	console.CPU.PC = address
 
 	if stall {
@@ -244,7 +243,6 @@ func (o rts) GetName() string {
 }
 
 type jmp struct{}
-
 
 func (o jmp) Exec(console *processor.Console, variation *Variation, state *State) int {
 	var cycleAcc int = 0

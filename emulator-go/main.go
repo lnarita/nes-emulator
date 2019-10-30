@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"time"
 
@@ -12,8 +12,11 @@ import (
 )
 
 func main() {
+	log.SetOutput(os.Stdout)
+	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
+
 	args := os.Args
-	fmt.Println(args)
+	log.Printf("%s", args)
 	fileName := args[1]
 
 	emulate(fileName)
@@ -33,17 +36,28 @@ func emulate(filePath string) {
 	check(err)
 
 	mem := processor.Load(car)
-
 	cpu := processor.Setup(mem, true)
-
 	ppu := &processor.PPU{}
-	console := processor.Console{CPU: cpu, PPU: ppu, Memory: mem}
+	controller1 := &processor.Controller{}
+	controller2 := &processor.Controller{}
+
+	console := processor.Console{CPU: cpu, PPU: ppu, Memory: mem, Controller1: controller1, Controller2: controller2}
+	ppu.Console = &console
 
 	go ui.InitUI()
+	state := opcodes.State{}
 	for {
 
 		start := time.Now()
-		state := opcodes.State{PC: console.CPU.PC, SP: console.CPU.SP, A: console.CPU.A, X: console.CPU.X, Y: console.CPU.Y, Flags: console.CPU.Flags, Cycle: console.CPU.Cycle}
+
+		state.ClearState()
+		state.PC = console.CPU.PC
+		state.SP = console.CPU.SP
+		state.A = console.CPU.A
+		state.X = console.CPU.X
+		state.Y = console.CPU.Y
+		state.Flags = console.CPU.Flags
+		state.Cycle = console.CPU.Cycle
 
 		decoded := fetchAndDecodeInstruction(&console)
 		console.CPU.PC++
@@ -52,18 +66,21 @@ func emulate(filePath string) {
 		state.OpCode = decoded.Variation
 
 		cycle := decoded.Opc.Exec(&console, &decoded.Variation, &state)
+
 		for i := 0; i < cycle; i++ {
-			console.CPU.Cycle++
+			console.Tick()
 		}
-		if decoded.Opc.GetName() == "BRK" {
+
+		if state.OpCodeName == "BRK" {
 			break
 		}
+
 		elapsed := time.Since(start).Seconds()
 		expected := processor.CyclePeriod * float64(cycle)
-		fmt.Printf("%s\n", state)
-		//fmt.Printf("%s\n| elapsed: %0.15f - expected: %0.15f\n", state, elapsed, expected)
+		log.Printf("%s\n", state)
+		//log.Printf("%s\n| elapsed: %0.15f - expected: %0.15f\n", state, elapsed, expected)
 		if elapsed >= expected {
-			fmt.Printf("<<<<< (%s) - %0.15f >>>>>\n", state.OpCodeName, elapsed/expected)
+			log.Printf("<<<<< (%4s) - %0.15f >>>>>\n", state.OpCodeName, elapsed/expected)
 		} else {
 			time.Sleep(time.Duration(expected-elapsed) * time.Second)
 		}
