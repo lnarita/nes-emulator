@@ -6,6 +6,10 @@ type Controller struct {
 	strobe  byte
 }
 
+func (controller *Controller) SetButtons(buttons [8]bool) {
+	controller.buttons = buttons
+}
+
 func (controller *Controller) Read() byte {
 	var value byte = 0
 	if controller.current < 8 {
