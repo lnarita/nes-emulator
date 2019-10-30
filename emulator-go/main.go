@@ -19,18 +19,7 @@ func main() {
 	log.Printf("%s", args)
 	fileName := args[1]
 
-	go emulate(fileName)
-	ui.InitUI()
-}
-
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
-
-func emulate(filePath string) {
-	data, err := ioutil.ReadFile(filePath)
+	data, err := ioutil.ReadFile(fileName)
 	check(err)
 
 	car, err := processor.CartridgeFromBytes(data)
@@ -45,6 +34,17 @@ func emulate(filePath string) {
 	console := processor.Console{CPU: cpu, PPU: ppu, Memory: mem, Controller1: controller1, Controller2: controller2}
 	ppu.Console = &console
 
+	go emulate(&console)
+	ui.InitUI(&console)
+}
+
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
+
+func emulate(console *processor.Console) {
 	state := opcodes.State{}
 	for {
 
@@ -59,13 +59,13 @@ func emulate(filePath string) {
 		state.Flags = console.CPU.Flags
 		state.Cycle = console.CPU.Cycle
 
-		decoded := fetchAndDecodeInstruction(&console)
+		decoded := fetchAndDecodeInstruction(console)
 		console.CPU.PC++
 
 		state.OpCodeName = decoded.Opc.GetName()
 		state.OpCode = decoded.Variation
 
-		cycle := decoded.Opc.Exec(&console, &decoded.Variation, &state)
+		cycle := decoded.Opc.Exec(console, &decoded.Variation, &state)
 
 		for i := 0; i < cycle; i++ {
 			console.Tick()

@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/hajimehoshi/ebiten"
+	"students.ic.unicamp.br/goten/processor"
 )
 
 const (
@@ -30,7 +31,7 @@ func update(screen *ebiten.Image) error {
 	return nil
 }
 
-func InitUI() {
+func InitUI(console *processor.Console) {
 	// Call ebiten.Run to start your game loop.
 	if err := ebiten.Run(update, width, height, scale, title); err != nil {
 		log.Fatal(err)
