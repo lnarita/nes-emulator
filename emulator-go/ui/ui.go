@@ -1,10 +1,9 @@
 package ui
 
 import (
-	"runtime"
+	"log"
 
-	"github.com/faiface/pixel"
-	"github.com/faiface/pixel/pixelgl"
+	"github.com/hajimehoshi/ebiten"
 )
 
 const (
@@ -15,22 +14,25 @@ const (
 	fps    = 60
 )
 
-func run() {
-	cfg := pixelgl.WindowConfig{
-		Title:  title,
-		Bounds: pixel.R(0, 0, width*scale, height*scale),
-	}
-	win, err := pixelgl.NewWindow(cfg)
-	if err != nil {
-		panic(err)
+// update is called every frame (1/60 [s]).
+func update(screen *ebiten.Image) error {
+
+	// Write your game's logical update.
+
+	if ebiten.IsDrawingSkipped() {
+		// When the game is running slowly, the rendering result
+		// will not be adopted.
+		return nil
 	}
 
-	for !win.Closed() {
-		win.Update()
-	}
+	// Write your game's rendering.
+
+	return nil
 }
 
 func InitUI() {
-	runtime.LockOSThread()
-	pixelgl.Run(run)
+	// Call ebiten.Run to start your game loop.
+	if err := ebiten.Run(update, width, height, scale, title); err != nil {
+		log.Fatal(err)
+	}
 }

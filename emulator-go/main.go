@@ -19,7 +19,8 @@ func main() {
 	log.Printf("%s", args)
 	fileName := args[1]
 
-	emulate(fileName)
+	go emulate(fileName)
+	ui.InitUI()
 }
 
 func check(e error) {
@@ -44,7 +45,6 @@ func emulate(filePath string) {
 	console := processor.Console{CPU: cpu, PPU: ppu, Memory: mem, Controller1: controller1, Controller2: controller2}
 	ppu.Console = &console
 
-	go ui.InitUI()
 	state := opcodes.State{}
 	for {
 
@@ -84,7 +84,6 @@ func emulate(filePath string) {
 		} else {
 			time.Sleep(time.Duration(expected-elapsed) * time.Second)
 		}
-		time.Sleep(500000)
 	}
 
 }
