@@ -9,16 +9,15 @@ import (
 )
 
 func readController() {
-	// 0 - A; 1 - B; 2 - Select; 3 - Start; 4 - Up; 5 - Down; 6 - Left; 7 - Right
 	buttons := [8]bool{
-		ebiten.IsKeyPressed(ebiten.KeyA),
-		ebiten.IsKeyPressed(ebiten.KeyS),
-		ebiten.IsKeyPressed(ebiten.KeyZ),
-		ebiten.IsKeyPressed(ebiten.KeyX),
-		ebiten.IsKeyPressed(ebiten.KeyUp),
-		ebiten.IsKeyPressed(ebiten.KeyDown),
-		ebiten.IsKeyPressed(ebiten.KeyLeft),
-		ebiten.IsKeyPressed(ebiten.KeyRight),
+		ebiten.IsKeyPressed(ebiten.KeyA),     // 0 - A
+		ebiten.IsKeyPressed(ebiten.KeyS),     // 1 - B
+		ebiten.IsKeyPressed(ebiten.KeyZ),     // 2 - SELECT
+		ebiten.IsKeyPressed(ebiten.KeyX),     // 3 - START
+		ebiten.IsKeyPressed(ebiten.KeyUp),    // 4 - UP
+		ebiten.IsKeyPressed(ebiten.KeyDown),  // 5 - DOWN
+		ebiten.IsKeyPressed(ebiten.KeyLeft),  // 6 - LEFT
+		ebiten.IsKeyPressed(ebiten.KeyRight), // 7 - RIGHT
 	}
 	console.Controller1.SetButtons(buttons)
 }
