@@ -33,17 +33,23 @@ func (cpu *CPU) Tick() {
 }
 
 func Setup(memory *Memory, automation bool) *CPU {
-	var resetAddress uint16
-	if automation {
-		resetAddress = 0xC000
-	} else {
-		resetAddressLow := uint16(memory.Read(Reset))
-		resetAddressHigh := uint16(memory.Read(Reset + 1))
-		resetAddress = resetAddressHigh<<8 | resetAddressLow
-	}
+	cpu := &CPU{}
 	//cpu := CPU{Flags: 0x34, PC: resetAddress, SP: 0x1FF}
-	cpu := CPU{Flags: 0x24, PC: resetAddress, SP: 0x1FD, Cycle: 7}
-	return &cpu
+	cpu.Reset(memory)
+	if automation {
+		cpu.PC = 0xC000
+		cpu.Cycle = 7
+	}
+	return cpu
+}
+
+func (cpu *CPU) Reset(memory *Memory) {
+	resetAddressLow := uint16(memory.Read(Reset))
+	resetAddressHigh := uint16(memory.Read(Reset + 1))
+	resetAddress := resetAddressHigh<<8 | resetAddressLow
+	cpu.PC = resetAddress
+	cpu.Flags = 0x24
+	cpu.SP = 0x1FD
 }
 
 func (cpu *CPU) updateFlagBit(value bool, bit byte, inv byte) {

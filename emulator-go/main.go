@@ -33,6 +33,7 @@ func main() {
 
 	console := processor.Console{CPU: cpu, PPU: ppu, Memory: mem, Controller1: controller1, Controller2: controller2}
 	ppu.Console = &console
+	ppu.Reset()
 
 	go emulate(&console)
 	ui.InitUI(&console)
@@ -84,6 +85,7 @@ func emulate(console *processor.Console) {
 		} else {
 			time.Sleep(time.Duration(expected-elapsed) * time.Second)
 		}
+		//time.Sleep(500000)
 	}
 
 }

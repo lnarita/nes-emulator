@@ -22,14 +22,19 @@ func (console *Console) Tick() {
 	console.CPU.Tick()
 }
 
+func (console *Console) Reset() {
+	console.CPU.Reset(console.Memory)
+	console.PPU.Reset()
+}
+
 func (console *Console) FetchData(address uint16) byte {
 	switch {
 	case address >= 0x6000 || address < 0x2000:
 		return console.Memory.Read(address)
 	case address < 0x4000:
-		// PPU registers
+		return console.PPU.Read(0x2000 + (address % 8))
 	case address == 0x4014:
-		// PPU registers
+		return console.PPU.Read(address)
 	case address == 0x4015:
 		// APU registers
 	case address == 0x4016:
@@ -63,9 +68,9 @@ func (console *Console) StoreData(address uint16, data byte) {
 	case address >= 0x6000 || address < 0x2000:
 		console.Memory.Write(address, data)
 	case address < 0x4000:
-		// PPU registers
+		console.PPU.Write(0x2000+(address%8), data)
 	case address == 0x4014:
-		// PPU registers
+		console.PPU.Write(address, data)
 	case address == 0x4015:
 		// APU registers
 	case address == 0x4016:
