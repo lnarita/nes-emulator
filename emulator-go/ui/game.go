@@ -8,6 +8,10 @@ import (
 	"github.com/hajimehoshi/ebiten/text"
 )
 
+var (
+	pixels = make([]byte, width*height*4)
+)
+
 func readController() {
 	buttons := [8]bool{
 		ebiten.IsKeyPressed(ebiten.KeyA),     // 0 - A
@@ -22,6 +26,17 @@ func readController() {
 	console.Controller1.SetButtons(buttons)
 }
 
+// Draw paints current game state.
+func draw() {
+	for i, v := range console.PPU.Pixels {
+		pixels[4*i] = v.R
+		pixels[4*i+1] = v.G
+		pixels[4*i+2] = v.B
+		pixels[4*i+3] = v.A
+
+	}
+}
+
 func game(screen *ebiten.Image) error {
 
 	if ebiten.IsDrawingSkipped() {
@@ -34,6 +49,9 @@ func game(screen *ebiten.Image) error {
 	if ebiten.IsKeyPressed(ebiten.KeyEscape) {
 		return errors.New("Esc key pressed, shutting down")
 	}
+
+	draw()
+	screen.ReplacePixels(pixels)
 
 	return nil
 }
