@@ -34,7 +34,7 @@ func (m NROM) Read(address uint16) byte {
 func (m NROM) Write(address uint16, data byte) {
 	switch {
 	case address < 0x2000:
-		m.CHR[address] = data
+		//m.CHR[address] = data
 	case address >= 0x8000:
 		log.Printf("NROM write %02X (%d)", data, uint16(data)%m.banks)
 	case address >= 0x6000:

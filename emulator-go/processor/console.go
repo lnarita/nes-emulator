@@ -136,6 +136,7 @@ func (console *Console) nmi() {
 	console.CPU.PC = console.FetchAddress(0xFFFA)
 	console.CPU.DisableInterrupts(true)
 	for i := 0; i < 7; i++ {
-		console.Tick()
+		console.CPU.Cycle += 7
+		//console.Tick()
 	}
 }

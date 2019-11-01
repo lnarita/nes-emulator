@@ -170,6 +170,7 @@ func (ppu *PPU) ExecCycle() {
 
 func (ppu *PPU) Tick() {
 	renderingEnabled := ppu.Mask.showBg || ppu.Mask.showSpr
+	//renderingEnabled = true
 	// There are a total of 262 scanlines per frame
 	//   Scanlines 0 to 239 are for display (NES is 256 x 240)
 	//   Scanline  240 is a post-render scanline (idle)
@@ -377,16 +378,7 @@ func (ppu *PPU) access(address uint16) byte {
 	case address < 0x3F00:
 		return ppu.nameTableData[ppu.getCiramAddress(address)]
 	case address < 0x4000:
-		if (address & 0x13) == 0x10 {
-			index := address & ^uint16(0x10)
-			var mask byte
-			if ppu.Mask.grayscale {
-				mask = 0x30
-			} else {
-				mask = 0xFF
-			}
-			return ppu.palettes[index&0x1F] & mask
-		}
+		return ppu.readPalette(address%32)
 	}
 	return 0
 }
@@ -459,10 +451,7 @@ func (ppu *PPU) accessWrite(address uint16, data byte) {
 	case address < 0x3F00:
 		ppu.nameTableData[ppu.getCiramAddress(address)] = data
 	case address < 0x4000:
-		if (address & 0x13) == 0x10 {
-			index := address & ^uint16(0x10)
-			ppu.palettes[index&0x1F] = data
-		}
+		ppu.writePalette(address%32, data)
 	}
 }
 
@@ -686,4 +675,20 @@ func (ppu *PPU) vUpdate(render bool) {
 	}
 	// v: .IHGF.ED CBA..... = t: .IHGF.ED CBA.....
 	ppu.vRamAddress = (ppu.vRamAddress & 0x841F) | (ppu.temporaryVRamAddress & 0x7BE0)
+}
+
+func (ppu *PPU) writePalette(address uint16, data byte) {
+	index := address
+	if index >= 16 && index%4 == 0 {
+		index -= 16
+	}
+	ppu.palettes[index] = data
+}
+
+func (ppu *PPU) readPalette(address uint16) byte {
+	index := address
+	if index >= 16 && index%4 == 0 {
+		index -= 16
+	}
+	return ppu.palettes[index]
 }
