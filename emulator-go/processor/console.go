@@ -119,3 +119,23 @@ func (console *Console) TriggerIRQ() {
 func (console *Console) ClearInterrupt() {
 	console.CPU.interrupt = interruptNone
 }
+
+func (console *Console) CheckInterrupts() {
+	switch console.CPU.interrupt {
+	case interruptNMI:
+		console.nmi()
+		log.Println("NMI trigged!!!")
+	}
+	console.ClearInterrupt()
+}
+
+func (console *Console) nmi() {
+	console.StackPushAddress(console.CPU.PC)
+	value := console.CPU.Flags | BreakBit | BFlag
+	console.StackPushData(value)
+	console.CPU.PC = console.FetchAddress(0xFFFA)
+	console.CPU.DisableInterrupts(true)
+	for i := 0; i < 7; i++ {
+		console.Tick()
+	}
+}

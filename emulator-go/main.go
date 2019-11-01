@@ -26,7 +26,7 @@ func main() {
 	check(err)
 
 	mem := processor.Load(car)
-	cpu := processor.Setup(mem, true)
+	cpu := processor.Setup(mem, false)
 	ppu := &processor.PPU{}
 	controller1 := &processor.Controller{}
 	controller2 := &processor.Controller{}
@@ -59,6 +59,8 @@ func emulate(console *processor.Console) {
 		state.Y = console.CPU.Y
 		state.Flags = console.CPU.Flags
 		state.Cycle = console.CPU.Cycle
+
+		console.CheckInterrupts()
 
 		decoded := fetchAndDecodeInstruction(console)
 		console.CPU.PC++

@@ -29,7 +29,21 @@ type PPU struct {
 	temporaryVRamAddress uint16
 	x                    byte // fine x scroll (3 bit)
 	latch                bool // write latch
-	odd                  bool // even/odd frame flag
+	odd                  byte // even/odd frame flag
+
+	scanlineAddr uint16
+	// Background latches:
+	nt  uint16
+	at  uint16
+	bgL uint16
+	bgH uint16
+	// Background shift registers:
+	atShiftL uint16
+	atShiftH uint16
+	bgShiftL uint16
+	bgShiftH uint16
+	atLatchL uint16
+	atLatchH uint16
 
 	oamAddress   byte
 	bufferedData byte
@@ -65,44 +79,24 @@ func createControlFromInt(flag uint8) *PPUCTRL {
 
 func (ctrl *PPUCTRL) fromFlag(flag uint8) {
 	var increment uint16
-	if flag&0b0010_0000 > 0 {
+	if (flag>>2)&1 > 0 {
 		increment = 32
 	} else {
 		increment = 1
 	}
 	var sprite byte
-	if flag&0b0000_0100 > 0 {
+	if (flag>>5)&1 > 0 {
 		sprite = 16
 	} else {
 		sprite = 8
 	}
-	ctrl.nameTable = uint16(flag&0b1100_0000) << 8
+	ctrl.nameTable = uint16((flag>>0)&3) * 0x100
 	ctrl.addressIncrement = increment
-	ctrl.spritePatternTable = uint16(flag&0b0001_0000) >> 4 << 16
-	ctrl.bgPatternTable = uint16(flag&0b0000_1000) >> 3 << 16
+	ctrl.spritePatternTable = uint16((flag>>3)&1) * 0x1000
+	ctrl.bgPatternTable = uint16((flag>>4)&1) * 0x1000
 	ctrl.spriteSize = sprite
-	ctrl.slave = flag&0b0000_0010 > 0
-	ctrl.nmiEnabled = flag&0x1 == 0x1
-}
-
-func (ctrl *PPUCTRL) toFlag() uint8 {
-	var flag byte = 0
-	flag |= uint8(ctrl.nameTable>>8) & 0b1100_0000
-	if ctrl.addressIncrement == 32 {
-		flag |= 0b0010_0000
-	}
-	flag |= uint8(ctrl.spritePatternTable>>16) << 4
-	flag |= uint8(ctrl.bgPatternTable>>16) >> 3
-	if ctrl.spriteSize == 16 {
-		flag |= 0b0000_0100
-	}
-	if ctrl.slave {
-		flag |= 0b0000_0010
-	}
-	if ctrl.nmiEnabled {
-		flag |= 0b0000_0000
-	}
-	return flag
+	ctrl.slave = (flag>>6)&1 != 0
+	ctrl.nmiEnabled = (flag>>7)&1 != 0
 }
 
 type PPUMASK struct {
@@ -123,43 +117,14 @@ func createMaskFromInt(flag uint8) *PPUMASK {
 }
 
 func (msk *PPUMASK) fromFlag(flag uint8) {
-	msk.grayscale = flag&0b1000_0000 > 0
-	msk.bgLeft = flag&0b0100_0000 > 0
-	msk.sprLeft = flag&0b0010_0000 > 0
-	msk.showBg = flag&0b0001_0000 > 0
-	msk.showSpr = flag&0b0000_1000 > 0
-	msk.intensifyRed = flag&0b0000_0100 > 0
-	msk.intensifyGreen = flag&0b0000_0010 > 0
-	msk.intensifyBlue = flag&0b0000_0001 > 0
-}
-
-func (msk *PPUMASK) toFlag() uint8 {
-	var flag byte = 0
-	if msk.grayscale {
-		flag |= 0b1000_0000
-	}
-	if msk.bgLeft {
-		flag |= 0b0100_0000
-	}
-	if msk.sprLeft {
-		flag |= 0b0010_0000
-	}
-	if msk.showBg {
-		flag |= 0b0001_0000
-	}
-	if msk.showSpr {
-		flag |= 0b0000_1000
-	}
-	if msk.intensifyRed {
-		flag |= 0b0000_0100
-	}
-	if msk.intensifyGreen {
-		flag |= 0b0000_0010
-	}
-	if msk.intensifyBlue {
-		flag |= 0b0000_0001
-	}
-	return flag
+	msk.grayscale = (flag>>0)&1 != 0
+	msk.bgLeft = (flag>>1)&1 != 0
+	msk.sprLeft = (flag>>2)&1 != 0
+	msk.showBg = (flag>>3)&1 != 0
+	msk.showSpr = (flag>>4)&1 != 0
+	msk.intensifyRed = (flag>>5)&1 != 0
+	msk.intensifyGreen = (flag>>6)&1 != 0
+	msk.intensifyBlue = (flag>>7)&1 != 0
 }
 
 type PPUSTATUS struct {
@@ -218,6 +183,14 @@ func (ppu *PPU) Tick() {
 	ppu.scanlineCycle(renderingEnabled, visibleLine, postLine, nmiLine, preLine)
 
 	ppu.Cycle++
+	if ppu.Cycle > 340 {
+		ppu.Cycle %= 341
+		ppu.ScanLine++
+		if ppu.ScanLine > 261 {
+			ppu.ScanLine = 0
+			ppu.odd ^= 1
+		}
+	}
 }
 
 func (ppu *PPU) scanlineCycle(render, visible, post, nmi, pre bool) {
@@ -245,12 +218,72 @@ func (ppu *PPU) scanlineCycle(render, visible, post, nmi, pre bool) {
 		}
 		// BG
 		switch {
-		case ppu.Cycle < 2:
+		case 2 < ppu.Cycle && ppu.Cycle < 255 || 322 < ppu.Cycle && ppu.Cycle < 337:
+			ppu.renderPixel(render)
+			switch ppu.Cycle % 8 {
+			// Nametable:
+			case 1:
+				ppu.scanlineAddr = ppu.ntAddress()
+				ppu.reloadShift()
+			case 2:
+				ppu.nt = uint16(ppu.access(ppu.scanlineAddr))
+			// Attribute:
+			case 3:
+				ppu.scanlineAddr = ppu.atAddress()
+			case 4:
+				ppu.at = uint16(ppu.access(ppu.scanlineAddr))
+				shift := ((ppu.vRamAddress >> 4) & 4) | (ppu.vRamAddress & 2)
+				ppu.at = ((ppu.at >> shift) & 3) << 2
+			// Background (low bits):
+			case 5:
+				ppu.scanlineAddr = ppu.bgAddress()
+			case 6:
+				ppu.bgL = uint16(ppu.access(ppu.scanlineAddr))
+			// Background (high bits):
+			case 7:
+				ppu.scanlineAddr += 8
+			case 0:
+				ppu.bgH = uint16(ppu.access(ppu.scanlineAddr))
+				ppu.hScroll(render)
+			}
+		case ppu.Cycle == 256:
+			ppu.renderPixel(render)
+			ppu.bgH = uint16(ppu.access(ppu.scanlineAddr))
+			ppu.vScroll(render)
+			// Vertical bump.
+		case ppu.Cycle == 257:
+			ppu.renderPixel(render)
+			ppu.reloadShift()
+			ppu.hUpdate(render)
+			// Update horizontal position.
+		case 280 < ppu.Cycle && ppu.Cycle < 304:
 			if pre {
+				ppu.vUpdate(render)
+			}
+			// Update vertical position.
 
+		// No shift reloading:
+		case ppu.Cycle == 1:
+			ppu.scanlineAddr = ppu.ntAddress()
+			if pre {
+				ppu.Status.vBlank = false
+			}
+		case ppu.Cycle == 321 || ppu.Cycle == 339:
+			ppu.scanlineAddr = ppu.ntAddress()
+		// Nametable fetch instead of attribute:
+		case ppu.Cycle == 338:
+			ppu.scanlineAddr = uint16(ppu.access(ppu.scanlineAddr))
+		case ppu.Cycle == 340:
+			ppu.nt = uint16(ppu.access(ppu.scanlineAddr))
+			if pre && render && ppu.odd == 1 {
+				ppu.Cycle++
 			}
 		}
 	}
+}
+
+func (ppu *PPU) ntAddress() uint16 {
+	return 0x2000 | ppu.vRamAddress&0xFFF
 }
 
 func (ppu PPU) String() string {
@@ -263,9 +296,8 @@ func (ppu *PPU) Reset() {
 	ppu.Frame = 0
 	if ppu.Ctrl == nil {
 		ppu.Ctrl = createControlFromInt(0)
-	} else {
-		ppu.Ctrl.fromFlag(0)
 	}
+	ppu.writeCtrl(0)
 	if ppu.Mask == nil {
 		ppu.Mask = createMaskFromInt(0)
 	} else {
@@ -479,7 +511,7 @@ func (ppu *PPU) evalSprites() {
 			ppu.copyOam[n].attributes = ppu.oamMem[i*4+2]
 			ppu.copyOam[n].x = ppu.oamMem[i*4+3]
 			n++
-			if n > 8 {
+			if n > 7 {
 				ppu.Status.spriteOverflow = true
 				break
 			}
@@ -499,7 +531,7 @@ func (ppu *PPU) loadSprites() {
 		if ppu.Ctrl.spriteSize == 16 {
 			address = ((tile & 1) * 0x1000) + ((tile & (^uint16(1))) * 16)
 		} else {
-			address = (ppu.Ctrl.spritePatternTable * 0x1000) + (tile * 16)
+			address = ppu.Ctrl.spritePatternTable + (tile * 16)
 		}
 		spriteY = (uint16(ppu.ScanLine) - uint16(ppu.oam[i].y)) % spriteHeight
 		if ppu.oam[i].attributes&0x80 != 0 {
@@ -510,4 +542,148 @@ func (ppu *PPU) loadSprites() {
 		ppu.oam[i].low = ppu.access(address)
 		ppu.oam[i].high = ppu.access(address + 8)
 	}
+}
+
+func (ppu *PPU) renderPixel(render bool) {
+	var palette byte = 0
+	var objPalette byte = 0
+	objPriority := false
+	x := ppu.Cycle - 2
+
+	if ppu.ScanLine < 240 && x >= 0 && x < 256 {
+		if ppu.Mask.showBg && !(!ppu.Mask.bgLeft && x < 8) {
+			// Background:
+			palette = byte((nthBit(ppu.bgShiftH, 15-uint16(ppu.x)) << 1) | nthBit(ppu.bgShiftL, 15-uint16(ppu.x)))
+			if palette != 0 {
+				palette |= byte((nthBit(ppu.atShiftH, 7-uint16(ppu.x))<<1)|nthBit(ppu.atShiftL, 7-uint16(ppu.x))) << 2
+			}
+		}
+		// Sprites:
+		if ppu.Mask.showSpr && !(!ppu.Mask.sprLeft && x < 8) {
+			for i := 7; i >= 0; i-- {
+				if ppu.oam[i].id == 64 {
+					continue // Void entry.
+				}
+				sprX := byte(x) - ppu.oam[i].x
+				if sprX >= 8 {
+					continue // Not in range.
+				}
+				if (ppu.oam[i].attributes & 0x40) != 0 {
+					sprX ^= 7 // Horizontal flip.
+				}
+
+				sprPalette := (nthBitByte(ppu.oam[i].high, 7-sprX) << 1) | nthBitByte(ppu.oam[i].low, 7-sprX)
+				if sprPalette == 0 {
+					continue // Transparent pixel.
+				}
+				if ppu.oam[i].id == 0 && palette != 0 && x != 255 {
+					ppu.Status.spriteHit = true
+				}
+				sprPalette |= (ppu.oam[i].attributes & 3) << 2
+				objPalette = sprPalette + 16
+				objPriority = (ppu.oam[i].attributes & 0x20) != 0
+			}
+		}
+		// Evaluate priority:
+		if objPalette != 0 && (palette == 0 || !objPriority) {
+			palette = objPalette
+		}
+		var offset uint16
+		if render {
+			offset = uint16(palette)
+		} else {
+			offset = 0
+		}
+		ppu.Pixels[ppu.ScanLine*256+x] = Colors[ppu.access(0x3F00+offset)]
+	}
+	// Perform background shifts:
+	ppu.bgShiftL <<= 1
+	ppu.bgShiftH <<= 1
+	ppu.atShiftL = (ppu.atShiftL << 1) | ppu.atLatchL
+	ppu.atShiftH = (ppu.atShiftH << 1) | ppu.atLatchH
+}
+
+func nthBit(x uint16, n uint16) uint16 {
+	return ((x) >> (n)) & 1
+}
+
+func nthBitByte(x byte, n byte) byte {
+	return ((x) >> (n)) & 1
+}
+
+func (ppu *PPU) reloadShift() {
+	ppu.bgShiftL = (ppu.bgShiftL & 0xFF00) | ppu.bgL
+	ppu.bgShiftH = (ppu.bgShiftH & 0xFF00) | ppu.bgH
+	ppu.atLatchL = ppu.at & 1
+	ppu.atLatchH = ppu.at & 2
+}
+
+func (ppu *PPU) atAddress() uint16 {
+	return 0x23C0 | (ppu.vRamAddress & 0x0C00) | ((ppu.vRamAddress >> 4) & 0x38) | ((ppu.vRamAddress >> 2) & 0x07)
+}
+
+func (ppu *PPU) bgAddress() uint16 {
+	fineY := (ppu.vRamAddress >> 12) & 7
+	return ppu.Ctrl.bgPatternTable + (ppu.nt * 16) + fineY
+}
+
+func (ppu *PPU) hScroll(render bool) {
+	if !render {
+		return
+	}
+	if ppu.vRamAddress&0x001F == 31 {
+		// coarse X = 0
+		ppu.vRamAddress &= 0xFFE0
+		// switch horizontal nametable
+		ppu.vRamAddress ^= 0x0400
+	} else {
+		// increment coarse X
+		ppu.vRamAddress++
+	}
+}
+
+func (ppu *PPU) vScroll(render bool) {
+	if !render {
+		return
+	}
+	// increment vert(v)
+	// if fine Y < 7
+	if ppu.vRamAddress&0x7000 != 0x7000 {
+		// increment fine Y
+		ppu.vRamAddress += 0x1000
+	} else {
+		// fine Y = 0
+		ppu.vRamAddress &= 0x8FFF
+		// let y = coarse Y
+		y := (ppu.vRamAddress & 0x03E0) >> 5
+		if y == 29 {
+			// coarse Y = 0
+			y = 0
+			// switch vertical nametable
+			ppu.vRamAddress ^= 0x0800
+		} else if y == 31 {
+			// coarse Y = 0, nametable not switched
+			y = 0
+		} else {
+			// increment coarse Y
+			y++
+		}
+		// put coarse Y back into v
+		ppu.vRamAddress = (ppu.vRamAddress & 0xFC1F) | (y << 5)
+	}
+}
+
+func (ppu *PPU) hUpdate(render bool) {
+	if !render {
+		return
+	}
+	// v: .....F.. ...EDCBA = t: .....F.. ...EDCBA
+	ppu.vRamAddress = (ppu.vRamAddress & 0xFBE0) | (ppu.temporaryVRamAddress & 0x041F)
+}
+func (ppu *PPU) vUpdate(render bool) {
+	if !render {
+		return
+	}
+	// v: .IHGF.ED CBA..... = t: .IHGF.ED CBA.....
+	ppu.vRamAddress = (ppu.vRamAddress & 0x841F) | (ppu.temporaryVRamAddress & 0x7BE0)
 }

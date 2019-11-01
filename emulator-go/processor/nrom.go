@@ -52,6 +52,6 @@ func CreateMapper(cartridge *Cartridge) Mapper {
 	case 0x00:
 		return NROM{cartridge, uint16(len(cartridge.ROM) / 0x4000)}
 	default:
-		return nil
+		return NROM{cartridge, uint16(len(cartridge.ROM) / 0x4000)}
 	}
 }
