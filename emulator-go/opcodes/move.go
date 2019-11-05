@@ -57,7 +57,7 @@ func (o sta) Exec(console *processor.Console, variation *Variation, state *State
 
 		/// log
 		state.hasData = true
-		state.data = console.FetchData(address)
+		state.data = console.FetchDataForLog(address)
 
 		variation.addressingMode.WriteTo(console, address, console.CPU.A)
 	}
@@ -136,7 +136,7 @@ func (o stx) Exec(console *processor.Console, variation *Variation, state *State
 
 		/// log
 		state.hasData = true
-		state.data = console.FetchData(address)
+		state.data = console.FetchDataForLog(address)
 
 		variation.addressingMode.WriteTo(console, address, console.CPU.X)
 	}
@@ -211,7 +211,7 @@ func (o sty) Exec(console *processor.Console, variation *Variation, state *State
 
 		/// log
 		state.hasData = true
-		state.data = console.FetchData(address)
+		state.data = console.FetchDataForLog(address)
 
 		variation.addressingMode.WriteTo(console, address, console.CPU.Y)
 	}

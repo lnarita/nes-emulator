@@ -9,286 +9,181 @@ type PPU struct {
 	Console *Console // parent pointer :/
 
 	Cycle    int // 0-340
-	ScanLine int // 0-261, 0-239=visible, 240=post, 241-260=vblank, 261=pre
+	ScanLine int
 	Frame    uint64
 
 	Ctrl   *PPUCTRL
 	Mask   *PPUMASK
 	Status *PPUSTATUS
 
-	palettes      [32]byte // 4 colours each; 4 background palettes; 4 foreground palettes
-	nameTableData [2048]byte
-	oamMem        [256]byte
+	palettes   [32]byte // 4 colours each; 4 background palettes; 4 foreground palettes
+	nametables [2048]byte
+	oam        *OAM
 
-	oam     [8]Sprite
-	copyOam [8]Sprite
-	Pixels  [256 * 240]color.RGBA
+	spriteCount byte
+	sprites     [8]Sprite
+	Pixels      [256 * 240]color.RGBA
 
 	// PPUSCROLL registers
-	vRamAddress          uint16
-	temporaryVRamAddress uint16
-	x                    byte // fine x scroll (3 bit)
-	latch                bool // write latch
-	odd                  byte // even/odd frame flag
+	v     uint16
+	t     uint16
+	x     byte // fine x scroll (3 bit)
+	latch bool // write latch
+	odd   bool // even/odd frame flag
 
-	scanlineAddr uint16
-	// Background latches:
-	nt  uint16
-	at  uint16
-	bgL uint16
-	bgH uint16
-	// Background shift registers:
-	atShiftL uint16
-	atShiftH uint16
-	bgShiftL uint16
-	bgShiftH uint16
-	atLatchL uint16
-	atLatchH uint16
+	// NMI flags
+	nmiOccurred bool
+	nmiOutput   bool
+	nmiPrevious bool
+	nmiDelay    byte
 
-	oamAddress   byte
-	bufferedData byte
+	nt       uint8
+	at       uint8
+	tileLow  uint8
+	tileHigh uint8
+	tileData uint64
 
-	mirroring byte // mirroring mode. 0: horizontal; 1: vertical; 2: 4-screen VRAM
+	readAddress    uint16
+	attributeShift uint16
+	oamAddress     byte
+	bufferedData   byte
 }
 
 type Sprite struct {
-	id         uint8 // index in oam
+	id         uint8 // index in sprites
 	x          uint8
 	y          uint8
-	tile       uint8 // index
+	tile       uint32
 	attributes uint8
-	low        uint8 // tile data
-	high       uint8 // tile data
 }
 
-type PPUCTRL struct {
-	nameTable          uint16 // Nametable ($2000 / $2400 / $2800 / $2C00)
-	addressIncrement   uint16 // Address increment (1 across / 32 down)
-	spritePatternTable uint16 // Sprite pattern table ($0000 / $1000)
-	bgPatternTable     uint16 // BG pattern table ($0000 / $1000)
-	spriteSize         byte   // Sprite size (8x8 / 8x16)
-	slave              bool   // PPU master/slave select (read backdrop from EXT pins; output color on EXT pins)
-	nmiEnabled         bool   // Enable NMI
+func (ppu PPU) String() string {
+	return fmt.Sprintf("PPU { Cycle: %d, V: %04X, T: %04X, NT: %04X, AT: %04X, tileData: %04X, tileLow: %04X, tileHigh: %04X, Palettes: % 04X }", ppu.Cycle, ppu.v, ppu.t, ppu.nt, ppu.at, ppu.tileData, ppu.tileLow, ppu.tileHigh, ppu.palettes)
 }
 
-func createControlFromInt(flag uint8) *PPUCTRL {
-	ctrl := &PPUCTRL{}
-	ctrl.fromFlag(flag)
-	return ctrl
-}
-
-func (ctrl *PPUCTRL) fromFlag(flag uint8) {
-	var increment uint16
-	if (flag>>2)&1 > 0 {
-		increment = 32
-	} else {
-		increment = 1
-	}
-	var sprite byte
-	if (flag>>5)&1 > 0 {
-		sprite = 16
-	} else {
-		sprite = 8
-	}
-	ctrl.nameTable = uint16((flag>>0)&3) * 0x100
-	ctrl.addressIncrement = increment
-	ctrl.spritePatternTable = uint16((flag>>3)&1) * 0x1000
-	ctrl.bgPatternTable = uint16((flag>>4)&1) * 0x1000
-	ctrl.spriteSize = sprite
-	ctrl.slave = (flag>>6)&1 != 0
-	ctrl.nmiEnabled = (flag>>7)&1 != 0
-}
-
-type PPUMASK struct {
-	grayscale      bool // Grayscale.
-	bgLeft         bool // Show background in leftmost 8 pixels.
-	sprLeft        bool // Show sprite in leftmost 8 pixels.
-	showBg         bool // Show background.
-	showSpr        bool // Show sprites.
-	intensifyRed   bool // Intensify reds.
-	intensifyGreen bool // Intensify greens.
-	intensifyBlue  bool // Intensify blues.
-}
-
-func createMaskFromInt(flag uint8) *PPUMASK {
-	mask := &PPUMASK{}
-	mask.fromFlag(flag)
-	return mask
-}
-
-func (msk *PPUMASK) fromFlag(flag uint8) {
-	msk.grayscale = (flag>>0)&1 != 0
-	msk.bgLeft = (flag>>1)&1 != 0
-	msk.sprLeft = (flag>>2)&1 != 0
-	msk.showBg = (flag>>3)&1 != 0
-	msk.showSpr = (flag>>4)&1 != 0
-	msk.intensifyRed = (flag>>5)&1 != 0
-	msk.intensifyGreen = (flag>>6)&1 != 0
-	msk.intensifyBlue = (flag>>7)&1 != 0
-}
-
-type PPUSTATUS struct {
-	bus            byte // Not significant.
-	spriteOverflow bool // Sprite overflow.
-	spriteHit      bool // Sprite 0 Hit.
-	vBlank         bool // In VBlank?
-}
-
-func createStatusFromInt(flag uint8) *PPUSTATUS {
-	status := &PPUSTATUS{}
-	status.fromFlag(flag)
-	return status
-}
-
-func (status *PPUSTATUS) fromFlag(flag uint8) {
-	status.bus = flag & 0b0001_1111
-	status.spriteOverflow = flag&0b0010_0000 > 0
-	status.spriteHit = flag&0b0100_0000 > 0
-	status.vBlank = flag&0b1000_0000 > 0
-}
-
-func (status *PPUSTATUS) toFlag() uint8 {
-	var flag byte = 0
-	flag |= status.bus & 0b0001_1111
-	if status.spriteOverflow {
-		flag |= 0b0010_0000
-	}
-	if status.spriteHit {
-		flag |= 0b0100_0000
-	}
-	if status.vBlank {
-		flag |= 0b1000_0000
-	}
-	return flag
-}
-
-func (ppu *PPU) ExecCycle() {
+func (ppu *PPU) Step() {
 	ppu.Tick()
 	ppu.Tick()
 	ppu.Tick()
 }
 
 func (ppu *PPU) Tick() {
+	if ppu.nmiDelay > 0 {
+		ppu.nmiDelay--
+		if ppu.nmiDelay == 0 && ppu.nmiOutput && ppu.nmiOccurred {
+			ppu.Console.TriggerNMI()
+		}
+	}
+
+	if ppu.Mask.showBg || ppu.Mask.showSpr {
+		if ppu.odd && ppu.ScanLine == 261 && ppu.Cycle == 339 {
+			ppu.Cycle = 0
+			ppu.ScanLine = 0
+			ppu.Frame++
+			ppu.odd = !ppu.odd
+			return
+		}
+	}
+
+	ppu.Cycle++
+	if ppu.Cycle > 340 {
+		ppu.Cycle = 0
+		ppu.ScanLine++
+		if ppu.ScanLine > 261 {
+			ppu.ScanLine = 0
+			ppu.Frame++
+			ppu.odd = !ppu.odd
+		}
+	}
+
 	renderingEnabled := ppu.Mask.showBg || ppu.Mask.showSpr
-	//renderingEnabled = true
+
 	// There are a total of 262 scanlines per frame
 	//   Scanlines 0 to 239 are for display (NES is 256 x 240)
 	//   Scanline  240 is a post-render scanline (idle)
 	//   Scanlines 241 to 260 are the vblank interval
 	//   Scanline  261 is a pre-render scanline
 	visibleLine := ppu.ScanLine < 240
-	postLine := ppu.ScanLine == 240
-	nmiLine := ppu.ScanLine == 241
 	preLine := ppu.ScanLine == 261
 
-	ppu.scanlineCycle(renderingEnabled, visibleLine, postLine, nmiLine, preLine)
-
-	ppu.Cycle++
-	if ppu.Cycle > 340 {
-		ppu.Cycle %= 341
-		ppu.ScanLine++
-		if ppu.ScanLine > 261 {
-			ppu.ScanLine = 0
-			ppu.odd ^= 1
-		}
-	}
+	ppu.scanlineCycle(renderingEnabled, visibleLine, preLine)
 }
 
-func (ppu *PPU) scanlineCycle(render, visible, post, nmi, pre bool) {
-	console := ppu.Console
-	if nmi && ppu.Cycle == 1 {
-		ppu.Status.vBlank = true
-		if ppu.Ctrl.nmiEnabled {
-			console.TriggerNMI()
-		}
-	} else if post && ppu.Cycle == 0 {
-		// signal render
-	} else if visible || pre {
-		// Sprites
-		switch ppu.Cycle {
-		case 1:
-			ppu.clearOAM()
-			if pre {
-				ppu.Status.spriteHit = false
-				ppu.Status.spriteOverflow = false
-			}
-		case 257:
-			ppu.evalSprites()
-		case 321:
-			ppu.loadSprites()
-		}
-		// BG
-		switch {
-		case 2 < ppu.Cycle && ppu.Cycle < 255 || 322 < ppu.Cycle && ppu.Cycle < 337:
-			ppu.renderPixel(render)
-			switch ppu.Cycle % 8 {
-			// Nametable:
-			case 1:
-				ppu.scanlineAddr = ppu.ntAddress()
-				ppu.reloadShift()
-			case 2:
-				ppu.nt = uint16(ppu.access(ppu.scanlineAddr))
-			// Attribute:
-			case 3:
-				ppu.scanlineAddr = ppu.atAddress()
-			case 4:
-				ppu.at = uint16(ppu.access(ppu.scanlineAddr))
-				shift := ((ppu.vRamAddress >> 4) & 4) | (ppu.vRamAddress & 2)
-				ppu.at = ((ppu.at >> shift) & 3) << 2
-			// Background (low bits):
-			case 5:
-				ppu.scanlineAddr = ppu.bgAddress()
-			case 6:
-				ppu.bgL = uint16(ppu.access(ppu.scanlineAddr))
-			// Background (high bits):
-			case 7:
-				ppu.scanlineAddr += 8
-			case 0:
-				ppu.bgH = uint16(ppu.access(ppu.scanlineAddr))
-				ppu.hScroll(render)
-			}
-		case ppu.Cycle == 256:
-			ppu.renderPixel(render)
-			ppu.bgH = uint16(ppu.access(ppu.scanlineAddr))
-			ppu.vScroll(render)
-			// Vertical bump.
-		case ppu.Cycle == 257:
-			ppu.renderPixel(render)
-			ppu.reloadShift()
-			ppu.hUpdate(render)
-			// Update horizontal position.
-		case 280 < ppu.Cycle && ppu.Cycle < 304:
-			if pre {
-				ppu.vUpdate(render)
-			}
-			// Update vertical position.
+func (ppu *PPU) scanlineCycle(render, visible, pre bool) {
+	renderLine := visible || pre
+	preFetchCycle := ppu.Cycle >= 321 && ppu.Cycle <= 336
+	visibleCycle := ppu.Cycle >= 1 && ppu.Cycle <= 256
+	fetchCycle := preFetchCycle || visibleCycle
 
-		// No shift reloading:
-		case ppu.Cycle == 1:
-			ppu.scanlineAddr = ppu.ntAddress()
-			if pre {
-				ppu.Status.vBlank = false
-			}
-		case ppu.Cycle == 321 || ppu.Cycle == 339:
-			ppu.scanlineAddr = ppu.ntAddress()
-		// Nametable fetch instead of attribute:
-		case ppu.Cycle == 338:
-			ppu.scanlineAddr = uint16(ppu.access(ppu.scanlineAddr))
-		case ppu.Cycle == 340:
-			ppu.nt = uint16(ppu.access(ppu.scanlineAddr))
-			if pre && render && ppu.odd == 1 {
-				ppu.Cycle++
+	// BG
+	if visible && visibleCycle {
+		ppu.renderPixel(render)
+	}
+
+	if render {
+		if renderLine && fetchCycle {
+			ppu.tileData <<= 4
+
+			switch ppu.Cycle % 8 {
+			case 1:
+				ppu.readAddress = ppu.ntAddress()
+			case 2:
+				ppu.nt = ppu.rd(ppu.readAddress)
+			case 3:
+				ppu.readAddress, ppu.attributeShift = ppu.atAddress()
+			case 4:
+				ppu.at = ((ppu.rd(ppu.readAddress) >> ppu.attributeShift) & 3) << 2
+			case 5:
+				ppu.readAddress = ppu.bgAddress()
+			case 6:
+				ppu.tileLow = ppu.rd(ppu.readAddress)
+			case 7:
+				ppu.readAddress += 8
+			case 0:
+				ppu.tileHigh = ppu.rd(ppu.readAddress)
+				ppu.storeTileData()
 			}
 		}
+	}
+
+	if pre && ppu.Cycle >= 280 && ppu.Cycle <= 304 {
+		ppu.vUpdate(render)
+	}
+
+	if renderLine {
+		if fetchCycle && ppu.Cycle%8 == 0 {
+			ppu.hScroll(render)
+		}
+		if ppu.Cycle == 256 {
+			ppu.vScroll(render)
+		}
+		if ppu.Cycle == 257 {
+			ppu.hUpdate(render)
+		}
+	}
+
+	// Sprite
+	if render && ppu.Cycle == 257 {
+		if visible {
+			ppu.evalSprites()
+		} else {
+			ppu.spriteCount = 0
+		}
+	}
+
+	// vblank logic
+	if ppu.ScanLine == 241 && ppu.Cycle == 1 {
+		ppu.setVerticalBlank()
+	}
+	if pre && ppu.Cycle == 1 {
+		ppu.clearVerticalBlank()
+		ppu.Status.spriteHit = false
+		ppu.Status.spriteOverflow = false
 	}
 }
 
 func (ppu *PPU) ntAddress() uint16 {
-	return 0x2000 | ppu.vRamAddress&0xFFF
-}
-
-func (ppu PPU) String() string {
-	return fmt.Sprintf("PPU { \"cycle\": %d }", ppu.Cycle)
+	return 0x2000 | ppu.v&0xFFF
 }
 
 func (ppu *PPU) Reset() {
@@ -301,40 +196,58 @@ func (ppu *PPU) Reset() {
 	ppu.writeCtrl(0)
 	if ppu.Mask == nil {
 		ppu.Mask = createMaskFromInt(0)
-	} else {
-		ppu.Mask.fromFlag(0)
 	}
+	ppu.writeMask(0)
 	if ppu.Status == nil {
 		ppu.Status = createStatusFromInt(0)
-	} else {
-		ppu.Status.fromFlag(0)
+	}
+	ppu.writeOAMAddress(0)
+	if ppu.oam == nil {
+		ppu.oam = &OAM{}
 	}
 }
 
+// OK?
 func (ppu *PPU) Read(address uint16) byte {
+	var result byte
 	switch address {
 	case 0x2002:
-		return ppu.readStatus()
+		result = ppu.readStatus()
 	case 0x2004:
-		return ppu.readOAM()
+		result = ppu.readOAM()
 	case 0x2007:
-		return ppu.readData()
+		result = ppu.readData()
 	}
-	return 0
+	return result
 }
 
+// OK?
+func (ppu *PPU) ReadDataForLog(address uint16) byte {
+	var result byte
+	switch address {
+	case 0x2007:
+		result = ppu.readDataForLog()
+	}
+	return result
+}
+
+// OK?
 func (ppu *PPU) readOAM() byte {
-	res := ppu.oamMem[ppu.oamAddress]
+	res := ppu.oam.Read(uint16(ppu.oamAddress))
 	return res
 }
 
+// CHECK FLAGS
 func (ppu *PPU) readStatus() byte {
+	ppu.Status.vBlank = ppu.nmiOccurred
 	res := ppu.Status.toFlag()
 	ppu.latch = false
-	ppu.Status.vBlank = false
+	ppu.nmiOccurred = false
+	ppu.nmiChange()
 	return res
 }
 
+// OK?
 func (ppu *PPU) Write(address uint16, data byte) {
 	ppu.updateStatusBus(data)
 	switch address {
@@ -357,42 +270,44 @@ func (ppu *PPU) Write(address uint16, data byte) {
 	}
 }
 
-func (ppu *PPU) getCiramAddress(address uint16) uint16 {
-	switch ppu.mirroring {
-	//horizontal
-	case 0:
-		return address % 0x800
-	//vertical
-	case 1:
-		return ((address / 2) & 0x400) + (address % 0400)
-	//4-screen VRAM
-	default:
-		return address - 0x2000
-	}
-}
-
-func (ppu *PPU) access(address uint16) byte {
+func (ppu *PPU) rd(address uint16) byte {
+	var result byte
+	console := ppu.Console
+	index := address % 0x4000
 	switch {
-	case address < 0x2000:
-		return ppu.Console.Memory.mapper.Read(address)
-	case address < 0x3F00:
-		return ppu.nameTableData[ppu.getCiramAddress(address)]
-	case address < 0x4000:
-		return ppu.readPalette(address%32)
+	case index < 0x2000:
+		result = console.Memory.mapper.Read(index)
+	case index < 0x3F00:
+		mirrorAddress := console.Cartridge.Mirroring.calcAddress(address) % 2048
+		result = ppu.nametables[mirrorAddress]
+	case index < 0x4000:
+		result = ppu.readPalette(index % 0x20)
 	}
-	return 0
+	return result
 }
 
+// OK?
 func (ppu *PPU) readData() byte {
 	var res byte
-	if ppu.vRamAddress <= 0x3EFF {
+	if ppu.v%0x4000 < 0x3F00 {
 		res = ppu.bufferedData
-		ppu.bufferedData = ppu.access(ppu.vRamAddress)
+		ppu.bufferedData = ppu.rd(ppu.v)
 	} else {
-		ppu.bufferedData = ppu.access(ppu.vRamAddress)
-		res = ppu.bufferedData
+		ppu.bufferedData = ppu.rd(ppu.v - 0x1000)
+		res = ppu.rd(ppu.v)
 	}
-	ppu.vRamAddress += ppu.Ctrl.addressIncrement
+	ppu.v += ppu.Ctrl.addressIncrement
+	return res
+}
+
+// OK?
+func (ppu *PPU) readDataForLog() byte {
+	var res byte
+	if ppu.v%0x4000 < 0x3F00 {
+		res = ppu.bufferedData
+	} else {
+		res = ppu.rd(ppu.v)
+	}
 	return res
 }
 
@@ -400,58 +315,70 @@ func (ppu *PPU) updateStatusBus(data byte) {
 	ppu.Status.bus = data & 0x1F
 }
 
+// OK?
 func (ppu *PPU) writeCtrl(data byte) {
 	ppu.Ctrl.fromFlag(data)
-	ppu.temporaryVRamAddress = (ppu.temporaryVRamAddress & 0xF3FF) | (uint16(data) & 0x03 << 10)
+	ppu.nmiOutput = (data>>7)&1 == 1
+	ppu.nmiChange()
+	ppu.t = (ppu.t & 0xF3FF) | (uint16(data) & 0x03 << 10)
 }
 
+// OK?
 func (ppu *PPU) writeMask(data byte) {
 	ppu.Mask.fromFlag(data)
 }
 
+// OK?
 func (ppu *PPU) writeOAMAddress(data byte) {
 	ppu.oamAddress = data
 }
 
+// OK?
 func (ppu *PPU) writeOAMData(data byte) {
-	ppu.oamMem[ppu.oamAddress] = data
+	ppu.oam.Write(uint16(ppu.oamAddress), data)
 	ppu.oamAddress++
 }
 
+// OK?
 func (ppu *PPU) writeScroll(data byte) {
 	if !ppu.latch {
-		ppu.temporaryVRamAddress = (ppu.temporaryVRamAddress & 0xFFE0) | (uint16(data) >> 3)
+		ppu.t = (ppu.t & 0xFFE0) | (uint16(data) >> 3)
 		ppu.x = data & 0x07
 	} else {
-		ppu.temporaryVRamAddress = (ppu.temporaryVRamAddress & 0x8FFF) | ((uint16(data) & 0x07) << 12)
-		ppu.temporaryVRamAddress = (ppu.temporaryVRamAddress & 0xFC1F) | ((uint16(data) & 0xF8) << 2)
+		ppu.t = (ppu.t & 0x8FFF) | ((uint16(data) & 0x07) << 12)
+		ppu.t = (ppu.t & 0xFC1F) | ((uint16(data) & 0xF8) << 2)
 	}
 	ppu.latch = !ppu.latch
 }
 
+// OK?
 func (ppu *PPU) writeAddress(data byte) {
 	if !ppu.latch {
-		ppu.temporaryVRamAddress = (ppu.temporaryVRamAddress & 0x80FF) | ((uint16(data) & 0x3F) << 8)
+		ppu.t = (ppu.t & 0x80FF) | ((uint16(data) & 0x3F) << 8)
 	} else {
-		ppu.temporaryVRamAddress = (ppu.temporaryVRamAddress & 0xFF00) | uint16(data)
-		ppu.vRamAddress = ppu.temporaryVRamAddress
+		ppu.t = (ppu.t & 0xFF00) | uint16(data)
+		ppu.v = ppu.t
 	}
 	ppu.latch = !ppu.latch
 }
 
+// OK?
 func (ppu *PPU) writeData(data byte) {
-	ppu.accessWrite(ppu.vRamAddress, data)
-	ppu.vRamAddress += ppu.Ctrl.addressIncrement
+	ppu.wr(ppu.v, data)
+	ppu.v += ppu.Ctrl.addressIncrement
 }
 
-func (ppu *PPU) accessWrite(address uint16, data byte) {
+func (ppu *PPU) wr(address uint16, data byte) {
+	console := ppu.Console
+	index := address % 0x4000
 	switch {
-	case address < 0x2000:
-		ppu.Console.Memory.mapper.Write(address, data)
-	case address < 0x3F00:
-		ppu.nameTableData[ppu.getCiramAddress(address)] = data
-	case address < 0x4000:
-		ppu.writePalette(address%32, data)
+	case index < 0x2000:
+		console.Memory.mapper.Write(index, data)
+	case index < 0x3F00:
+		mirrorAddress := console.Cartridge.Mirroring.calcAddress(index) % 2048
+		ppu.nametables[mirrorAddress] = data
+	case index < 0x4000:
+		ppu.writePalette(index%32, data)
 	}
 }
 
@@ -462,172 +389,108 @@ func (ppu *PPU) writeDMA(data byte) {
 		ppu.writeOAMData(console.FetchData(address))
 		address++
 	}
-	console.CPU.Cycle += 513
+	console.CPU.Stall += 513
 	if console.CPU.Cycle%2 != 0 {
-		console.CPU.Cycle++
-	}
-}
-
-func (ppu *PPU) clearOAM() {
-	for i := 0; i < 8; i++ {
-		ppu.copyOam[i].id = 64
-		ppu.copyOam[i].x = 0xFF
-		ppu.copyOam[i].y = 0xFF
-		ppu.copyOam[i].tile = 0xFF
-		ppu.copyOam[i].attributes = 0xFF
-		ppu.copyOam[i].low = 0
-		ppu.copyOam[i].high = 0
+		console.CPU.Stall++
 	}
 }
 
 func (ppu *PPU) evalSprites() {
-	n := 0
+	count := 0
 	var line int
-	spriteHeight := int(ppu.Ctrl.spriteSize)
-	var i byte
+	var y uint8
+	size := int(ppu.Ctrl.spriteSize)
+	var baseAddress uint16
+	var i uint16
 	for i = 0; i < 64; i++ {
-		if ppu.ScanLine == 261 {
-			line = -1
-		} else {
-			line = ppu.ScanLine
+		baseAddress = i * 4
+		y = ppu.oam.Read(baseAddress)
+		line = ppu.ScanLine - int(y)
+		if line < 0 || line >= size {
+			continue
 		}
-		line -= int(ppu.oamMem[i*4])
-		// If there's a sprite in the scanline, copy its properties into OAM copy:
-		if line >= 0 && line < spriteHeight {
-			ppu.copyOam[n].id = i
-			ppu.copyOam[n].y = ppu.oamMem[i*4]
-			ppu.copyOam[n].tile = ppu.oamMem[i*4+1]
-			ppu.copyOam[n].attributes = ppu.oamMem[i*4+2]
-			ppu.copyOam[n].x = ppu.oamMem[i*4+3]
-			n++
-			if n > 7 {
-				ppu.Status.spriteOverflow = true
-				break
-			}
+		ppu.sprites[count].id = byte(i)
+		ppu.sprites[count].attributes = ppu.oam.Read(baseAddress + 2)
+		ppu.sprites[count].tile = ppu.fetchSpritePattern(count, i, line, ppu.sprites[count].attributes)
+		ppu.sprites[count].x = ppu.oam.Read(baseAddress + 3)
+		ppu.sprites[count].y = y
+		count++
+		if count > 7 {
+			ppu.Status.spriteOverflow = true
+			break
 		}
 	}
+	ppu.spriteCount = byte(count)
 }
 
-func (ppu *PPU) loadSprites() {
+func (ppu *PPU) fetchSpritePattern(id int, index uint16, line int, attributes byte) uint32 {
+	tile := uint16(ppu.oam.Read(index*4 + 1))
 	var address uint16
-	var tile uint16
-	var spriteHeight uint16
-	var spriteY uint16
+	if ppu.Ctrl.spriteSize == 8 {
+		if attributes&0x80 == 0x80 {
+			line = 7 - line
+		}
+		address = ppu.Ctrl.spritePatternTable + (tile * 16) + uint16(line)
+	} else {
+		if attributes&0x80 == 0x80 {
+			line = 15 - line
+		}
+		table := tile & 1
+		tile &= 0xFE
+		if line > 7 {
+			tile++
+			line -= 8
+		}
+
+		address = 0x1000*table + (tile * 16) + uint16(line)
+	}
+
+	a := (attributes & 3) << 2
+	lowTileByte := ppu.rd(address)
+	highTileByte := ppu.rd(address + 8)
+	var data uint32
 	for i := 0; i < 8; i++ {
-		ppu.oam[i] = ppu.copyOam[i]
-		tile = uint16(ppu.oam[i].tile)
-		spriteHeight = uint16(ppu.Ctrl.spriteSize)
-		if ppu.Ctrl.spriteSize == 16 {
-			address = ((tile & 1) * 0x1000) + ((tile & (^uint16(1))) * 16)
+		var p1, p2 byte
+		if attributes&0x40 == 0x40 {
+			p1 = (lowTileByte & 1) << 0
+			p2 = (highTileByte & 1) << 1
+			lowTileByte >>= 1
+			highTileByte >>= 1
 		} else {
-			address = ppu.Ctrl.spritePatternTable + (tile * 16)
+			p1 = (lowTileByte & 0x80) >> 7
+			p2 = (highTileByte & 0x80) >> 6
+			lowTileByte <<= 1
+			highTileByte <<= 1
 		}
-		spriteY = (uint16(ppu.ScanLine) - uint16(ppu.oam[i].y)) % spriteHeight
-		if ppu.oam[i].attributes&0x80 != 0 {
-			spriteY ^= spriteHeight - 1
-		}
-		address += spriteY + (spriteY & 8)
-
-		ppu.oam[i].low = ppu.access(address)
-		ppu.oam[i].high = ppu.access(address + 8)
+		data <<= 4
+		data |= uint32(a | p1 | p2)
 	}
+	return data
 }
 
-func (ppu *PPU) renderPixel(render bool) {
-	var palette byte = 0
-	var objPalette byte = 0
-	objPriority := false
-	x := ppu.Cycle - 2
-
-	if ppu.ScanLine < 240 && x >= 0 && x < 256 {
-		if ppu.Mask.showBg && !(!ppu.Mask.bgLeft && x < 8) {
-			// Background:
-			palette = byte((nthBit(ppu.bgShiftH, 15-uint16(ppu.x)) << 1) | nthBit(ppu.bgShiftL, 15-uint16(ppu.x)))
-			if palette != 0 {
-				palette |= byte((nthBit(ppu.atShiftH, 7-uint16(ppu.x))<<1)|nthBit(ppu.atShiftL, 7-uint16(ppu.x))) << 2
-			}
-		}
-		// Sprites:
-		if ppu.Mask.showSpr && !(!ppu.Mask.sprLeft && x < 8) {
-			for i := 7; i >= 0; i-- {
-				if ppu.oam[i].id == 64 {
-					continue // Void entry.
-				}
-				sprX := byte(x) - ppu.oam[i].x
-				if sprX >= 8 {
-					continue // Not in range.
-				}
-				if (ppu.oam[i].attributes & 0x40) != 0 {
-					sprX ^= 7 // Horizontal flip.
-				}
-
-				sprPalette := (nthBitByte(ppu.oam[i].high, 7-sprX) << 1) | nthBitByte(ppu.oam[i].low, 7-sprX)
-				if sprPalette == 0 {
-					continue // Transparent pixel.
-				}
-				if ppu.oam[i].id == 0 && palette != 0 && x != 255 {
-					ppu.Status.spriteHit = true
-				}
-				sprPalette |= (ppu.oam[i].attributes & 3) << 2
-				objPalette = sprPalette + 16
-				objPriority = (ppu.oam[i].attributes & 0x20) != 0
-			}
-		}
-		// Evaluate priority:
-		if objPalette != 0 && (palette == 0 || !objPriority) {
-			palette = objPalette
-		}
-		var offset uint16
-		if render {
-			offset = uint16(palette)
-		} else {
-			offset = 0
-		}
-		ppu.Pixels[ppu.ScanLine*256+x] = Colors[ppu.access(0x3F00+offset)]
-	}
-	// Perform background shifts:
-	ppu.bgShiftL <<= 1
-	ppu.bgShiftH <<= 1
-	ppu.atShiftL = (ppu.atShiftL << 1) | ppu.atLatchL
-	ppu.atShiftH = (ppu.atShiftH << 1) | ppu.atLatchH
+func (ppu *PPU) atAddress() (uint16, uint16) {
+	v := ppu.v
+	address := 0x23C0 | (v & 0x0C00) | ((v >> 4) & 0x38) | ((v >> 2) & 0x07)
+	shift := ((v >> 4) & 4) | (v & 2)
+	return address, shift
 }
-
-func nthBit(x uint16, n uint16) uint16 {
-	return ((x) >> (n)) & 1
-}
-
-func nthBitByte(x byte, n byte) byte {
-	return ((x) >> (n)) & 1
-}
-
-func (ppu *PPU) reloadShift() {
-	ppu.bgShiftL = (ppu.bgShiftL & 0xFF00) | ppu.bgL
-	ppu.bgShiftH = (ppu.bgShiftH & 0xFF00) | ppu.bgH
-	ppu.atLatchL = ppu.at & 1
-	ppu.atLatchH = ppu.at & 2
-}
-
-func (ppu *PPU) atAddress() uint16 {
-	return 0x23C0 | (ppu.vRamAddress & 0x0C00) | ((ppu.vRamAddress >> 4) & 0x38) | ((ppu.vRamAddress >> 2) & 0x07)
-}
-
 func (ppu *PPU) bgAddress() uint16 {
-	fineY := (ppu.vRamAddress >> 12) & 7
-	return ppu.Ctrl.bgPatternTable + (ppu.nt * 16) + fineY
+	fineY := (ppu.v >> 12) & 7
+	tile := uint16(ppu.nt)
+	return ppu.Ctrl.bgPatternTable + (tile * 16) + fineY
 }
-
 func (ppu *PPU) hScroll(render bool) {
 	if !render {
 		return
 	}
-	if ppu.vRamAddress&0x001F == 31 {
+	if ppu.v&0x001F == 31 {
 		// coarse X = 0
-		ppu.vRamAddress &= 0xFFE0
+		ppu.v &= 0xFFE0
 		// switch horizontal nametable
-		ppu.vRamAddress ^= 0x0400
+		ppu.v ^= 0x0400
 	} else {
 		// increment coarse X
-		ppu.vRamAddress++
+		ppu.v++
 	}
 }
 
@@ -637,19 +500,19 @@ func (ppu *PPU) vScroll(render bool) {
 	}
 	// increment vert(v)
 	// if fine Y < 7
-	if ppu.vRamAddress&0x7000 != 0x7000 {
+	if ppu.v&0x7000 != 0x7000 {
 		// increment fine Y
-		ppu.vRamAddress += 0x1000
+		ppu.v += 0x1000
 	} else {
 		// fine Y = 0
-		ppu.vRamAddress &= 0x8FFF
+		ppu.v &= 0x8FFF
 		// let y = coarse Y
-		y := (ppu.vRamAddress & 0x03E0) >> 5
+		y := (ppu.v & 0x03E0) >> 5
 		if y == 29 {
 			// coarse Y = 0
 			y = 0
 			// switch vertical nametable
-			ppu.vRamAddress ^= 0x0800
+			ppu.v ^= 0x0800
 		} else if y == 31 {
 			// coarse Y = 0, nametable not switched
 			y = 0
@@ -658,7 +521,7 @@ func (ppu *PPU) vScroll(render bool) {
 			y++
 		}
 		// put coarse Y back into v
-		ppu.vRamAddress = (ppu.vRamAddress & 0xFC1F) | (y << 5)
+		ppu.v = (ppu.v & 0xFC1F) | (y << 5)
 	}
 }
 
@@ -667,14 +530,14 @@ func (ppu *PPU) hUpdate(render bool) {
 		return
 	}
 	// v: .....F.. ...EDCBA = t: .....F.. ...EDCBA
-	ppu.vRamAddress = (ppu.vRamAddress & 0xFBE0) | (ppu.temporaryVRamAddress & 0x041F)
+	ppu.v = (ppu.v & 0xFBE0) | (ppu.t & 0x041F)
 }
 func (ppu *PPU) vUpdate(render bool) {
 	if !render {
 		return
 	}
 	// v: .IHGF.ED CBA..... = t: .IHGF.ED CBA.....
-	ppu.vRamAddress = (ppu.vRamAddress & 0x841F) | (ppu.temporaryVRamAddress & 0x7BE0)
+	ppu.v = (ppu.v & 0x841F) | (ppu.t & 0x7BE0)
 }
 
 func (ppu *PPU) writePalette(address uint16, data byte) {
@@ -691,4 +554,126 @@ func (ppu *PPU) readPalette(address uint16) byte {
 		index -= 16
 	}
 	return ppu.palettes[index]
+}
+
+func (ppu *PPU) storeTileData() {
+	var p1 byte
+	var p2 byte
+	var data uint32
+	for i := 0; i < 8; i++ {
+		p1 = (ppu.tileLow & 0x80) >> 7
+		p2 = (ppu.tileHigh & 0x80) >> 6
+
+		ppu.tileLow <<= 1
+		ppu.tileHigh <<= 1
+
+		data <<= 4
+		data |= uint32(ppu.at | p1 | p2)
+	}
+	ppu.tileData |= uint64(data)
+}
+
+func (ppu *PPU) backgroundPixel() byte {
+	if !ppu.Mask.showBg {
+		return 0x0
+	}
+
+	tileData := ppu.fetchTileData() >> ((7 - ppu.x) * 4)
+	colour := byte(tileData & 0x0F)
+	return colour
+}
+
+func (ppu *PPU) spritePixel() (byte, byte) {
+	if !ppu.Mask.showSpr {
+		return 0, 0
+	}
+
+	var offset int16
+	var colour byte
+	var i byte
+	for i = 0; i < ppu.spriteCount; i++ {
+		offset = (int16(ppu.Cycle) - 1) - int16(ppu.sprites[i].x)
+
+		if offset < 0 || offset > 7 {
+			continue
+		}
+
+		offset = 7 - offset
+		colour = byte((ppu.sprites[i].tile >> (offset * 4)) & 0x0F)
+		// transparent colour
+		if colour%4 == 0 {
+			continue
+		}
+
+		return i, colour
+	}
+	return 0, 0
+}
+
+func (ppu *PPU) renderPixel(render bool) {
+	if !render {
+		return
+	}
+	x := ppu.Cycle - 1
+	y := ppu.ScanLine
+
+	background := ppu.backgroundPixel()
+	i, sprite := ppu.spritePixel()
+
+	if x < 8 && !ppu.Mask.bgLeft {
+		background = 0
+	}
+
+	if x < 8 && !ppu.Mask.sprLeft {
+		sprite = 0
+	}
+
+	b := background%4 != 0
+	s := sprite%4 != 0
+
+	var addressLowNyb uint16
+	if !b && !s {
+		addressLowNyb = 0
+	} else if !b && s {
+		addressLowNyb = uint16(sprite) | 0x10
+	} else if b && !s {
+		addressLowNyb = uint16(background)
+	} else if b && s {
+		if ppu.sprites[i].id == 0 && x < 255 {
+			ppu.Status.spriteHit = true
+		}
+
+		if (ppu.sprites[i].attributes>>5)&1 == 0 {
+			addressLowNyb = uint16(sprite) | 0x10
+		} else {
+			addressLowNyb = uint16(background)
+		}
+	}
+
+	address := 0x3F00 | addressLowNyb
+	paletteIndex := ppu.rd(address) % 64
+	colour := Colors[paletteIndex]
+	ppu.Pixels[(y*256+x)%len(ppu.Pixels)] = colour
+}
+
+func (ppu *PPU) fetchTileData() uint32 {
+	return uint32(ppu.tileData >> 32)
+}
+
+func (ppu *PPU) nmiChange() {
+	nmi := ppu.nmiOutput && ppu.nmiOccurred
+	if nmi && !ppu.nmiPrevious {
+		ppu.nmiDelay = 15
+	}
+	ppu.nmiPrevious = nmi
+}
+
+func (ppu *PPU) setVerticalBlank() {
+	ppu.nmiOccurred = true
+	ppu.nmiChange()
+}
+
+func (ppu *PPU) clearVerticalBlank() {
+	ppu.nmiOccurred = false
+	ppu.nmiChange()
 }

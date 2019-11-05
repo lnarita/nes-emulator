@@ -6,6 +6,7 @@ import (
 )
 
 type Console struct {
+	Cartridge   *Cartridge
 	CPU         *CPU
 	PPU         *PPU
 	Memory      *Memory
@@ -18,7 +19,7 @@ func (console Console) String() string {
 }
 
 func (console *Console) Tick() {
-	console.PPU.ExecCycle()
+	console.PPU.Step()
 	console.CPU.Tick()
 }
 
@@ -45,6 +46,20 @@ func (console *Console) FetchData(address uint16) byte {
 		// I/O registers
 	default:
 		log.Fatalf("unhandled cpu memory read at address: 0x%04X\n", address)
+	}
+	return 0xFF
+}
+
+func (console *Console) FetchDataForLog(address uint16) byte {
+	switch {
+	case address >= 0x6000 || address < 0x2000:
+		return console.Memory.Read(address)
+	case address < 0x4000:
+		return console.PPU.ReadDataForLog(0x2000 + (address % 8))
+	case address == 0x4014:
+		return console.PPU.ReadDataForLog(address)
+	case address == 0x4015:
+		// APU registers
 	}
 	return 0xFF
 }
@@ -124,7 +139,6 @@ func (console *Console) CheckInterrupts() {
 	switch console.CPU.interrupt {
 	case interruptNMI:
 		console.nmi()
-		log.Println("NMI trigged!!!")
 	}
 	console.ClearInterrupt()
 }
