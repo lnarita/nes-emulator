@@ -16,7 +16,7 @@ func main() {
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 
 	args := os.Args
-	log.Printf("%s", args)
+	//log.Printf("%s", args)
 	fileName := args[1]
 
 	data, err := ioutil.ReadFile(fileName)
@@ -31,7 +31,7 @@ func main() {
 	controller1 := &processor.Controller{}
 	controller2 := &processor.Controller{}
 
-	console := processor.Console{CPU: cpu, PPU: ppu, Memory: mem, Controller1: controller1, Controller2: controller2}
+	console := processor.Console{Cartridge: car, CPU: cpu, PPU: ppu, Memory: mem, Controller1: controller1, Controller2: controller2}
 	ppu.Console = &console
 	ppu.Reset()
 
@@ -48,6 +48,11 @@ func check(e error) {
 func emulate(console *processor.Console) {
 	state := opcodes.State{}
 	for {
+		if console.CPU.Stall > 0 {
+			console.CPU.Stall--
+			console.Tick()
+			continue
+		}
 
 		start := time.Now()
 
@@ -80,10 +85,10 @@ func emulate(console *processor.Console) {
 
 		elapsed := time.Since(start).Seconds()
 		expected := processor.CyclePeriod * float64(cycle)
-		log.Printf("%s\n", state)
+		//log.Printf("%s\n", state)
 		//log.Printf("%s\n| elapsed: %0.15f - expected: %0.15f\n", state, elapsed, expected)
 		if elapsed >= expected {
-			log.Printf("<<<<< (%4s) - %0.15f >>>>>\n", state.OpCodeName, elapsed/expected)
+			//log.Printf("<<<<< (%4s) - %0.15f >>>>>\n", state.OpCodeName, elapsed/expected)
 		} else {
 			time.Sleep(time.Duration(expected-elapsed) * time.Second)
 		}

@@ -156,7 +156,7 @@ func (o sax) Exec(console *processor.Console, variation *Variation, state *State
 
 		/// log
 		state.hasData = true
-		state.data = console.FetchData(address)
+		state.data = console.FetchDataForLog(address)
 
 		variation.addressingMode.WriteTo(console, address, value)
 	}

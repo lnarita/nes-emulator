@@ -13,6 +13,7 @@ type CPU struct {
 	Flags byte
 
 	interrupt byte
+	Stall     int
 
 	Cycle int
 }

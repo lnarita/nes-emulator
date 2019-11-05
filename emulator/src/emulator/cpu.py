@@ -76,7 +76,7 @@ class CPUState:
                 np.uint16(self.pc), np.uint8(self.a), np.uint8(self.x), np.uint8(self.y), np.uint16(self.sp), self.p, self.__load_store_str())
 
     def __load_store_str(self):
-        return " MEM[0x%04x] = 0x%02x |" % (np.uint16(self.addr), np.uint8(self.data)) if (self.addr and self.data) else ""
+        return " MEM[0x%04x] = 0x%02x |" % (np.uint16(self.addr), np.uint8(self.data)) if (self.addr != None and self.data != None) else ""
 
 
 class CPU:

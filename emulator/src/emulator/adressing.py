@@ -5,11 +5,25 @@ from emulator.memory import MemoryPositions
 class AddressMode:
     @classmethod
     def write_to(cls, cpu, memory, addr, value):
-        return cpu.exec_in_cycle(memory.store, addr, value)
+        result = cpu.exec_in_cycle(memory.store, addr, value)
+        if addr == 0x2007:
+            if memory.ppu.ppuctrl & 0b0000100:
+                memory.ppu.ppuaddr += 32
+            else:
+                memory.ppu.ppuaddr += 1
+        elif addr == 0x2004:
+            memory.ppu.oamaddr += 1
+        return result
 
     @classmethod
-    def read_from(cls, cpu, memory, addr):
-        return cpu.exec_in_cycle(memory.fetch, addr)
+    def read_from(cls, cpu, memory, addr,ld=0):
+        result = cpu.exec_in_cycle(memory.fetch, addr,ld)
+        if addr == 0x2007:
+            if memory.ppu.ppuctrl & 0b0000100:
+                memory.ppu.ppuaddr += 32
+            else:
+                memory.ppu.ppuaddr += 1
+        return result
 
     @classmethod
     def fetch_address(cls, cpu, memory):
@@ -452,7 +466,7 @@ class Immediate(AddressMode):
         pass
 
     @classmethod
-    def read_from(cls, cpu, memory, addr):
+    def read_from(cls, cpu, memory, addr,ld=0):
         return addr
 
     @classmethod
@@ -485,7 +499,7 @@ class Accumulator(AddressMode):
         cpu.a = value
 
     @classmethod
-    def read_from(cls, cpu, memory, addr):
+    def read_from(cls, cpu, memory, addr,ld=0):
         return cpu.a
 
     @classmethod

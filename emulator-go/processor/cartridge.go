@@ -23,19 +23,19 @@ func (header INESHeader) String() string {
 
 // Cartridge the cartridge contents
 type Cartridge struct {
-	Header  INESHeader
-	Trainer []byte
-	ROM     []byte
-	CHR     []byte
-	RAM     []byte
-	Mapper  byte // Mapper type
-	Mirror  byte // mirroring mode. 0: horizontal; 1: vertical; 2: 4-screen VRAM
-	Battery bool // Battery present
+	Header    INESHeader
+	Trainer   []byte
+	ROM       []byte
+	CHR       []byte
+	RAM       []byte
+	Mapper    byte    // Mapper type
+	Mirroring *Mirror // Mirroring mode. 0: horizontal; 1: vertical; 2: 4-screen VRAM
+	Battery   bool    // Battery present
 }
 
 func (cartridge Cartridge) String() string {
 	var mirroring string
-	switch cartridge.Mirror {
+	switch cartridge.Mirroring.id {
 	case 0x0:
 		mirroring = "horizontal"
 	case 0x1:
@@ -119,9 +119,43 @@ func CartridgeFromBytes(content []byte) (*Cartridge, error) {
 				sram = make([]byte, SaveRamSize)
 			}
 
-			return &Cartridge{Header: header, Trainer: trainer, ROM: prgRom, CHR: chr, Mapper: mapper, RAM: sram, Mirror: mirroring, Battery: hasBattery}, nil
+			var mirror *Mirror
+			switch mirroring {
+			case 0:
+				mirror = horizontal
+			case 1:
+				mirror = vertical
+			case 2:
+				mirror = single0
+			case 3:
+				mirror = single1
+			default:
+				mirror = four
+			}
+
+			return &Cartridge{Header: header, Trainer: trainer, ROM: prgRom, CHR: chr, Mapper: mapper, RAM: sram, Mirroring: mirror, Battery: hasBattery}, nil
 		}
 	}
 
 	return nil, errors.New("invalid iNES Header")
 }
+
+type Mirror struct {
+	id          byte
+	lookupTable [4]uint16
+}
+
+func (mirror *Mirror) calcAddress(address uint16) uint16 {
+	addr := (address - 0x2000) % 0x1000
+	table := addr / 0x0400
+	offset := addr % 0x0400
+	return 0x2000 + mirror.lookupTable[table]*0x0400 + offset
+}
+
+var (
+	horizontal = &Mirror{id: 0, lookupTable: [4]uint16{0, 0, 1, 1}}
+	vertical   = &Mirror{id: 1, lookupTable: [4]uint16{0, 1, 0, 1}}
+	single0    = &Mirror{id: 2, lookupTable: [4]uint16{0, 0, 0, 0}}
+	single1    = &Mirror{id: 3, lookupTable: [4]uint16{1, 1, 1, 1}}
+	four       = &Mirror{id: 4, lookupTable: [4]uint16{0, 1, 2, 3}}
+)
