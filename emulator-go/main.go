@@ -8,6 +8,7 @@ import (
 
 	"students.ic.unicamp.br/goten/opcodes"
 	"students.ic.unicamp.br/goten/processor"
+	"students.ic.unicamp.br/goten/processor/apu"
 	"students.ic.unicamp.br/goten/ui"
 )
 
@@ -28,10 +29,11 @@ func main() {
 	mem := processor.Load(car)
 	cpu := processor.Setup(mem, false)
 	ppu := &processor.PPU{}
+	apu := &apu.APU{}
 	controller1 := &processor.Controller{}
 	controller2 := &processor.Controller{}
 
-	console := processor.Console{Cartridge: car, CPU: cpu, PPU: ppu, Memory: mem, Controller1: controller1, Controller2: controller2}
+	console := processor.Console{Cartridge: car, CPU: cpu, PPU: ppu, APU: apu, Memory: mem, Controller1: controller1, Controller2: controller2}
 	ppu.Console = &console
 	ppu.Reset()
 

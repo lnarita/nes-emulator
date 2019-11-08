@@ -3,6 +3,8 @@ package processor
 import (
 	"fmt"
 	"log"
+
+	"students.ic.unicamp.br/goten/processor/apu"
 )
 
 type Console struct {
@@ -10,6 +12,7 @@ type Console struct {
 	CPU         *CPU
 	PPU         *PPU
 	Memory      *Memory
+	APU         *apu.APU
 	Controller1 *Controller
 	Controller2 *Controller
 }
@@ -36,8 +39,9 @@ func (console *Console) FetchData(address uint16) byte {
 		return console.PPU.Read(0x2000 + (address % 8))
 	case address == 0x4014:
 		return console.PPU.Read(address)
-	case address == 0x4015:
+	case (address >= 0x4000 && address <= 0x4013) || (address == 0x4015) || (address == 0x4017):
 		// APU registers
+		return console.APU.Read(address)
 	case address == 0x4016:
 		return console.Controller1.Read()
 	case address == 0x4017:
