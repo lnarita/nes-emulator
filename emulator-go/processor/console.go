@@ -39,7 +39,7 @@ func (console *Console) FetchData(address uint16) byte {
 		return console.PPU.Read(0x2000 + (address % 8))
 	case address == 0x4014:
 		return console.PPU.Read(address)
-	case (address >= 0x4000 && address <= 0x4013) || (address == 0x4015) || (address == 0x4017):
+	case (address == 0x4015):
 		// APU registers
 		return console.APU.Read(address)
 	case address == 0x4016:
@@ -88,14 +88,18 @@ func (console *Console) StoreData(address uint16, data byte) {
 		console.Memory.Write(address, data)
 	case address < 0x4000:
 		console.PPU.Write(0x2000+(address%8), data)
+	case address >= 0x4000 && address <= 0x4013:
+		console.APU.Write(address, data)
 	case address == 0x4014:
 		console.PPU.Write(address, data)
 	case address == 0x4015:
+		console.APU.Write(address, data)
+	case address == 0x4017:
+		console.APU.Write(address, data)
 		// APU registers
 	case address == 0x4016:
 		console.Controller1.Write(data)
 		console.Controller2.Write(data)
-	case address == 0x4017:
 		// APU ???
 	case address < 0x6000:
 		// I/O registers

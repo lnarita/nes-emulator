@@ -2,13 +2,13 @@ package apu
 
 type APU struct {
 	// APU Registers per channel
-	pulse1        pulseRegister    // $4000-$4003
-	pulse2        pulseRegister    // $4004-$4007
-	triangle      triangleRegister // $4008-$400B
-	noise         noiseRegister    // $400C-$400F
-	dmc           dmcRegister      // $4010-$4013
-	channelEnable uint16           // $4015
-	frameCounter  uint16           // $4017
+	pulse1       pulseRegister        // $4000-$4003
+	pulse2       pulseRegister        // $4004-$4007
+	triangle     triangleRegister     // $4008-$400B
+	noise        noiseRegister        // $400C-$400F
+	dmc          dmcRegister          // $4010-$4013
+	status       statusRegister       // $4015
+	frameCounter frameCounterRegister // $4017
 
 }
 
@@ -34,35 +34,8 @@ type dmcRegister struct {
 
 func (apu *APU) Read(address uint16) byte {
 	switch address {
-	case 0x4000:
-		return apu.pulse1.readByte1()
-	case 0x4001:
-		return apu.pulse1.readByte2()
-	case 0x4002:
-		return apu.pulse1.readByte3()
-	case 0x4003:
-		return apu.pulse1.readByte4()
-	case 0x4004:
-		return apu.pulse2.readByte1()
-	case 0x4005:
-		return apu.pulse2.readByte2()
-	case 0x4006:
-		return apu.pulse2.readByte3()
-	case 0x4007:
-		return apu.pulse2.readByte4()
-	case 0x4008:
-	case 0x4009:
-	case 0x400A:
-	case 0x400B:
-	case 0x400C:
-	case 0x400D:
-	case 0x400E:
-	case 0x400F:
-	case 0x4010:
-	case 0x4012:
-	case 0x4013:
 	case 0x4015:
-	case 0x4017:
+		return apu.status.read(apu)
 	}
 
 	return 0
@@ -98,7 +71,9 @@ func (apu *APU) Write(address uint16, data byte) {
 	case 0x4012:
 	case 0x4013:
 	case 0x4015:
+		apu.status.write(data)
 	case 0x4017:
+		apu.frameCounter.write(data)
 	}
 
 }
