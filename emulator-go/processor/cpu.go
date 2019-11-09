@@ -50,7 +50,7 @@ func (cpu *CPU) Reset(memory *Memory) {
 	resetAddress := resetAddressHigh<<8 | resetAddressLow
 	cpu.PC = resetAddress
 	cpu.Flags = 0x24
-	cpu.SP = 0x1FD
+	cpu.SP = 0x1FF
 }
 
 func (cpu *CPU) updateFlagBit(value bool, bit byte, inv byte) {

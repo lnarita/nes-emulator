@@ -138,7 +138,9 @@ func (console *Console) ClearInterrupt() {
 func (console *Console) CheckInterrupts() {
 	switch console.CPU.interrupt {
 	case interruptNMI:
+		//log.Printf("NMI!")
 		console.nmi()
+		//log.Printf("PC: %04X", console.CPU.PC)
 	}
 	console.ClearInterrupt()
 }
@@ -149,8 +151,8 @@ func (console *Console) nmi() {
 	console.StackPushData(value)
 	console.CPU.PC = console.FetchAddress(0xFFFA)
 	console.CPU.DisableInterrupts(true)
-	for i := 0; i < 7; i++ {
-		console.CPU.Cycle += 7
-		//console.Tick()
-	}
+	console.CPU.Stall += 4
+	//for i := 0; i < 7; i++ {
+	//	console.Tick()
+	//}
 }

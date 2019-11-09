@@ -127,19 +127,18 @@ func (o adc) Exec(console *processor.Console, variation *Variation, state *State
 	state.hasData = true
 	state.data = value
 
-	add := console.CPU.A
+	a := console.CPU.A
+	var carry byte
+	if console.CPU.HasCarry() {
+		carry = 1
+	} else {
+		carry = 0
+	}
 
-	result := add + value + (console.CPU.Flags & processor.CarryBit)
-	signal1 := (add >> 7) & 0x00FF
-	signal2 := (value >> 7) & 0x00FF
-	signalResult := (result >> 7) & 0x00FF
-	overflow := (signal1 == signal2) && (signal1 != signalResult)
-	carry := add > result
-
-	console.CPU.A = result
-	console.CPU.SetCarry(carry)
-	console.CPU.SetOverflow(overflow)
+	console.CPU.A = a + value + carry
 	console.CPU.SetZN(console.CPU.A)
+	console.CPU.SetCarry(int(a)+int(value)+int(carry) > 0xFF)
+	console.CPU.SetOverflow((a^value)&0x80 == 0 && (a^console.CPU.A)&0x80 != 0)
 
 	if stall {
 		cycleAcc++
@@ -633,7 +632,7 @@ func (o ror) Exec(console *processor.Console, variation *Variation, state *State
 	}
 	carry := (oldValue & 0b0000_0001) > 0
 
-	variation.addressingMode.WriteTo(console, address,byte(value))
+	variation.addressingMode.WriteTo(console, address, byte(value))
 	console.CPU.SetCarry(carry)
 	console.CPU.SetZN(byte(value))
 

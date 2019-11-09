@@ -65,8 +65,6 @@ func emulate(console *processor.Console) {
 		state.Flags = console.CPU.Flags
 		state.Cycle = console.CPU.Cycle
 
-		console.CheckInterrupts()
-
 		decoded := fetchAndDecodeInstruction(console)
 		console.CPU.PC++
 
@@ -75,6 +73,11 @@ func emulate(console *processor.Console) {
 
 		cycle := decoded.Opc.Exec(console, &decoded.Variation, &state)
 
+		//log.Printf("%s\n", state)
+		console.CheckInterrupts()
+		//if console.CPU.Cycle == 89346 {
+		//	log.Printf("0000")
+		//}
 		for i := 0; i < cycle; i++ {
 			console.Tick()
 		}
@@ -86,13 +89,12 @@ func emulate(console *processor.Console) {
 		elapsed := time.Since(start).Seconds()
 		expected := processor.CyclePeriod * float64(cycle)
 		//log.Printf("%s\n", state)
-		//log.Printf("%s\n| elapsed: %0.15f - expected: %0.15f\n", state, elapsed, expected)
 		if elapsed >= expected {
 			//log.Printf("<<<<< (%4s) - %0.15f >>>>>\n", state.OpCodeName, elapsed/expected)
 		} else {
 			time.Sleep(time.Duration(expected-elapsed) * time.Second)
 		}
-		//time.Sleep(500000)
+		time.Sleep(100)
 	}
 
 }
