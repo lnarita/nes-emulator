@@ -1,6 +1,8 @@
 package apu
 
 type pulseRegister struct {
+	dutyCounter byte
+
 	// byte 1
 	duty           byte // DDLC VVVV
 	envelopeLoop   bool
@@ -17,18 +19,20 @@ type pulseRegister struct {
 	timerLow byte
 
 	// byte 4
-	lengthCounterLoad byte // LLLL LTTT
-	timerHigh         byte
+	lengthCounter byte // LLLL LTTT
+	timerHigh     byte
 
-	dutyCycleSequences map[int]byte
+	timerValue uint16
+
+	dutyCycleSequences map[byte][]byte
 }
 
 func (p *pulseRegister) init() {
-	p.dutyCycleSequences = make(map[int]byte)
-	p.dutyCycleSequences[0] = 0b01000000 // 12.5%
-	p.dutyCycleSequences[1] = 0b01100000 // 25%
-	p.dutyCycleSequences[2] = 0b01111000 // 50%
-	p.dutyCycleSequences[3] = 0b10011111 // 25% negated
+	p.dutyCycleSequences = make(map[byte][]byte)
+	p.dutyCycleSequences[0] = []byte{0, 1, 0, 0, 0, 0, 0, 0} // 12.5%
+	p.dutyCycleSequences[1] = []byte{0, 1, 1, 0, 0, 0, 0, 0} // 25%
+	p.dutyCycleSequences[2] = []byte{0, 1, 1, 1, 1, 0, 0, 0} // 50%
+	p.dutyCycleSequences[3] = []byte{1, 0, 0, 1, 1, 1, 1, 1} // 25% negated
 }
 
 func (p *pulseRegister) writeByte1(data byte) {
@@ -50,18 +54,41 @@ func (p *pulseRegister) writeByte3(data byte) {
 }
 
 func (p *pulseRegister) writeByte4(data byte) {
-	p.lengthCounterLoad = data >> 3
+	p.lengthCounter = data >> 3
 	p.timerLow = data & 0b0000111
 }
 
-const cpuFrequency = 1.79e6 // to avoid cyclic imports
+func (p *pulseRegister) getTimerPeriod() uint16 {
+	return uint16((uint16(p.timerLow)) | (uint16(p.timerHigh) << 5))
+}
 
 func (p *pulseRegister) getFrequency() int {
-	period := int((uint16(p.timerLow)) | (uint16(p.timerHigh) << 5))
+	period := int(p.getTimerPeriod())
 	return cpuFrequency / (16 * period)
 }
 
-func (p *pulseRegister) outputVolume() byte {
+func (p *pulseRegister) stepTimer() {
+	if p.timerValue == 0 {
+		p.timerValue = p.getTimerPeriod()
+		p.dutyCounter = (p.dutyCounter + 1) % 8
+	} else {
+		p.timerValue--
+	}
+}
+
+func (p *pulseRegister) outputValue() byte {
+	if p.lengthCounter == 0 { // disabled
+		return 0
+	}
+
+	if p.dutyCycleSequences[p.duty][p.dutyCounter] == 0 {
+		return 0
+	}
+
+	if p.getTimerPeriod() < 8 || p.getTimerPeriod() > 0x7FF { // if timer size is invalid
+		return 0
+	}
+
 	//check if envelope is enabled
 	return p.volume
 }

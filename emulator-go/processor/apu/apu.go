@@ -1,5 +1,8 @@
 package apu
 
+const cpuFrequency = 1.79e6 // to avoid cyclic imports
+const frameCounterRate = cpuFrequency / 240.0
+
 type APU struct {
 	// APU Registers per channel
 	pulse1       pulseRegister        // $4000-$4003
@@ -10,26 +13,15 @@ type APU struct {
 	status       statusRegister       // $4015
 	frameCounter frameCounterRegister // $4017
 
+	cycle uint64
+
+	mixer
 }
 
-type triangleRegister struct {
-	timer         uint16
-	lengthCounter uint16
-	linearCounter uint16
-}
-
-type noiseRegister struct {
-	timer                       uint16
-	lengthCounter               uint16
-	envelope                    uint16
-	linearFeedbackShiftRegister uint16
-}
-
-type dmcRegister struct {
-	timer        uint16
-	memoryReader uint16
-	sampleBuffer uint16
-	outputUnit   uint16
+func (apu *APU) Init() {
+	apu.mixer.init()
+	apu.pulse1.init()
+	apu.pulse2.init()
 }
 
 func (apu *APU) Read(address uint16) byte {
@@ -71,9 +63,16 @@ func (apu *APU) Write(address uint16, data byte) {
 	case 0x4012:
 	case 0x4013:
 	case 0x4015:
-		apu.status.write(data)
+		apu.status.write(data, apu)
 	case 0x4017:
 		apu.frameCounter.write(data)
 	}
 
+}
+
+func (apu *APU) Step() float64 {
+	apu.pulse1.stepTimer()
+	apu.pulse2.stepTimer()
+
+	return apu.mixer.output(apu)
 }
