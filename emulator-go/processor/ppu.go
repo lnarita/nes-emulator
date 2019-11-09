@@ -68,6 +68,8 @@ func (ppu *PPU) Step() {
 }
 
 func (ppu *PPU) Tick() {
+	//log.Printf("[tick] V: %04X", ppu.v)
+
 	if ppu.nmiDelay > 0 {
 		ppu.nmiDelay--
 		if ppu.nmiDelay == 0 && ppu.nmiOutput && ppu.nmiOccurred {
@@ -297,6 +299,8 @@ func (ppu *PPU) readData() byte {
 		res = ppu.rd(ppu.v)
 	}
 	ppu.v += ppu.Ctrl.addressIncrement
+
+	//log.Printf("[readData] V: %04X", ppu.v)
 	return res
 }
 
@@ -360,12 +364,16 @@ func (ppu *PPU) writeAddress(data byte) {
 		ppu.v = ppu.t
 	}
 	ppu.latch = !ppu.latch
+
+	//log.Printf("[writeAddress] V: %04X", ppu.v)
 }
 
 // OK?
 func (ppu *PPU) writeData(data byte) {
 	ppu.wr(ppu.v, data)
 	ppu.v += ppu.Ctrl.addressIncrement
+
+	//log.Printf("[writeData] V: %04X", ppu.v)
 }
 
 func (ppu *PPU) wr(address uint16, data byte) {
@@ -492,6 +500,8 @@ func (ppu *PPU) hScroll(render bool) {
 		// increment coarse X
 		ppu.v++
 	}
+
+	//log.Printf("[incrementX] V: %04X", ppu.v)
 }
 
 func (ppu *PPU) vScroll(render bool) {
@@ -523,37 +533,40 @@ func (ppu *PPU) vScroll(render bool) {
 		// put coarse Y back into v
 		ppu.v = (ppu.v & 0xFC1F) | (y << 5)
 	}
+	//log.Printf("[incrementY] V: %04X", ppu.v)
 }
 
 func (ppu *PPU) hUpdate(render bool) {
 	if !render {
 		return
 	}
-	// v: .....F.. ...EDCBA = t: .....F.. ...EDCBA
 	ppu.v = (ppu.v & 0xFBE0) | (ppu.t & 0x041F)
+	//log.Printf("[copyX] V: %04X", ppu.v)
 }
 func (ppu *PPU) vUpdate(render bool) {
 	if !render {
 		return
 	}
-	// v: .IHGF.ED CBA..... = t: .IHGF.ED CBA.....
 	ppu.v = (ppu.v & 0x841F) | (ppu.t & 0x7BE0)
+	//log.Printf("[copyY] V: %04X", ppu.v)
 }
 
 func (ppu *PPU) writePalette(address uint16, data byte) {
-	index := address
-	if index >= 16 && index%4 == 0 {
-		index -= 16
-	}
+	index := mirrorPaletteAddress(address)
 	ppu.palettes[index] = data
 }
 
 func (ppu *PPU) readPalette(address uint16) byte {
+	index := mirrorPaletteAddress(address)
+	return ppu.palettes[index]
+}
+
+func mirrorPaletteAddress(address uint16) uint16 {
 	index := address
 	if index >= 16 && index%4 == 0 {
 		index -= 16
 	}
-	return ppu.palettes[index]
+	return index
 }
 
 func (ppu *PPU) storeTileData() {

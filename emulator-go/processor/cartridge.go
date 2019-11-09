@@ -113,11 +113,13 @@ func CartridgeFromBytes(content []byte) (*Cartridge, error) {
 			offset += len(trainer)
 			prgRom := content[offset:(header.PrgRomSize + offset)]
 			offset += header.PrgRomSize
-			chr := content[offset:(header.ChrRomSize + offset)]
-			var sram []byte
-			if hasBattery {
-				sram = make([]byte, SaveRamSize)
+			var chr []byte
+			if header.ChrRomSize == 0 {
+				chr = make([]byte, 8192)
+			} else {
+				chr = content[offset:(header.ChrRomSize + offset)]
 			}
+			sram := make([]byte, SaveRamSize)
 
 			var mirror *Mirror
 			switch mirroring {
