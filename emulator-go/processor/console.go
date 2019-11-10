@@ -23,6 +23,7 @@ func (console Console) String() string {
 
 func (console *Console) Tick() {
 	console.PPU.Step()
+	console.APU.Step()
 	console.CPU.Tick()
 }
 

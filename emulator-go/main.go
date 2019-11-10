@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/gordonklaus/portaudio"
 	"students.ic.unicamp.br/goten/opcodes"
 	"students.ic.unicamp.br/goten/processor"
 	"students.ic.unicamp.br/goten/processor/apu"
@@ -13,6 +14,9 @@ import (
 )
 
 func main() {
+	portaudio.Initialize()
+	defer portaudio.Terminate()
+
 	log.SetOutput(os.Stdout)
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 
@@ -29,7 +33,12 @@ func main() {
 	mem := processor.Load(car)
 	cpu := processor.Setup(mem, false)
 	ppu := &processor.PPU{}
+	audio := ui.NewAudio()
 	apu := &apu.APU{}
+	err = audio.Start(apu.Channel)
+	check(err)
+	apu.SampleRate = processor.CPUFrequency / audio.SampleRate
+	apu.Init()
 	controller1 := &processor.Controller{}
 	controller2 := &processor.Controller{}
 
