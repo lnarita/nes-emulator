@@ -1,28 +1,32 @@
 package apu
 
+import "log"
+
 type mixer struct {
-	pulseTable []float64
-	tndTable   []float64
+	pulseTable []float32
+	tndTable   []float32
 }
 
 func (m *mixer) init() {
-	m.pulseTable = []float64{}
-	m.tndTable = []float64{}
+	m.pulseTable = []float32{}
+	m.tndTable = []float32{}
 	for i := 0; i < 203; i++ {
-		var entry float64 = 163.67 / (24329.0/float64(i) + 100.0)
+		var entry float32 = 163.67 / (24329.0/float32(i) + 100.0)
 		m.tndTable = append(m.tndTable, entry)
 	}
 
 	for i := 0; i < 31; i++ {
-		var entry float64 = 95.52 / (8128.0/float64(i) + 100.0)
+		var entry float32 = 95.52 / (8128.0/float32(i) + 100.0)
 		m.pulseTable = append(m.pulseTable, entry)
 	}
 }
 
-func (m *mixer) output(apu *APU) float64 {
+func (m *mixer) output(apu *APU) float32 {
 
-	p1 := byte(10) //apu.pulse1.outputValue()
-	// log.Println(p1)
+	p1 := apu.pulse1.outputValue()
+	if p1 != 0 {
+		log.Println(p1)
+	}
 	p2 := apu.pulse2.outputValue()
 	t := apu.triangle.outputValue()
 	n := apu.noise.outputValue()

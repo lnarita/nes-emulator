@@ -17,6 +17,12 @@ func main() {
 	portaudio.Initialize()
 	defer portaudio.Terminate()
 
+	audio := ui.NewAudio()
+	if err := audio.Start(); err != nil {
+		log.Fatalln(err)
+	}
+	defer audio.Stop()
+
 	log.SetOutput(os.Stdout)
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 
@@ -33,12 +39,9 @@ func main() {
 	mem := processor.Load(car)
 	cpu := processor.Setup(mem, false)
 	ppu := &processor.PPU{}
-	audio := ui.NewAudio()
 	apu := &apu.APU{}
-	err = audio.Start(apu.Channel)
-	check(err)
 	apu.SampleRate = processor.CPUFrequency / audio.SampleRate
-	apu.Init()
+	apu.Init(audio.Channel)
 	controller1 := &processor.Controller{}
 	controller2 := &processor.Controller{}
 

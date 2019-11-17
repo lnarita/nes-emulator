@@ -1,8 +1,6 @@
 package ui
 
 import (
-	"log"
-
 	"github.com/gordonklaus/portaudio"
 )
 
@@ -10,16 +8,16 @@ type Audio struct {
 	stream         *portaudio.Stream
 	SampleRate     float64
 	outputChannels int
-	channel        chan float64
+	Channel        chan float32
 }
 
 func NewAudio() *Audio {
 	a := Audio{}
+	a.Channel = make(chan float32, 44100)
 	return &a
 }
 
-func (a *Audio) Start(c chan float64) error {
-	a.channel = c
+func (a *Audio) Start() error {
 	host, err := portaudio.DefaultHostApi()
 	if err != nil {
 		return err
@@ -34,7 +32,6 @@ func (a *Audio) Start(c chan float64) error {
 	}
 	a.stream = stream
 	a.SampleRate = parameters.SampleRate
-	log.Println(parameters.SampleRate)
 	a.outputChannels = parameters.Output.Channels
 	return nil
 }
@@ -48,13 +45,12 @@ func (a *Audio) Callback(out []float32) {
 	for i := range out {
 		if i%a.outputChannels == 0 {
 			select {
-			case sample := <-a.channel:
-				output = float32(sample)
+			case sample := <-a.Channel:
+				output = sample
 			default:
 				output = 0
 			}
 		}
 		out[i] = output
 	}
-	// log.Println(out)
 }

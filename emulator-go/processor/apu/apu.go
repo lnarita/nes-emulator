@@ -1,7 +1,5 @@
 package apu
 
-import "log"
-
 const cpuFrequency = 1.79e6 // to avoid cyclic imports
 const frameCounterRate = cpuFrequency / 240.0
 
@@ -19,15 +17,15 @@ type APU struct {
 
 	mixer
 
-	Channel    chan float64
+	Channel    chan float32
 	SampleRate float64
 }
 
-func (apu *APU) Init() {
+func (apu *APU) Init(channel chan float32) {
 	apu.mixer.init()
 	apu.pulse1.init()
 	apu.pulse2.init()
-	apu.Channel = make(chan float64, 44100)
+	apu.Channel = channel
 }
 
 func (apu *APU) Read(address uint16) byte {
@@ -84,7 +82,6 @@ func (apu *APU) Step() {
 	s1 := int(float64(apu.cycle-1) / apu.SampleRate)
 	s2 := int(float64(apu.cycle) / apu.SampleRate)
 	if s1 != s2 {
-		log.Println("send stuff")
 		select {
 		case apu.Channel <- apu.mixer.output(apu):
 		default:
