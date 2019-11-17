@@ -1,7 +1,5 @@
 package apu
 
-import "log"
-
 type mixer struct {
 	pulseTable []float64
 	tndTable   []float64
@@ -24,7 +22,7 @@ func (m *mixer) init() {
 func (m *mixer) output(apu *APU) float64 {
 
 	p1 := byte(10) //apu.pulse1.outputValue()
-	log.Println(p1)
+	// log.Println(p1)
 	p2 := apu.pulse2.outputValue()
 	t := apu.triangle.outputValue()
 	n := apu.noise.outputValue()

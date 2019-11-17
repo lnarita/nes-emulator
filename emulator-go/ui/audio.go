@@ -56,4 +56,5 @@ func (a *Audio) Callback(out []float32) {
 		}
 		out[i] = output
 	}
+	// log.Println(out)
 }

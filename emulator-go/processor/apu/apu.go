@@ -85,10 +85,10 @@ func (apu *APU) Step() {
 	s2 := int(float64(apu.cycle) / apu.SampleRate)
 	if s1 != s2 {
 		log.Println("send stuff")
-
 		select {
 		case apu.Channel <- apu.mixer.output(apu):
 		default:
 		}
+
 	}
 }
