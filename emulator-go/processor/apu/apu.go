@@ -76,8 +76,10 @@ func (apu *APU) Write(address uint16, data byte) {
 
 func (apu *APU) Step() {
 	apu.cycle++
-	apu.pulse1.stepTimer()
-	apu.pulse2.stepTimer()
+	if apu.cycle%2 == 0 {
+		apu.pulse1.stepTimer()
+		apu.pulse2.stepTimer()
+	}
 
 	s1 := int(float64(apu.cycle-1) / apu.SampleRate)
 	s2 := int(float64(apu.cycle) / apu.SampleRate)

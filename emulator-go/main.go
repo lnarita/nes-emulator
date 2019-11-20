@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"runtime"
 	"time"
 
 	"github.com/gordonklaus/portaudio"
@@ -13,7 +14,13 @@ import (
 	"students.ic.unicamp.br/goten/ui"
 )
 
+var start time.Time
+var cycles int = 0
+
 func main() {
+	// we need a parallel OS thread to avoid audio stuttering
+	runtime.GOMAXPROCS(1)
+
 	portaudio.Initialize()
 	defer portaudio.Terminate()
 
@@ -68,7 +75,9 @@ func emulate(console *processor.Console) {
 			continue
 		}
 
-		start := time.Now()
+		if cycles == 0 {
+			start = time.Now()
+		}
 
 		state.ClearState()
 		state.PC = console.CPU.PC
@@ -86,7 +95,7 @@ func emulate(console *processor.Console) {
 		state.OpCode = decoded.Variation
 
 		cycle := decoded.Opc.Exec(console, &decoded.Variation, &state)
-
+		cycles += cycle
 		//log.Printf("%s\n", state)
 		console.CheckInterrupts()
 		//if console.CPU.Cycle == 89346 {
@@ -101,14 +110,14 @@ func emulate(console *processor.Console) {
 		}
 
 		elapsed := time.Since(start).Seconds()
-		expected := processor.CyclePeriod * float64(cycle)
-		//log.Printf("%s\n", state)
-		if elapsed >= expected {
-			//log.Printf("<<<<< (%4s) - %0.15f >>>>>\n", state.OpCodeName, elapsed/expected)
-		} else {
-			time.Sleep(time.Duration(expected-elapsed) * time.Second)
+		expected := processor.CyclePeriod * float64(cycles)
+		toSleep := (expected - elapsed) * 1000000
+		if toSleep > 1000 {
+
+			time.Sleep(time.Duration(toSleep) * time.Microsecond)
+			cycles = 0
 		}
-		time.Sleep(100)
+
 	}
 
 }
