@@ -13,17 +13,30 @@ var (
 )
 
 func readController() {
-	buttons := [8]bool{
-		ebiten.IsKeyPressed(ebiten.KeyA),     // 0 - A
-		ebiten.IsKeyPressed(ebiten.KeyS),     // 1 - B
-		ebiten.IsKeyPressed(ebiten.KeyZ),     // 2 - SELECT
-		ebiten.IsKeyPressed(ebiten.KeyX),     // 3 - START
+	buttons1 := [8]bool{
+		ebiten.IsKeyPressed(ebiten.KeyJ),     // 0 - A
+		ebiten.IsKeyPressed(ebiten.KeyK),     // 1 - B
+		ebiten.IsKeyPressed(ebiten.KeyM),     // 2 - SELECT
+		ebiten.IsKeyPressed(ebiten.KeyComma), // 3 - START
 		ebiten.IsKeyPressed(ebiten.KeyUp),    // 4 - UP
 		ebiten.IsKeyPressed(ebiten.KeyDown),  // 5 - DOWN
 		ebiten.IsKeyPressed(ebiten.KeyLeft),  // 6 - LEFT
 		ebiten.IsKeyPressed(ebiten.KeyRight), // 7 - RIGHT
 	}
-	console.Controller1.SetButtons(buttons)
+	console.Controller1.SetButtons(buttons1)
+
+
+	buttons2 := [8]bool{
+		ebiten.IsKeyPressed(ebiten.KeyR),     // 0 - A
+		ebiten.IsKeyPressed(ebiten.KeyT),     // 1 - B
+		ebiten.IsKeyPressed(ebiten.KeyF),     // 2 - SELECT
+		ebiten.IsKeyPressed(ebiten.KeyG),     // 3 - START
+		ebiten.IsKeyPressed(ebiten.KeyW),     // 4 - UP
+		ebiten.IsKeyPressed(ebiten.KeyS),     // 5 - DOWN
+		ebiten.IsKeyPressed(ebiten.KeyA),     // 6 - LEFT
+		ebiten.IsKeyPressed(ebiten.KeyD),     // 7 - RIGHT
+	}
+	console.Controller2.SetButtons(buttons2)
 }
 
 // Draw paints current game state.
