@@ -1,5 +1,10 @@
 package apu
 
+var lengthTable = []byte{
+	10, 254, 20, 2, 40, 4, 80, 6, 160, 8, 60, 10, 14, 12, 26, 14,
+	12, 16, 24, 18, 48, 20, 96, 22, 192, 24, 72, 26, 16, 28, 32, 30,
+}
+
 type pulseRegister struct {
 	dutyCounter byte
 
@@ -29,6 +34,11 @@ type pulseRegister struct {
 	initEnvelope   bool
 	envelopeVolume byte
 	envelopeValue  byte
+
+	initSweep  bool
+	sweepValue byte
+
+	timerPeriod uint16
 }
 
 func (p *pulseRegister) init() {
@@ -52,29 +62,24 @@ func (p *pulseRegister) writeByte2(data byte) {
 	p.sweepPeriod = (data & 0b01110000) >> 4
 	p.sweepNegate = ((data << 4) >> 7) == 1
 	p.sweepShift = data & 0b0000111
+	p.initSweep = true
 }
 
 func (p *pulseRegister) writeByte3(data byte) {
 	p.timerLow = data
+	p.timerPeriod = (p.timerPeriod & 0xFF00) | uint16(data)
 }
 
 func (p *pulseRegister) writeByte4(data byte) {
-	p.lengthCounter = data >> 3
-	p.timerLow = data & 0b0000111
-}
-
-func (p *pulseRegister) getTimerPeriod() uint16 {
-	return uint16((uint16(p.timerLow)) | (uint16(p.timerHigh) << 5))
-}
-
-func (p *pulseRegister) getFrequency() int {
-	period := int(p.getTimerPeriod())
-	return cpuFrequency / (16 * period)
+	p.lengthCounter = lengthTable[data>>3]
+	p.timerHigh = data & 0b0000111
+	p.timerPeriod = (p.timerPeriod & 0x00FF) | (uint16(data&7) << 8)
+	p.dutyCounter = 0
 }
 
 func (p *pulseRegister) stepTimer() {
 	if p.timerValue == 0 {
-		p.timerValue = p.getTimerPeriod()
+		p.timerValue = p.timerPeriod
 		p.dutyCounter = (p.dutyCounter + 1) % 8
 	} else {
 		p.timerValue--
@@ -98,6 +103,35 @@ func (p *pulseRegister) stepEnvelope() {
 	}
 }
 
+func (p *pulseRegister) stepSweep(pulse1 bool) {
+	if p.initSweep {
+		if p.sweepUnitEnabled && p.sweepValue == 0 {
+			p.doSweep(pulse1)
+		}
+		p.sweepValue = p.sweepPeriod
+		p.initSweep = false
+	} else if p.sweepValue > 0 {
+		p.sweepValue--
+	} else {
+		if p.sweepUnitEnabled {
+			p.doSweep(pulse1)
+		}
+		p.sweepValue = p.sweepPeriod
+	}
+}
+
+func (p *pulseRegister) doSweep(pulse1 bool) {
+	barrel := p.timerPeriod >> p.sweepPeriod
+	if p.sweepNegate {
+		p.timerPeriod -= barrel
+		if pulse1 {
+			p.timerPeriod--
+		}
+	} else {
+		p.timerPeriod += barrel
+	}
+}
+
 func (p *pulseRegister) outputValue() byte {
 	if p.lengthCounter == 0 { // disabled
 		return 0
@@ -107,7 +141,7 @@ func (p *pulseRegister) outputValue() byte {
 		return 0
 	}
 
-	if p.getTimerPeriod() < 8 || p.getTimerPeriod() > 0x7FF { // if timer size is invalid
+	if p.timerPeriod < 8 || p.timerPeriod > 0x7FF { // if timer size is invalid
 		return 0
 	}
 

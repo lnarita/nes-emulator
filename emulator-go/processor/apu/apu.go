@@ -87,12 +87,23 @@ func (apu *APU) stepFrameCounter() {
 		apu.frameValue = (apu.frameValue + 1) % 4
 		apu.pulse1.stepEnvelope()
 		apu.pulse2.stepEnvelope()
+
+		switch apu.frameValue {
+		case 1, 3:
+			apu.pulse1.stepSweep(true)
+			apu.pulse2.stepSweep(false)
+		}
 	case 1:
 		apu.frameValue = (apu.frameValue + 1) % 5
 		switch apu.frameValue {
 		case 0, 1, 2, 3:
 			apu.pulse1.stepEnvelope()
 			apu.pulse2.stepEnvelope()
+		}
+		switch apu.frameValue {
+		case 1, 3:
+			apu.pulse1.stepSweep(true)
+			apu.pulse2.stepSweep(false)
 		}
 	}
 }
