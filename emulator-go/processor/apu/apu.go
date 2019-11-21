@@ -19,6 +19,8 @@ type APU struct {
 
 	Channel    chan float32
 	SampleRate float64
+
+	frameValue int
 }
 
 func (apu *APU) Init(channel chan float32) {
@@ -74,11 +76,38 @@ func (apu *APU) Write(address uint16, data byte) {
 
 }
 
+// mode 0:    mode 1:       function
+// ---------  -----------  -----------------------------
+//  - - - f    - - - - -    IRQ (if bit 6 is clear)
+//  - l - l    l - l - -    Length counter and sweep
+//  e e e e    e e e e -    Envelope and linear counter
+func (apu *APU) stepFrameCounter() {
+	switch apu.frameCounter.mode {
+	case 0:
+		apu.frameValue = (apu.frameValue + 1) % 4
+		apu.pulse1.stepEnvelope()
+		apu.pulse2.stepEnvelope()
+	case 1:
+		apu.frameValue = (apu.frameValue + 1) % 5
+		switch apu.frameValue {
+		case 0, 1, 2, 3:
+			apu.pulse1.stepEnvelope()
+			apu.pulse2.stepEnvelope()
+		}
+	}
+}
+
 func (apu *APU) Step() {
 	apu.cycle++
 	if apu.cycle%2 == 0 {
 		apu.pulse1.stepTimer()
 		apu.pulse2.stepTimer()
+	}
+
+	f1 := int(float64(apu.cycle-1) / frameCounterRate)
+	f2 := int(float64(apu.cycle) / frameCounterRate)
+	if f1 != f2 {
+		apu.stepFrameCounter()
 	}
 
 	s1 := int(float64(apu.cycle-1) / apu.SampleRate)

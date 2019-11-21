@@ -112,8 +112,7 @@ func emulate(console *processor.Console) {
 		elapsed := time.Since(start).Seconds()
 		expected := processor.CyclePeriod * float64(cycles)
 		toSleep := (expected - elapsed) * 1000000
-		if toSleep > 500 {
-
+		if toSleep > 1000 {
 			time.Sleep(time.Duration(toSleep) * time.Microsecond)
 			cycles = 0
 		}

@@ -25,6 +25,10 @@ type pulseRegister struct {
 	timerValue uint16
 
 	dutyCycleSequences map[byte][]byte
+
+	initEnvelope   bool
+	envelopeVolume byte
+	envelopeValue  byte
 }
 
 func (p *pulseRegister) init() {
@@ -40,6 +44,7 @@ func (p *pulseRegister) writeByte1(data byte) {
 	p.envelopeLoop = ((data << 2) >> 7) == 1
 	p.constantVolume = ((data << 3) >> 7) == 1
 	p.volume = data & 0b0001111
+	p.initEnvelope = true
 }
 
 func (p *pulseRegister) writeByte2(data byte) {
@@ -76,6 +81,23 @@ func (p *pulseRegister) stepTimer() {
 	}
 }
 
+func (p *pulseRegister) stepEnvelope() {
+	if p.initEnvelope {
+		p.envelopeVolume = 15
+		p.envelopeValue = p.volume
+		p.initEnvelope = false
+	} else if p.envelopeValue > 0 {
+		p.envelopeValue--
+	} else {
+		if p.envelopeVolume > 0 {
+			p.envelopeVolume--
+		} else if p.envelopeLoop {
+			p.envelopeVolume = 15
+		}
+		p.envelopeValue = p.volume
+	}
+}
+
 func (p *pulseRegister) outputValue() byte {
 	if p.lengthCounter == 0 { // disabled
 		return 0
@@ -89,6 +111,9 @@ func (p *pulseRegister) outputValue() byte {
 		return 0
 	}
 
-	//check if envelope is enabled
-	return p.volume
+	if p.constantVolume {
+		return p.volume
+	} else {
+		return p.envelopeVolume
+	}
 }
